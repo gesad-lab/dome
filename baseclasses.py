@@ -9,11 +9,26 @@ class MultChannelApp:
         self.user = 'root' 
         self.SE = SecurityEngine(self.system, self.user) #security engine instance
         #starting the python virtual env
+        #https://docs.python.org/3/tutorial/venv.html
         self.venv_path = self.system + '_env'
-        print('Creating the python virtual environment...')
-        os.system('python -m venv ' + self.venv_path)
-        print('Activating the python virtual environment...' + self.venv_path + '\Scripts\activate.bat')
-        os.system(self.venv_path + '\Scripts\activate.bat')
+        
+        if not os.path.exists(self.venv_path):
+            print('Creating the python virtual environment...')
+            os.system('python -m venv ' + self.venv_path)
+            
+        print('Activating the python virtual environment...')
+        os.chdir(self.venv_path)
+        os.system('Scripts\\activate.bat')
+        
+        self.webapp_path = self.system + '_web' 
+        if not os.path.exists(self.webapp_path):
+            #os.system('python.exe -m django --version')
+            os.system('django-admin startproject ' + self.webapp_path)
+        
+        os.chdir(self.system)
+        #os.system('py manage.py runserver')
+        #os.system('dir')
+        # + 
             
     #CRUD data operations
     def addData(self, data): 
@@ -94,3 +109,7 @@ class DomainTransformer:
             
     def updateModel(self, tasksList):
         return 'Modelo atualizado...' + str(tasksList)
+    
+#4tests
+sysTest = MultChannelApp()
+print(sysTest.addAttribute('att1', 'string', 'entity1'))

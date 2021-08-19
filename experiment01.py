@@ -1,5 +1,4 @@
 from baseclasses import *
-import os
 
 sysTest = MultChannelApp()
 
