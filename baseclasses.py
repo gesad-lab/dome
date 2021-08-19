@@ -1,40 +1,24 @@
 import os
 import subprocess as sp
 
+OPR_HOMEPAGE = 'homepage'
+
+
+#arquitecture classes
 class User:
     pass
 
 class MultChannelApp:
     def __init__(self):
-        self.system = 'sys_test'        
-        self.user = 'root' 
-        self.SE = SecurityEngine(self.system, self.user) #security engine instance
-        #starting the python virtual env
-        #https://docs.python.org/3/tutorial/venv.html
-        self.venv_path = self.system + '_env'
-        
-        if not os.path.exists(self.venv_path):
-            print('Creating the python virtual environment...')
-            os.system('python -m venv ' + self.venv_path)
-            
-        print('Activating the python virtual environment...')
-        os.chdir(self.venv_path + '\\Scripts')
-        os.system('activate.bat')
-        os.chdir('..\\')
-        #print(os.getcwd())
-
-        self.webapp_path = self.system + '_web' 
-        if not os.path.exists(self.webapp_path):
-            os.system('django-admin startproject ' + self.webapp_path)
-        
-        #os.system('python.exe ' + self.webapp_path + '\\manage.py runserver')
-        os.chdir(self.webapp_path)
-        self.webapp_process = sp.Popen(['python.exe', 'manage.py', 'runserver'], 
-                                stdout=sp.PIPE,
-                                universal_newlines=True, shell=True)        
-        #os.system('dir')
-        # + 
-            
+        self.system = 'sys_test'  #same system for all
+        self.user = 'root' #same user for all
+        #self.pwd = 'pwd'  #without password in this version
+        self.__SE = SecurityEngine(self) #security engine instance
+    
+    #navigate operations
+    def homePage(self):
+        return self.__SE.execute(OPR_HOMEPAGE)
+                    
     #CRUD data operations
     def addData(self, data): 
         pass
@@ -47,22 +31,32 @@ class MultChannelApp:
     #Meta-data operations
     def addAttribute(self, name, type, entity, notnull=False):
         opr = 'addAttribute: ' + name + '.' + type + '.' + entity #TODO
-        return self.SE.execute(opr)
+        return self.__SE.execute(opr)
        
     def delAttribute(self, name, type, entity):
         pass
     
+    
 class IntegrationEngine:
-    pass
+    def __init__(self, SE):
+        self.__SE = SE
 
 class ExternalService:
     pass
 
 class SecurityEngine:
-    def __init__(self, system, user):
-        self.system = system
-        self.user = user
-        self.AC = AutonomousController(system, user) #autonomous controller instance
+    def __init__(self, MUP, IE=None):
+        self.__MUP = MUP #Multchannel App
+        
+        if IE is None:
+            self.__IE = IntegrationEngine(self)
+        else:
+            self.__IE = IE #Integration Engine
+        
+        #TODO: security operations
+        #...
+        #user access allowed        
+        self.__AC = AutonomousController(self) #autonomous controller instance
 
     def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
@@ -72,14 +66,23 @@ class SecurityEngine:
             return None
         #else: authorized
         #call Autonomous Controller
-        task = self.system + ': ' + self.user + ': ' + opr #TODO
-        return self.AC.plan(task)
+        task = self.getSystem() + ': ' + self.getUser() + ': ' + opr #TODO: transform to object Task
+        return self.__AC.plan(task)
+
+    #util methods
+    def getSystem(self):
+        return self.__MUP.system
+
+    def getUser(self):
+        return self.__MUP.user
 
 class AutonomousController:
-    def __init__(self, system, user):
-        self.context = system + ': ' + user #context = system+opr
-        self.DT = DomainTransformer(self.context) #Domain Transform instance
-
+    def __init__(self, SE):
+        self.__SE = SE #Security Engine object
+        self.__DT = DomainTransformer(self) #Domain Transform object
+        self.__IC = InterfaceController(self) #Interface Controller object
+        self.__AIE = AIEngine(self) #Artificial Intelligence Engine object
+        
     def __monitor(self):
         pass
 
@@ -90,17 +93,60 @@ class AutonomousController:
         return self.__execute(task) #in this version, all tasks are going to be executed immediately
     
     def __execute(self, task):
+        #TODO: manager the type of task
+        #...
+        
         tasksList = [task]#.transform TODO
-        return self.DT.updateModel(tasksList)
+        return self.__DT.updateModel(tasksList)
         
     def __knowledge(self):
         pass
     
+    #util methods
+    def getSystem(self):
+        return self.__SE.getSystem()
+    
 class AIEngine:
-    pass
-
+    def __init__(self, AC):
+        self.__AC = AC #Autonomous Controller object
+    #TODO: AI Services
+    #...
+    
 class InterfaceController:
-    pass
+    def __init__(self, AC):
+        self.__AC = AC #Autonomous Controller Object
+        
+        #starting the python virtual env
+        #https://docs.python.org/3/tutorial/venv.html
+        self.__venv_path = self.getSystem() + '_env'
+        
+        if not os.path.exists(self.__venv_path):
+            print('Creating the python virtual environment...')
+            os.system('python -m venv ' + self.__venv_path) #synchronous
+            
+        print('Activating the python virtual environment...')
+        os.chdir(self.__venv_path + '\\Scripts')
+        os.system('activate.bat')
+        os.chdir('..\\')
+        #print(os.getcwd())
+
+        self.__webapp_path = self.getSystem() + '_web' 
+        if not os.path.exists(self.__webapp_path):
+            os.system('django-admin startproject ' + self.__webapp_path) #synchronous
+        
+        os.chdir(self.__webapp_path)
+        self.webapp_process = sp.Popen(['python.exe', 'manage.py', 'runserver'], #asynchronous
+                                stdout=sp.PIPE,
+                                universal_newlines=True, shell=True)        
+        #py manage.py startapp polls
+        #os.system('dir')
+        # + 
+        
+    #util methods
+    def getSystem(self):
+        return self.__AC.getSystem()
+
+
 
 class BusinessProcessEngine:
     pass
@@ -109,9 +155,8 @@ class AnalyticsEngine:
     pass
 
 class DomainTransformer:
-    def __init__(self, context):
-        self.context = context
+    def __init__(self, AC):
+        self.__AC = AC #Autonomous Controller Object
             
     def updateModel(self, tasksList):
         return 'Modelo atualizado...' + str(tasksList)
-    
