@@ -2,6 +2,43 @@ import os
 import subprocess as sp
 
 OPR_HOMEPAGE = 'homepage'
+OPR_ATTRIBUTE_ADD = 'attribute.add'
+
+class System:
+    def __init__(self, name):
+        self.name = name
+        self.__entities = []
+
+    def addEntity(self, name):
+        self.__entities.append(Entity('name'))
+        
+class Entity:
+    def __init__(self, name):
+        self.name = name
+        self.__attributes = []
+
+    def getAttributes(self):
+        return self.__attributes
+    
+    def addAttribute(self, name, type, notNull=False):
+        self.__attributes.append(Attribute(self, name, type, notNull))
+    def delAttribute(self, name):
+        self.__attributes.remove(name)
+
+class Attribute:
+    def __init__(self, entity, name, type, notNull=False):
+        self.__entity = entity
+        self.name = name
+        self.type = type
+        self.notNull = notNull
+        
+    def __eq__(self, o: object) -> bool:
+        if type(o) == type(''):
+            return self.name == o
+        elif type(o) == type(self):
+            return self.name == o.name
+        #else
+        return False 
 
 
 #arquitecture classes
@@ -10,7 +47,9 @@ class User:
 
 class MultChannelApp:
     def __init__(self):
-        self.system = 'sys_test'  #same system for all
+        self.system = System('sys_test')  #same system for all
+        self.currentEntity = Entity('entity_test') #in this version, only one entity
+        self.system.addEntity(self.currentEntity) 
         self.user = 'root' #same user for all
         #self.pwd = 'pwd'  #without password in this version
         self.__SE = SecurityEngine(self) #security engine instance
@@ -28,10 +67,10 @@ class MultChannelApp:
         pass
     def selectData(self): 
         pass
+    
     #Meta-data operations
-    def addAttribute(self, name, type, entity, notnull=False):
-        opr = 'addAttribute: ' + name + '.' + type + '.' + entity #TODO
-        return self.__SE.execute(opr)
+    def addAttribute(self, entity, name, type, notnull=False):
+        return self.__SE.execute(OPR_ATTRIBUTE_ADD, entity=entity, name=name, type=type, notnull=notnull)
        
     def delAttribute(self, name, type, entity):
         pass
@@ -61,13 +100,15 @@ class SecurityEngine:
     def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
 
-    def execute(self, opr):
+    def execute(self, opr, **params):
         if not(self.__authorize(opr)):
             return None
         #else: authorized
         #call Autonomous Controller
-        task = self.getSystem() + ': ' + self.getUser() + ': ' + opr #TODO: transform to object Task
-        return self.__AC.plan(task)
+        if opr == OPR_ATTRIBUTE_ADD:
+            return self.__AC.plan(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull'])
+        #else
+        return None
 
     #util methods
     def getSystem(self):
@@ -89,15 +130,20 @@ class AutonomousController:
     def __analyze(self):
         pass
     
-    def plan(self, task):
-        return self.__execute(task) #in this version, all tasks are going to be executed immediately
+    def plan(self, opr, **params):
+        #in this version, all tasks are going to be executed immediately
+        return self.__execute(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull']) 
     
-    def __execute(self, task):
+    def __execute(self, opr, **params):
         #TODO: manager the type of task
         #...
-        
-        tasksList = [task]#.transform TODO
-        return self.__DT.updateModel(tasksList)
+        if opr == OPR_ATTRIBUTE_ADD:
+            self.__DT.addAttribute(params.get('entity'), params.get('name')
+                                   , params.get('type'), params.get('notnull'))
+            self.__IC.updateAppWeb()
+            return True
+        #else
+        return None
         
     def __knowledge(self):
         pass
@@ -114,11 +160,15 @@ class AIEngine:
     
 class InterfaceController:
     def __init__(self, AC):
+        
+        #TODO: change for envoirment variable
+        os.chdir(os.getenv('TEXT2SYSTEM'))
+        
         self.__AC = AC #Autonomous Controller Object
         
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.getSystem() + '_env'
+        self.__venv_path = self.getSystem().name + '_env'
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -130,20 +180,21 @@ class InterfaceController:
         os.chdir('..\\')
         #print(os.getcwd())
 
-        self.__config_path = self.getSystem() + '_config' 
+        self.__config_path = self.getSystem().name + '_config' 
         if not os.path.exists(self.__config_path):
             os.system('django-admin startproject ' + self.__config_path) #synchronous
 
-        #os.chdir(self.__pdjango_path)
-        
-        self.__webapp_path = self.getSystem() + '_web' 
+        self.__webapp_path = self.getSystem().name + '_web' 
         if not os.path.exists(self.__webapp_path):
             os.system('python ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
+            
+        self.__runAsyncCmd('python ' + self.__config_path + '\\manage.py runserver')        
         
-        #
-        #os.system('dir')
-        # + 
-        
+    def updateAppWeb(self):
+        #update models.py
+        print(os.getcwd())    
+        return True
+    
     #util methods
     def getSystem(self):
         return self.__AC.getSystem()
@@ -163,5 +214,10 @@ class DomainTransformer:
     def __init__(self, AC):
         self.__AC = AC #Autonomous Controller Object
             
-    def updateModel(self, tasksList):
-        return 'Modelo atualizado...' + str(tasksList)
+    def addAttribute(self, entity, name, type, notnull=False):
+        #TODO: update meta data (MDB) and Transaction Data (TDB)
+        #...
+        entity.addAttribute(name, type, notnull)
+        return True
+    
+
