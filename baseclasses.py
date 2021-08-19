@@ -1,4 +1,5 @@
 import os
+import subprocess as sp
 
 class User:
     pass
@@ -17,16 +18,20 @@ class MultChannelApp:
             os.system('python -m venv ' + self.venv_path)
             
         print('Activating the python virtual environment...')
-        os.chdir(self.venv_path)
-        os.system('Scripts\\activate.bat')
-        
+        os.chdir(self.venv_path + '\\Scripts')
+        os.system('activate.bat')
+        os.chdir('..\\')
+        #print(os.getcwd())
+
         self.webapp_path = self.system + '_web' 
         if not os.path.exists(self.webapp_path):
-            #os.system('python.exe -m django --version')
             os.system('django-admin startproject ' + self.webapp_path)
         
-        os.chdir(self.system)
-        #os.system('py manage.py runserver')
+        #os.system('python.exe ' + self.webapp_path + '\\manage.py runserver')
+        os.chdir(self.webapp_path)
+        self.webapp_process = sp.Popen(['python.exe', 'manage.py', 'runserver'], 
+                                stdout=sp.PIPE,
+                                universal_newlines=True, shell=True)        
         #os.system('dir')
         # + 
             
@@ -110,6 +115,3 @@ class DomainTransformer:
     def updateModel(self, tasksList):
         return 'Modelo atualizado...' + str(tasksList)
     
-#4tests
-sysTest = MultChannelApp()
-print(sysTest.addAttribute('att1', 'string', 'entity1'))
