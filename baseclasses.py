@@ -1,10 +1,20 @@
+import os
+
 class User:
     pass
 
 class MultChannelApp:
     def __init__(self):
-        self.SE = SecurityEngine() #security engine instance
-    
+        self.system = 'sys_test'        
+        self.user = 'root' 
+        self.SE = SecurityEngine(self.system, self.user) #security engine instance
+        #starting the python virtual env
+        self.venv_path = self.system + '_env'
+        print('Creating the python virtual environment...')
+        os.system('python -m venv ' + self.venv_path)
+        print('Activating the python virtual environment...' + self.venv_path + '\Scripts\activate.bat')
+        os.system(self.venv_path + '\Scripts\activate.bat')
+            
     #CRUD data operations
     def addData(self, data): 
         pass
@@ -16,7 +26,9 @@ class MultChannelApp:
         pass
     #Meta-data operations
     def addAttribute(self, name, type, entity, notnull=False):
-        pass
+        opr = 'addAttribute: ' + name + '.' + type + '.' + entity #TODO
+        return self.SE.execute(opr)
+       
     def delAttribute(self, name, type, entity):
         pass
     
@@ -27,34 +39,41 @@ class ExternalService:
     pass
 
 class SecurityEngine:
-    def __init__(self):
-        self.AC = AutonomousController() #autonomous controller instance
+    def __init__(self, system, user):
+        self.system = system
+        self.user = user
+        self.AC = AutonomousController(system, user) #autonomous controller instance
 
-    def authorize(self, user, opr):
+    def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
 
-    def execute(self, user, opr):
-        if not(self.authorize(user, opr)):
+    def execute(self, opr):
+        if not(self.__authorize(opr)):
             return None
         #else: authorized
         #call Autonomous Controller
-        task = user + opr #TODO
+        task = self.system + ': ' + self.user + ': ' + opr #TODO
         return self.AC.plan(task)
 
 class AutonomousController:
-    def monitor(self):
+    def __init__(self, system, user):
+        self.context = system + ': ' + user #context = system+opr
+        self.DT = DomainTransformer(self.context) #Domain Transform instance
+
+    def __monitor(self):
         pass
 
-    def analyze(self):
+    def __analyze(self):
         pass
     
     def plan(self, task):
-        pass
+        return self.__execute(task) #in this version, all tasks are going to be executed immediately
     
-    def execute(self, user, opr):
-        pass
+    def __execute(self, task):
+        tasksList = [task]#.transform TODO
+        return self.DT.updateModel(tasksList)
         
-    def knowledge(self):
+    def __knowledge(self):
         pass
     
 class AIEngine:
@@ -70,5 +89,8 @@ class AnalyticsEngine:
     pass
 
 class DomainTransformer:
-    pass
-
+    def __init__(self, context):
+        self.context = context
+            
+    def updateModel(self, tasksList):
+        return 'Modelo atualizado...' + str(tasksList)
