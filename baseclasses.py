@@ -130,15 +130,17 @@ class InterfaceController:
         os.chdir('..\\')
         #print(os.getcwd())
 
+        self.__config_path = self.getSystem() + '_config' 
+        if not os.path.exists(self.__config_path):
+            os.system('django-admin startproject ' + self.__config_path) #synchronous
+
+        #os.chdir(self.__pdjango_path)
+        
         self.__webapp_path = self.getSystem() + '_web' 
         if not os.path.exists(self.__webapp_path):
-            os.system('django-admin startproject ' + self.__webapp_path) #synchronous
+            os.system('python ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
         
-        os.chdir(self.__webapp_path)
-        self.webapp_process = sp.Popen(['python.exe', 'manage.py', 'runserver'], #asynchronous
-                                stdout=sp.PIPE,
-                                universal_newlines=True, shell=True)        
-        #py manage.py startapp polls
+        #
         #os.system('dir')
         # + 
         
@@ -146,7 +148,10 @@ class InterfaceController:
     def getSystem(self):
         return self.__AC.getSystem()
 
-
+    def __runAsyncCmd(self, strCmd):
+        return sp.Popen(strCmd.split(), #asynchronous
+                                stdout=sp.PIPE,
+                                universal_newlines=True, shell=True)        
 
 class BusinessProcessEngine:
     pass
