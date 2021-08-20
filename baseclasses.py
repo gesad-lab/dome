@@ -175,10 +175,14 @@ class InterfaceController:
             os.system('python -m venv ' + self.__venv_path) #synchronous
             
         print('Activating the python virtual environment...')
-        os.chdir(self.__venv_path + '\\Scripts')
-        os.system('activate.bat')
-        os.chdir('..\\')
-        #print(os.getcwd())
+        os.chdir(self.__venv_path)
+        os.system('Scripts\\activate.bat')
+        #updating o pip
+        os.system('Scripts\\python.exe -m pip install --upgrade pip')
+        #install django in virtual environment
+        os.system('Scripts\\pip.exe install django')
+        #os.chdir('..\\')
+        print(os.getcwd())
 
         self.__config_path = self.getSystem().name + '_config' 
         if not os.path.exists(self.__config_path):
@@ -186,13 +190,13 @@ class InterfaceController:
 
         self.__webapp_path = self.getSystem().name + '_web' 
         if not os.path.exists(self.__webapp_path):
-            os.system('python ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
-            
-        self.__runAsyncCmd('python ' + self.__config_path + '\\manage.py runserver')        
+            os.system('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
+        os.chdir(self.__config_path)  
+        self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')        
         
     def updateAppWeb(self):
         #update models.py
-        print(os.getcwd())    
+        print('updating models.py...')    
         return True
     
     #util methods
