@@ -205,7 +205,8 @@ class InterfaceController:
                                       + '.apps.' + self.__webapp_path.replace('_','').title()
                                       + "Config',")
                 print(line, end='')
-            
+
+            self.migrateModel()
             #creating superuser
             #needs creating the follow system variables:
             #https://stackoverflow.com/questions/26963444/django-create-superuser-from-batch-file/26963549
@@ -215,8 +216,7 @@ class InterfaceController:
             os.environ['DJANGO_SUPERUSER_EMAIL'] = 'andersonmg@gmail.com'
             '''
             os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'root'
-            self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput --username=root --email=andersonmg@gmail.com')
-            #self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py syncdb --noinput --no-input')
+            self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
         self.migrateModel()
         self.__runServer() 
