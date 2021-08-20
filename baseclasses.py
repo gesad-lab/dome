@@ -225,6 +225,16 @@ class InterfaceController:
         self.__runAsyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py runserver')       
         
     def updateAppWeb(self):
+        #update admin.py
+        print('updating admin.py...')
+        strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
+        for entity in self.getSystem().getEntities():
+            strFileBuffer += '\n' + f'admin.site.register({entity.name.capitalize()})'
+
+        if not self.__updateFile(self.__webapp_path + '\\admin.py', strFileBuffer):
+            return False
+        #else:
+                
         #update models.py
         print('updating models.py...')
         strFileBuffer = 'from django.db import models\n'
@@ -232,24 +242,29 @@ class InterfaceController:
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
                 #all fiels with the same type, in this version.
-                strFileBuffer += f'\n    {att.name}_text = models.CharField(max_length=200, null={not att.notnull})' 
+                strFileBuffer += f'\n    {att.name}_text = models.CharField(max_length=200, null={not att.notnull}, blank={not att.notnull})' 
         #print(strFileBuffer)
         #re-writing the model.py file
-        model_filepath = self.__webapp_path + '\\models.py'
         
-        if not os.access(model_filepath, os.R_OK):
+        if not self.__updateFile(self.__webapp_path + '\\models.py', strFileBuffer):
             return False
-        
-        with open(model_filepath, 'w+', encoding='utf-8') as f:
-            f.write(strFileBuffer)
-            f.close()
-        
+        #else:
+                
         self.migrateModel()
         self.__runServer()
         
         return True
     
     #util methods
+    def __updateFile(self, path, txtContent):
+        if not os.access(path, os.R_OK):
+            return False
+        
+        with open(path, 'w+', encoding='utf-8') as f:
+            f.write(txtContent)
+            f.close()
+        return True     
+        
     def migrateModel(self):
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py makemigrations ' + self.__webapp_path)
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
