@@ -10,8 +10,13 @@ class System:
         self.__entities = []
 
     def addEntity(self, name):
-        self.__entities.append(Entity('name'))
-        
+        e = Entity(name)
+        self.__entities.append(e)
+        return e
+
+    def getEntities(self):
+        return self.__entities
+            
 class Entity:
     def __init__(self, name):
         self.name = name
@@ -48,8 +53,7 @@ class User:
 class MultChannelApp:
     def __init__(self):
         self.system = System('sys_test')  #same system for all
-        self.currentEntity = Entity('entity_test') #in this version, only one entity
-        self.system.addEntity(self.currentEntity) 
+        self.currentEntity = self.system.addEntity('entity_test') #in this version, only one entity
         self.user = 'root' #same user for all
         #self.pwd = 'pwd'  #without password in this version
         self.__SE = SecurityEngine(self) #security engine instance
@@ -111,7 +115,7 @@ class SecurityEngine:
         return None
 
     #util methods
-    def getSystem(self):
+    def getSystem(self) -> System:
         return self.__MUP.system
 
     def getUser(self):
@@ -149,7 +153,7 @@ class AutonomousController:
         pass
     
     #util methods
-    def getSystem(self):
+    def getSystem(self) -> System:
         return self.__SE.getSystem()
     
 class AIEngine:
@@ -175,14 +179,12 @@ class InterfaceController:
             os.system('python -m venv ' + self.__venv_path) #synchronous
             
         print('Activating the python virtual environment...')
-        os.chdir(self.__venv_path)
+        os.chdir(self.__venv_path) #will stay all runtime in this dir
         os.system('Scripts\\activate.bat')
         #updating o pip
         os.system('Scripts\\python.exe -m pip install --upgrade pip')
         #install django in virtual environment
         os.system('Scripts\\pip.exe install django')
-        #os.chdir('..\\')
-        print(os.getcwd())
 
         self.__config_path = self.getSystem().name + '_config' 
         if not os.path.exists(self.__config_path):
@@ -191,16 +193,27 @@ class InterfaceController:
         self.__webapp_path = self.getSystem().name + '_web' 
         if not os.path.exists(self.__webapp_path):
             os.system('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
-        os.chdir(self.__config_path)  
-        self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')        
+                
+        os.system('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
+        self.__runAsyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py runserver')        
         
     def updateAppWeb(self):
         #update models.py
-        print('updating models.py...')    
+        print('updating models.py...')
+        strFileBuffer = 'from django.db import models\n'
+        for entity in self.getSystem().getEntities():
+            strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
+            for att in entity.getAttributes():
+                strFileBuffer += '\n    ' + att.name + '_text = models.CharField(max_length=200)' #all fiels with the same type, in this version.
+        #print(strFileBuffer)
+        #re-writing the model.py file
+        with open(self.__webapp_path + '\\models.py', 'w') as f:
+            f.write(strFileBuffer)
+        
         return True
     
     #util methods
-    def getSystem(self):
+    def getSystem(self) -> System:
         return self.__AC.getSystem()
 
     def __runAsyncCmd(self, strCmd):
