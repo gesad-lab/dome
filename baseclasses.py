@@ -1,5 +1,6 @@
 import os
 import subprocess as sp
+import fileinput
 
 OPR_HOMEPAGE = 'homepage'
 OPR_ATTRIBUTE_ADD = 'attribute.add'
@@ -21,6 +22,7 @@ class Entity:
     def __init__(self, name):
         self.name = name
         self.__attributes = []
+        #self.addAttribute('att0', 'str', True) #all entities need at least one attribute not null
 
     def getAttributes(self):
         return self.__attributes
@@ -35,7 +37,7 @@ class Attribute:
         self.__entity = entity
         self.name = name
         self.type = type
-        self.notNull = notNull
+        self.notnull = notNull
         
     def __eq__(self, o: object) -> bool:
         if type(o) == type(''):
@@ -52,8 +54,8 @@ class User:
 
 class MultChannelApp:
     def __init__(self):
-        self.system = System('sys_test')  #same system for all
-        self.currentEntity = self.system.addEntity('entity_test') #in this version, only one entity
+        self.system = System('sys01')  #same system for all
+        self.currentEntity = self.system.addEntity('entity01') #in this version, only one entity
         self.user = 'root' #same user for all
         #self.pwd = 'pwd'  #without password in this version
         self.__SE = SecurityEngine(self) #security engine instance
@@ -176,26 +178,51 @@ class InterfaceController:
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
-            os.system('python -m venv ' + self.__venv_path) #synchronous
+            self.__runSyncCmd('python -m venv ' + self.__venv_path) #synchronous
             
         print('Activating the python virtual environment...')
         os.chdir(self.__venv_path) #will stay all runtime in this dir
-        os.system('Scripts\\activate.bat')
+
+        self.__runSyncCmd('Scripts\\activate.bat')
         #updating o pip
-        os.system('Scripts\\python.exe -m pip install --upgrade pip')
+        self.__runSyncCmd('Scripts\\python.exe -m pip install --upgrade pip')
         #install django in virtual environment
-        os.system('Scripts\\pip.exe install django')
+        self.__runSyncCmd('Scripts\\pip.exe install django')
 
         self.__config_path = self.getSystem().name + '_config' 
+        self.__settings_path = self.__config_path + '\\' + self.__config_path + '\\settings.py'
         if not os.path.exists(self.__config_path):
-            os.system('django-admin startproject ' + self.__config_path) #synchronous
+            self.__runSyncCmd('django-admin startproject ' + self.__config_path) #synchronous
 
         self.__webapp_path = self.getSystem().name + '_web' 
+        
         if not os.path.exists(self.__webapp_path):
-            os.system('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
-                
-        os.system('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
-        self.__runAsyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py runserver')        
+            self.__runSyncCmd('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
+            #extra setup in settings.py
+            for line in fileinput.FileInput(self.__settings_path,inplace=1):
+                if "    'django.contrib.staticfiles'," in line:
+                    line=line.replace(line, line + "    '" + self.__webapp_path 
+                                      + '.apps.' + self.__webapp_path.replace('_','').title()
+                                      + "Config',")
+                print(line, end='')
+            
+            #creating superuser
+            #needs creating the follow system variables:
+            #https://stackoverflow.com/questions/26963444/django-create-superuser-from-batch-file/26963549
+            '''
+            os.environ['DJANGO_SUPERUSER_USERNAME'] = 'root'
+            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'root'
+            os.environ['DJANGO_SUPERUSER_EMAIL'] = 'andersonmg@gmail.com'
+            '''
+            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'root'
+            self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput --username=root --email=andersonmg@gmail.com')
+            #self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py syncdb --noinput --no-input')
+            
+        self.migrateModel()
+        self.__runServer() 
+
+    def __runServer(self):
+        self.__runAsyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py runserver')       
         
     def updateAppWeb(self):
         #update models.py
@@ -204,18 +231,35 @@ class InterfaceController:
         for entity in self.getSystem().getEntities():
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
-                strFileBuffer += '\n    ' + att.name + '_text = models.CharField(max_length=200)' #all fiels with the same type, in this version.
+                #all fiels with the same type, in this version.
+                strFileBuffer += f'\n    {att.name}_text = models.CharField(max_length=200, null={not att.notnull})' 
         #print(strFileBuffer)
         #re-writing the model.py file
-        with open(self.__webapp_path + '\\models.py', 'w') as f:
+        model_filepath = self.__webapp_path + '\\models.py'
+        
+        if not os.access(model_filepath, os.R_OK):
+            return False
+        
+        with open(model_filepath, 'w+', encoding='utf-8') as f:
             f.write(strFileBuffer)
+            f.close()
+        
+        self.migrateModel()
+        self.__runServer()
         
         return True
     
     #util methods
+    def migrateModel(self):
+        self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py makemigrations ' + self.__webapp_path)
+        self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
+        
     def getSystem(self) -> System:
         return self.__AC.getSystem()
-
+    
+    def __runSyncCmd(self, strCmd) -> None:
+        os.system(strCmd)
+                
     def __runAsyncCmd(self, strCmd):
         return sp.Popen(strCmd.split(), #asynchronous
                                 stdout=sp.PIPE,
