@@ -188,41 +188,47 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\python.exe -m pip install --upgrade pip')
         #install django in virtual environment
         self.__runSyncCmd('Scripts\\pip.exe install django')
-
+        self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
+        
         self.__config_path = self.getSystem().name + '_config' 
         self.__settings_path = self.__config_path + '\\' + self.__config_path + '\\settings.py'
         if not os.path.exists(self.__config_path):
             self.__runSyncCmd('django-admin startproject ' + self.__config_path) #synchronous
 
         self.__webapp_path = self.getSystem().name + '_web' 
-        
+
         if not os.path.exists(self.__webapp_path):
             self.__runSyncCmd('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
             #extra setup in settings.py
             for line in fileinput.FileInput(self.__settings_path,inplace=1):
                 if "    'django.contrib.staticfiles'," in line:
-                    line=line.replace(line, line + "    '" + self.__webapp_path 
+                    line=line.replace(line, "    'livesync',\n" + line + "    '" + self.__webapp_path 
                                       + '.apps.' + self.__webapp_path.replace('_','').title()
                                       + "Config',")
+                elif "MIDDLEWARE = [" in line:
+                    line = line.replace(line, 
+                                        "MIDDLEWARE_CLASSES = ('livesync.core.middleware.DjangoLiveSyncMiddleware')\n\n"
+                                        + line)
                 print(line, end='')
-
+            fileinput.close()
             self.migrateModel()
             #creating superuser
             #needs creating the follow system variables:
             #https://stackoverflow.com/questions/26963444/django-create-superuser-from-batch-file/26963549
             '''
             os.environ['DJANGO_SUPERUSER_USERNAME'] = 'root'
-            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'root'
+            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'UECE123'
             os.environ['DJANGO_SUPERUSER_EMAIL'] = 'andersonmg@gmail.com'
             '''
-            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'root'
             self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
         self.migrateModel()
         self.__runServer() 
 
     def __runServer(self):
-        self.__runAsyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py runserver')       
+        os.chdir(self.__config_path)
+        self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')# --noreload')       
+        os.chdir('..\\')
         
     def updateAppWeb(self):
         #update admin.py
@@ -260,7 +266,7 @@ class InterfaceController:
         if not os.access(path, os.R_OK):
             return False
         
-        with open(path, 'w+', encoding='utf-8') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             f.write(txtContent)
             f.close()
         return True     

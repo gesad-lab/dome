@@ -1,4 +1,4 @@
-#!c:\users\prf\google drive\03-educação\20210101-mestrado uece\dissertação\artigos\artigo_01\text2system\sys01_env\scripts\python.exe
+#!c:\users\prf\documents\text2system\sys01_env\scripts\python.exe
 # When the django-admin.py deprecation ends, remove this script.
 import warnings
 

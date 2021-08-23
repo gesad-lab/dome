@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\PRF\Google Drive\03-Educação\20210101-Mestrado UECE\dissertação\artigos\Artigo_01\text2system\sys01_env
+set VIRTUAL_ENV=C:\Users\PRF\Documents\text2system\sys01_env
 
 if not defined PROMPT set PROMPT=$P$G
 
