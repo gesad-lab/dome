@@ -4,6 +4,7 @@ import fileinput
 
 OPR_HOMEPAGE = 'homepage'
 OPR_ATTRIBUTE_ADD = 'attribute.add'
+OPR_ATTRIBUTES_DEL_ALL = 'attributes.del.all'
 
 class System:
     def __init__(self, name):
@@ -31,7 +32,9 @@ class Entity:
         self.__attributes.append(Attribute(self, name, type, notNull))
     def delAttribute(self, name):
         self.__attributes.remove(name)
-
+    def delAttributes_All(self):
+        self.__attributes.clear()
+        
 class Attribute:
     def __init__(self, entity, name, type, notNull=False):
         self.__entity = entity
@@ -50,14 +53,16 @@ class Attribute:
 
 #arquitecture classes
 class User:
-    pass
+    def __init__(self, login, pwd):
+        self.MUP = MultChannelApp(self)
+        self.login = login
+        self.__pwd = pwd
 
 class MultChannelApp:
-    def __init__(self):
+    def __init__(self, user):
         self.system = System('sys01')  #same system for all
         self.currentEntity = self.system.addEntity('entity01') #in this version, only one entity
-        self.user = 'root' #same user for all
-        #self.pwd = 'pwd'  #without password in this version
+        self.__user = user #same user for all
         self.__SE = SecurityEngine(self) #security engine instance
     
     #navigate operations
@@ -80,7 +85,9 @@ class MultChannelApp:
        
     def delAttribute(self, name, type, entity):
         pass
-    
+
+    def delAttributes_All(self, entity):
+        return self.__SE.execute(OPR_ATTRIBUTES_DEL_ALL, entity=entity)
     
 class IntegrationEngine:
     def __init__(self, SE):
@@ -113,6 +120,8 @@ class SecurityEngine:
         #call Autonomous Controller
         if opr == OPR_ATTRIBUTE_ADD:
             return self.__AC.plan(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull'])
+        elif opr == OPR_ATTRIBUTES_DEL_ALL:
+            return self.__AC.plan(opr, entity=params['entity'])
         #else
         return None
 
@@ -146,6 +155,10 @@ class AutonomousController:
         if opr == OPR_ATTRIBUTE_ADD:
             self.__DT.addAttribute(params.get('entity'), params.get('name')
                                    , params.get('type'), params.get('notnull'))
+            self.__IC.updateAppWeb()
+            return True
+        elif opr == OPR_ATTRIBUTES_DEL_ALL:
+            self.__DT.delAttributes_All(params.get('entity'))
             self.__IC.updateAppWeb()
             return True
         #else
@@ -302,4 +315,9 @@ class DomainTransformer:
         entity.addAttribute(name, type, notnull)
         return True
     
+    def delAttributes_All(self, entity):
+        #TODO: update meta data (MDB) and Transaction Data (TDB)
+        #...
+        entity.delAttributes_All(entity)
+        return True
 
