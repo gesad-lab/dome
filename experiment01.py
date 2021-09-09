@@ -16,7 +16,7 @@ boot()
 i = 1
 while True:
     print(userTest.MUP.addAttribute(currentEntity, 'att_'+str(i), 'str'))
-    time.sleep(15) # Sleep for some seconds
+    time.sleep(30) # Sleep for some seconds
     if i==10: #10 is the max number of attributes for this test
         #init all and restart
         boot()
