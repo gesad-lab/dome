@@ -230,9 +230,9 @@ class InterfaceController:
             #needs creating the follow system variables:
             #https://stackoverflow.com/questions/26963444/django-create-superuser-from-batch-file/26963549
             '''
-            os.environ['DJANGO_SUPERUSER_USERNAME'] = 'root'
-            os.environ['DJANGO_SUPERUSER_PASSWORD'] = 'UECE123'
-            os.environ['DJANGO_SUPERUSER_EMAIL'] = 'andersonmg@gmail.com'
+            os.environ['DJANGO_SUPERUSER_USERNAME'] = '<<some username>>'
+            os.environ['DJANGO_SUPERUSER_PASSWORD'] = '<<some password>>'
+            os.environ['DJANGO_SUPERUSER_EMAIL'] = '<<some email>>'
             '''
             self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
