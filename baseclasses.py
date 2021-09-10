@@ -197,7 +197,11 @@ class InterfaceController:
         print('Activating the python virtual environment...')
         os.chdir(self.__venv_path) #will stay all runtime in this dir
 
-        self.__runSyncCmd('Scripts\\activate.bat')
+        if self.__isWindowsServer():
+            self.__runSyncCmd('Scripts\\activate.bat')
+        else:
+            self.__runSyncCmd('. bin/activate')
+
         #updating o pip
         self.__runSyncCmd('Scripts\\python.exe -m pip install --upgrade pip')
         #install django in virtual environment
@@ -292,9 +296,12 @@ class InterfaceController:
     def getSystem(self) -> System:
         return self.__AC.getSystem()
     
+    def __isWindowsServer(self) -> bool:
+        return platform.system() == 'Windows'
+    
     def __checkPath(self, strCmd) -> str:
         checkedStrCmd = os.path.join(*strCmd.split('\\'))
-        if platform.system() != 'Windows':
+        if not self.__isWindowsServer():
             checkedStrCmd = checkedStrCmd.replace('.exe', '')
             checkedStrCmd = checkedStrCmd.replace('.bat', '')
             checkedStrCmd = checkedStrCmd.replace('Scripts', 'bin')
