@@ -292,7 +292,7 @@ class InterfaceController:
         return self.__AC.getSystem()
     
     def __runSyncCmd(self, strCmd) -> None:
-        os.system(strCmd)
+        os.system(os.path.join(*strCmd.split('\\')))
                 
     def __runAsyncCmd(self, strCmd):
         return sp.Popen(strCmd.split(), #asynchronous
