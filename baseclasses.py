@@ -204,8 +204,8 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django')
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
         print('creating config dir...')
-        self.__config_path = self.__checkCmd(self.getSystem().name + '_config') 
-        self.__settings_path = self.__checkCmd(self.__config_path + '\\' + self.__config_path + '\\settings.py')
+        self.__config_path = self.__checkPath(self.getSystem().name + '_config') 
+        self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             self.__runSyncCmd('django-admin startproject ' + self.__config_path) #synchronous
 
@@ -242,7 +242,7 @@ class InterfaceController:
     def __runServer(self):
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')# --noreload')       
-        os.chdir(self.__checkCmd('..\\'))
+        os.chdir(self.__checkPath('..\\'))
         
     def updateAppWeb(self):
         #update admin.py
@@ -292,20 +292,20 @@ class InterfaceController:
     def getSystem(self) -> System:
         return self.__AC.getSystem()
     
-    def __checkCmd(self, strCmd) -> str:
+    def __checkPath(self, strCmd) -> str:
         checkedStrCmd = os.path.join(*strCmd.split('\\'))
         if platform.system() != 'Windows':
             checkedStrCmd = checkedStrCmd.replace('.exe', '')
             checkedStrCmd = checkedStrCmd.replace('.bat', '')
-            checkedStrCmd = checkedStrCmd.replace('Script', 'bin')
+            checkedStrCmd = checkedStrCmd.replace('Scripts', 'bin')
             
         return checkedStrCmd
     
     def __runSyncCmd(self, strCmd) -> None:
-        os.system(self.__checkCmd(strCmd))
+        os.system(self.__checkPath(strCmd))
                 
     def __runAsyncCmd(self, strCmd):
-        return sp.Popen(self.__checkCmd(strCmd).split(), #asynchronous
+        return sp.Popen(self.__checkPath(strCmd).split(), #asynchronous
                                 stdout=sp.PIPE,
                                 universal_newlines=True, shell=True)        
 
