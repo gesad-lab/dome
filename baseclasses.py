@@ -211,11 +211,14 @@ class InterfaceController:
         self.__config_path = self.__checkPath(self.getSystem().name + '_config') 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
+            print('starting django project...')
             self.__runSyncCmd('django-admin startproject ' + self.__config_path) #synchronous
+            print('starting django project (finished)...')
 
         self.__webapp_path = self.getSystem().name + '_web' 
 
         if not os.path.exists(self.__webapp_path):
+            print('updating manage.py file...')
             self.__runSyncCmd('Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  #synchronous
             #extra setup in settings.py
             for line in fileinput.FileInput(self.__settings_path,inplace=1):
@@ -228,6 +231,7 @@ class InterfaceController:
                                         "MIDDLEWARE_CLASSES = ('livesync.core.middleware.DjangoLiveSyncMiddleware')\n\n"
                                         + line)
                 print(line, end='')
+            print('updating manage.py file...(done)')
             fileinput.close()
             self.migrateModel()
             #creating superuser
@@ -238,12 +242,14 @@ class InterfaceController:
             os.environ['DJANGO_SUPERUSER_PASSWORD'] = '<<some password>>'
             os.environ['DJANGO_SUPERUSER_EMAIL'] = '<<some email>>'
             '''
+            print('creating Django superuser...')
             self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
         self.migrateModel()
         self.__runServer() 
 
     def __runServer(self):
+        print('running server')
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')# --noreload')       
         os.chdir(self.__checkPath('..\\'))
@@ -290,6 +296,7 @@ class InterfaceController:
         return True     
         
     def migrateModel(self):
+        print('migrating model...')
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py makemigrations ' + self.__webapp_path)
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
         
