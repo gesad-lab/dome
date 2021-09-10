@@ -203,7 +203,7 @@ class InterfaceController:
         #install django in virtual environment
         self.__runSyncCmd('Scripts\\pip.exe install django')
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
-        
+        return
         self.__config_path = self.getSystem().name + '_config' 
         self.__settings_path = self.__config_path + '\\' + self.__config_path + '\\settings.py'
         if not os.path.exists(self.__checkCmd(self.__config_path)):
