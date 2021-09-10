@@ -1,6 +1,7 @@
 import os
 import subprocess as sp
 import fileinput
+import platform
 
 OPR_HOMEPAGE = 'homepage'
 OPR_ATTRIBUTE_ADD = 'attribute.add'
@@ -291,11 +292,20 @@ class InterfaceController:
     def getSystem(self) -> System:
         return self.__AC.getSystem()
     
+    def __checkCmd(self, strCmd) -> str:
+        checkedStrCmd = os.path.join(*strCmd.split('\\'))
+        if platform.system() != 'Windows':
+            checkedStrCmd = checkedStrCmd.replace('.exe', '')
+            checkedStrCmd = checkedStrCmd.replace('.bat', '')
+            checkedStrCmd = checkedStrCmd.replace('Script', 'bin')
+            
+        return checkedStrCmd
+    
     def __runSyncCmd(self, strCmd) -> None:
-        os.system(os.path.join(*strCmd.split('\\')))
+        os.system(self.__checkCmd(strCmd))
                 
     def __runAsyncCmd(self, strCmd):
-        return sp.Popen(strCmd.split(), #asynchronous
+        return sp.Popen(self.__checkCmd(strCmd).split(), #asynchronous
                                 stdout=sp.PIPE,
                                 universal_newlines=True, shell=True)        
 
