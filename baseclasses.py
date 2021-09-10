@@ -242,7 +242,7 @@ class InterfaceController:
     def __runServer(self):
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver')# --noreload')       
-        os.chdir('..\\')
+        os.chdir(self.__checkCmd('..\\'))
         
     def updateAppWeb(self):
         #update admin.py
