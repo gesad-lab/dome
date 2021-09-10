@@ -3,8 +3,7 @@ Text2System Experiment
 
 # -------
 # Before deploy setup the follow environment variables:
-DJANGO_SUPERUSER_USERNAME=<<some user name>>
-DJANGO_SUPERUSER_PASSWORD=<<some password>>
-DJANGO_SUPERUSER_EMAIL=<<some email>>
-TEXT2SYSTEM=<<code root path>>
+DJANGO_SUPERUSER_USERNAME=some_user_name<br/>
+DJANGO_SUPERUSER_PASSWORD=some_password<br/>
+DJANGO_SUPERUSER_EMAIL=some_email<br/>
 

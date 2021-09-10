@@ -181,8 +181,8 @@ class AIEngine:
 class InterfaceController:
     def __init__(self, AC):
         
-        #TODO: change for envoirment variable
-        os.chdir(os.getenv('TEXT2SYSTEM'))
+        self.__root_path = os.path.dirname(__file__)
+        os.chdir(self.__root_path)
         
         self.__AC = AC #Autonomous Controller Object
         
