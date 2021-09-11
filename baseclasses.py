@@ -188,7 +188,7 @@ class InterfaceController:
         
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.__checkPath(self.__root_path + '\\' + self.getSystem().name + '_env')
+        self.__venv_path = self.__checkPath(self.getSystem().name + '_env')
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
