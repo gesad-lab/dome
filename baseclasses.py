@@ -213,7 +213,7 @@ class InterfaceController:
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             print('starting django project...')
-            self.__runSyncCmd('django-admin startproject ' + self.__config_path) #synchronous
+            self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path) #synchronous
             print('starting django project (finished)...')
 
         self.__webapp_path = self.getSystem().name + '_web' 
