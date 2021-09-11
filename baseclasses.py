@@ -188,7 +188,7 @@ class InterfaceController:
         
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.getSystem().name + '_env'
+        self.__venv_path = self.__checkPath(self.__root_path + '\\' + self.getSystem().name + '_env')
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -207,6 +207,7 @@ class InterfaceController:
         #install django in virtual environment
         self.__runSyncCmd('Scripts\\pip.exe install django')
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
+        
         print('creating config dir...')
         self.__config_path = self.__checkPath(self.getSystem().name + '_config') 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
