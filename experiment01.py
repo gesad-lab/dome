@@ -16,7 +16,7 @@ def boot():
 
 #deleting the old gen files
 root_path = os.path.dirname(__file__)
-print(root_path)
+print('Excluding the old files...')
 for dir in os.listdir(root_path):
     full_dir_path = os.path.join(root_path, dir)
     if os.path.isdir(full_dir_path) and (dir != '.git'): 
@@ -26,7 +26,8 @@ boot()
 i = 1
 
 while True:
-    print(userTest.MUP.addAttribute(currentEntity, 'att_'+str(i), 'str'))
+    print('creating the attribute ' + str(i) + '/10')
+    userTest.MUP.addAttribute(currentEntity, 'att_'+str(i), 'str')
     time.sleep(30) # Sleep for some seconds
     if i==10: #10 is the max number of attributes for this test
         #memory managment
