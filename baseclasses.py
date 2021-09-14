@@ -231,6 +231,8 @@ class InterfaceController:
                     line = line.replace(line, 
                                         "MIDDLEWARE_CLASSES = ('livesync.core.middleware.DjangoLiveSyncMiddleware')\n\n"
                                         + line)
+                elif "ALLOWED_HOSTS = []" in line:
+                    line = line.replace(line, "ALLOWED_HOSTS = ['*',]") #for thsi version, allow all adress                
                 print(line, end='')
             print('updating manage.py file...(done)')
             fileinput.close()
