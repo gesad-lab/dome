@@ -2,6 +2,7 @@ from baseclasses import *
 import time
 import os
 import shutil
+import gc
 
 userTest = None
 currentEntity = None
@@ -28,6 +29,10 @@ while True:
     print(userTest.MUP.addAttribute(currentEntity, 'att_'+str(i), 'str'))
     time.sleep(30) # Sleep for some seconds
     if i==10: #10 is the max number of attributes for this test
+        #memory managment
+        del userTest
+        del currentEntity
+        gc.collect()
         #init all and restart
         boot()
         i = 1
