@@ -12,7 +12,7 @@ def boot():
     global userTest 
     global currentEntity
     userTest = User(os.environ['DJANGO_SUPERUSER_USERNAME'], os.environ['DJANGO_SUPERUSER_PASSWORD'])
-    currentEntity = userTest.MUP.currentEntity #only one entity in this version
+    currentEntity = userTest.MUP.addEntity('entity01') #only one entity in this version
 
 #deleting the old gen files
 root_path = os.path.dirname(__file__)
@@ -41,3 +41,4 @@ while True:
         i += 1 #increment the number of attributes
 
             
+#pyreverse baseclasses.py --output=jpg --filter-mode=ALL --all-associated

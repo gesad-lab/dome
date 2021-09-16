@@ -4,21 +4,8 @@ import fileinput
 import platform
 
 OPR_HOMEPAGE = 'homepage'
+OPR_ENTITY_ADD = 'entity.add'
 OPR_ATTRIBUTE_ADD = 'attribute.add'
-OPR_ATTRIBUTES_DEL_ALL = 'attributes.del.all'
-
-class System:
-    def __init__(self, name):
-        self.name = name
-        self.__entities = []
-
-    def addEntity(self, name):
-        e = Entity(name)
-        self.__entities.append(e)
-        return e
-
-    def getEntities(self):
-        return self.__entities
             
 class Entity:
     def __init__(self, name):
@@ -31,10 +18,9 @@ class Entity:
     
     def addAttribute(self, name, type, notNull=False):
         self.__attributes.append(Attribute(self, name, type, notNull))
+        
     def delAttribute(self, name):
         self.__attributes.remove(name)
-    def delAttributes_All(self):
-        self.__attributes.clear()
         
 class Attribute:
     def __init__(self, entity, name, type, notNull=False):
@@ -55,14 +41,12 @@ class Attribute:
 #arquitecture classes
 class User:
     def __init__(self, login, pwd):
-        self.MUP = MultChannelApp(self)
+        self.MUP = MultChannelApp(self) 
         self.login = login
         self.__pwd = pwd
 
 class MultChannelApp:
     def __init__(self, user):
-        self.system = System('sys01')  #same system for all
-        self.currentEntity = self.system.addEntity('entity01') #in this version, only one entity
         self.__user = user #same user for all
         self.__SE = SecurityEngine(self) #security engine instance
     
@@ -81,21 +65,24 @@ class MultChannelApp:
         pass
     
     #Meta-data operations
+    def addEntity(self, entity):
+        #TODO: #1 fix none params
+        return self.__SE.execute(OPR_ENTITY_ADD, entity=entity, name=None, type=None, notnull=None)
+    
     def addAttribute(self, entity, name, type, notnull=False):
         return self.__SE.execute(OPR_ATTRIBUTE_ADD, entity=entity, name=name, type=type, notnull=notnull)
        
     def delAttribute(self, name, type, entity):
         pass
 
-    def delAttributes_All(self, entity):
-        return self.__SE.execute(OPR_ATTRIBUTES_DEL_ALL, entity=entity)
-    
 class IntegrationEngine:
     def __init__(self, SE):
         self.__SE = SE
+        self.ES = ExternalService(self)
 
 class ExternalService:
-    pass
+    def __init__(self, IE):
+        self.__IE = IE
 
 class SecurityEngine:
     def __init__(self, MUP, IE=None):
@@ -119,17 +106,14 @@ class SecurityEngine:
             return None
         #else: authorized
         #call Autonomous Controller
-        if opr == OPR_ATTRIBUTE_ADD:
+        if opr == OPR_ENTITY_ADD:
+            return self.__AC.plan(opr, entity=params['entity'], name=None, type=None, notnull=None)
+        elif opr == OPR_ATTRIBUTE_ADD:
             return self.__AC.plan(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull'])
-        elif opr == OPR_ATTRIBUTES_DEL_ALL:
-            return self.__AC.plan(opr, entity=params['entity'])
         #else
         return None
 
     #util methods
-    def getSystem(self) -> System:
-        return self.__MUP.system
-
     def getUser(self):
         return self.__MUP.user
 
@@ -153,13 +137,12 @@ class AutonomousController:
     def __execute(self, opr, **params):
         #TODO: manager the type of task
         #...
-        if opr == OPR_ATTRIBUTE_ADD:
+        if opr == OPR_ENTITY_ADD:
+            return self.__DT.addEntity(params.get('entity'))
+            #return True #TODO: #3 analysing return type
+        elif opr == OPR_ATTRIBUTE_ADD:
             self.__DT.addAttribute(params.get('entity'), params.get('name')
                                    , params.get('type'), params.get('notnull'))
-            self.__IC.updateAppWeb()
-            return True
-        elif opr == OPR_ATTRIBUTES_DEL_ALL:
-            self.__DT.delAttributes_All(params.get('entity'))
             self.__IC.updateAppWeb()
             return True
         #else
@@ -169,8 +152,8 @@ class AutonomousController:
         pass
     
     #util methods
-    def getSystem(self) -> System:
-        return self.__SE.getSystem()
+    def getEntities(self) -> list:
+        return self.__DT.getEntities()
     
 class AIEngine:
     def __init__(self, AC):
@@ -180,15 +163,19 @@ class AIEngine:
     
 class InterfaceController:
     def __init__(self, AC):
+        self.__MANAGEDSYSTEM_NAME = 'managedsys'
         
         self.__root_path = os.path.dirname(__file__)
         os.chdir(self.__root_path)
         
         self.__AC = AC #Autonomous Controller Object
         
+        self.__BPE = BusinessProcessEngine(self)
+        self.__AE = AnalyticsEngine(self)
+        
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.__checkPath(self.getSystem().name + '_env')
+        self.__venv_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + '_env')
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -209,14 +196,14 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
         
         print('creating config dir...')
-        self.__config_path = self.__checkPath(self.getSystem().name + '_config') 
+        self.__config_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + '_config') 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             print('starting django project...')
             self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path) #synchronous
             print('starting django project (finished)...')
 
-        self.__webapp_path = self.getSystem().name + '_web' 
+        self.__webapp_path = self.__MANAGEDSYSTEM_NAME + '_web' 
 
         if not os.path.exists(self.__webapp_path):
             print('updating manage.py file...')
@@ -225,7 +212,7 @@ class InterfaceController:
             for line in fileinput.FileInput(self.__settings_path,inplace=1):
                 if "    'django.contrib.staticfiles'," in line:
                     line=line.replace(line, "    'livesync',\n" + line + "    '" + self.__webapp_path 
-                                      + '.apps.' + self.__webapp_path.replace('_','').title()
+                                      + '.apps.' + self.__webapp_path.replace('_',' ').title().replace(' ','')
                                       + "Config',")
                 elif "MIDDLEWARE = [" in line:
                     line = line.replace(line, 
@@ -261,7 +248,7 @@ class InterfaceController:
         #update admin.py
         print('updating admin.py...')
         strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
-        for entity in self.getSystem().getEntities():
+        for entity in self.__getEntities():
             strFileBuffer += '\n' + f'admin.site.register({entity.name.capitalize()})'
 
         if not self.__updateFile(self.__webapp_path + '\\admin.py', strFileBuffer):
@@ -271,7 +258,7 @@ class InterfaceController:
         #update models.py
         print('updating models.py...')
         strFileBuffer = 'from django.db import models\n'
-        for entity in self.getSystem().getEntities():
+        for entity in self.__getEntities():
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
                 #all fiels with the same type, in this version.
@@ -289,6 +276,9 @@ class InterfaceController:
         return True
     
     #util methods
+    def __getEntities(self) -> list:
+        return self.__AC.getEntities()
+        
     def __updateFile(self, path, txtContent):
         if not os.access(path, os.R_OK):
             return False
@@ -303,9 +293,6 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py makemigrations ' + self.__webapp_path)
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
         
-    def getSystem(self) -> System:
-        return self.__AC.getSystem()
-    
     def __isWindowsServer(self) -> bool:
         return platform.system() == 'Windows'
     
@@ -327,24 +314,34 @@ class InterfaceController:
                                 universal_newlines=True, shell=True)        
 
 class BusinessProcessEngine:
-    pass
+    def __init__(self, IC):
+        self.__IC = IC
 
 class AnalyticsEngine:
-    pass
+    def __init__(self, IC):
+        self.__IC = IC
 
 class DomainTransformer:
     def __init__(self, AC):
         self.__AC = AC #Autonomous Controller Object
-            
-    def addAttribute(self, entity, name, type, notnull=False):
+        self.__entities = []
+
+    def addEntity(self, name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
+        if self.__entities.count(name) > 0:
+            return None #entity already exists
+        #else: add new entity
+        e = Entity(name)
+        self.__entities.append(e)
+        return e
+
+    def getEntities(self):
+        return self.__entities
+
+    def addAttribute(self, entity, name, type, notnull=False):
+        #TODO: #2 update meta data (MDB) and Transaction Data (TDB)
         #...
         entity.addAttribute(name, type, notnull)
         return True
-    
-    def delAttributes_All(self, entity):
-        #TODO: update meta data (MDB) and Transaction Data (TDB)
-        #...
-        entity.delAttributes_All(entity)
-        return True
+   
 
