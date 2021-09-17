@@ -1,5 +1,8 @@
-from wit import Wit
-from config import WIT_ACCESS_KEY
+from baseclasses.user import User
+import util.deleteutil as delutil
 
-client = Wit(access_token=WIT_ACCESS_KEY)
-client.interactive()
+#deleting the old gen files
+delutil.deleteOldManagedFiles()
+
+userTest = User.getRandomNewUser()
+userTest.MUP.interactive()

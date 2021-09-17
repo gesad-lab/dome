@@ -5,11 +5,10 @@ import os
 import subprocess as sp
 import fileinput
 import platform
+from config import MANAGED_SYSTEM_NAME
 
 class InterfaceController:
     def __init__(self, AC):
-        self.__MANAGEDSYSTEM_NAME = 'managedsys'
-        
         self.__root_path = os.path.dirname(os.path.dirname(__file__)) #get the parent directory
         os.chdir(self.__root_path)
 
@@ -20,7 +19,7 @@ class InterfaceController:
         
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + SUFIX_ENV)
+        self.__venv_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_ENV)
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -41,14 +40,14 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
         
         print('creating config dir...')
-        self.__config_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + SUFIX_CONFIG) 
+        self.__config_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_CONFIG) 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             print('starting django project...')
             self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path) #synchronous
             print('starting django project (finished)...')
 
-        self.__webapp_path = self.__MANAGEDSYSTEM_NAME + SUFIX_WEB
+        self.__webapp_path = MANAGED_SYSTEM_NAME + SUFIX_WEB
 
         if not os.path.exists(self.__webapp_path):
             print('updating manage.py file...')

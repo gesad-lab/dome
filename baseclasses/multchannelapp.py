@@ -1,3 +1,4 @@
+import wit
 from baseclasses.securityengine import SecurityEngine
 from config import *
 
@@ -5,11 +6,16 @@ class MultChannelApp:
     def __init__(self, user):
         self.__user = user #same user for all
         self.__SE = SecurityEngine(self) #security engine instance
+        self.__WIT_CLIENT = None
     
-    #navigate operations
-    def homePage(self):
-        return self.__SE.execute(OPR_HOMEPAGE)
-                    
+    def __msgHandle(self, msg):
+        return msg + ' [PROCESS]'
+        
+    def interactive(self):
+        if self.__WIT_CLIENT == None:
+               self.__WIT_CLIENT = wit(access_token=WIT_ACCESS_KEY)
+        self.__WIT_CLIENT.interactive(self.__msgHandle)
+    
     #CRUD data operations
     def addData(self, data): 
         pass
