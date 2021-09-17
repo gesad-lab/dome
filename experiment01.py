@@ -21,12 +21,11 @@ boot()
 i = 1
 
 userTest.MUP.runApp_web()
-exit()
 
 while True:
     print('creating the attribute ' + str(i) + '/10')
     userTest.MUP.addAttribute(currentEntity, ATT_NAMES[i-1], 'str')
-    time.sleep(30) # Sleep for some seconds
+    
     if i==len(ATT_NAMES): #len(ATT_NAMES) is the max number of attributes for this test
         #memory managment
         del userTest
@@ -37,6 +36,9 @@ while True:
         i = 1
     else:
         i += 1 #increment the number of attributes
+        
+    time.sleep(30) # Sleep for some seconds
+
 
             
 #pyreverse baseclasses.py --output=jpg --filter-mode=ALL --all-associated

@@ -1,3 +1,4 @@
+from baseclasses.aiengine import AIEngine
 from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
 from baseclasses.analyticsengine import AnalyticsEngine
 from baseclasses.businessprocessengine import BusinessProcessEngine
@@ -8,15 +9,15 @@ import platform
 from config import MANAGED_SYSTEM_NAME
 
 class InterfaceController:
-    def __init__(self, AC):
+    def __init__(self, AC): #TODO: #4 to analyze the bidirectional relation
+        self.__AC = AC #Autonomous Controller Object 
+        self.__AIE = AIEngine() #relation 8.1
+        self.__BPE = BusinessProcessEngine(self) #relation 8.2
+        self.__AE = AnalyticsEngine(self) #relation 8.3
+        
         self.__root_path = os.path.dirname(os.path.dirname(__file__)) #get the parent directory
         os.chdir(self.__root_path)
 
-        self.__AC = AC #Autonomous Controller Object
-        
-        self.__BPE = BusinessProcessEngine(self)
-        self.__AE = AnalyticsEngine(self)
-        
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
         self.__venv_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_ENV)
@@ -39,7 +40,7 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django')
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
         
-        print('creating config dir...')
+        print('creating django config dir...')
         self.__config_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_CONFIG) 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
@@ -80,7 +81,6 @@ class InterfaceController:
             self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
         self.migrateModel()
-        self.__runServer() 
 
     def __runServer(self):
         print('running server')
@@ -93,6 +93,9 @@ class InterfaceController:
         print('updating admin.py...')
         strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
         for entity in self.__getEntities():
+            #only add entities with one attribute at least
+            if len(entity.getAttributes())==0:
+                continue
             strFileBuffer += '\n' + f'admin.site.register({entity.name.capitalize()})'
 
         if not self.__updateFile(self.__webapp_path + '\\admin.py', strFileBuffer):
@@ -103,6 +106,10 @@ class InterfaceController:
         print('updating models.py...')
         strFileBuffer = 'from django.db import models\n'
         for entity in self.__getEntities():
+            #only add entities with one attribute at least
+            if len(entity.getAttributes())==0:
+                continue
+            #else: entitie with attributes
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
                 #all fiels with the same type, in this version.

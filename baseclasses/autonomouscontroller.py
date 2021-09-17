@@ -10,7 +10,7 @@ class AutonomousController:
         self.__SE = SE #Security Engine object
         self.__DT = DomainTransformer(self) #Domain Transform object
         self.__IC = InterfaceController(self) #Interface Controller object
-        self.__AIE = AIEngine(self) #Artificial Intelligence Engine object
+        self.__AIE = AIEngine() #Artificial Intelligence Engine object
         
     def __monitor(self):
         pass
@@ -26,6 +26,7 @@ class AutonomousController:
         #TODO: manager the type of task
         #...
         if opr == OPR_APP_HOME_WEB:
+            self.__IC.updateAppWeb()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_ENTITY_ADD:
             return self.__DT.addEntity(data['name'])
