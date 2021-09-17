@@ -1,5 +1,5 @@
 
-from baseclasses.util import OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from baseclasses.util import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
 from baseclasses.domaintransformer import DomainTransformer
@@ -28,6 +28,9 @@ class AutonomousController:
         if opr == OPR_APP_HOME_WEB:
             self.__IC.updateAppWeb()
             return {'homeurl': WEBAPP_HOME_URL}
+        elif opr == OPR_APP_HOME_CMD:
+            self.__IC.getApp_cmd(self.app_cmd_msgHandle)
+            return True #TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
             return self.__DT.addEntity(data['name'])
             #return True #TODO: #3 analysing return type
@@ -45,3 +48,6 @@ class AutonomousController:
     #util methods
     def getEntities(self) -> list:
         return self.__DT.getEntities()
+    
+    def app_cmd_msgHandle(self, msg):
+        return str(msg) + ' [PROCESS]'        

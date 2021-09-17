@@ -87,6 +87,9 @@ class InterfaceController:
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver 0.0.0.0:80')# --noreload')       
         os.chdir(self.__checkPath('..\\'))
+    
+    def getApp_cmd(self, msgHandle):
+        return self.__AIE.getNLPEngine().interactive(msgHandle)        
         
     def updateAppWeb(self):
         #update admin.py

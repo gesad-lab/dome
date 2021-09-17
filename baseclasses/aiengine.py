@@ -1,5 +1,13 @@
+from config import WIT_ACCESS_KEY
+from wit import Wit
+
 class AIEngine:
     def __init__(self):
-        pass
-    #TODO: AI Services
-    #...
+        self.__WIT_CLIENT = None
+
+    #AI Services
+    def getNLPEngine(self):
+        if self.__WIT_CLIENT == None:
+            self.__WIT_CLIENT = Wit(access_token=WIT_ACCESS_KEY)
+        return self.__WIT_CLIENT
+
