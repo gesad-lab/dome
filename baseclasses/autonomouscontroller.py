@@ -2,7 +2,7 @@
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
 from baseclasses.domaintransformer import DomainTransformer
-from baseclasses.config import *
+from config import *
 
 class AutonomousController:
     def __init__(self, SE):

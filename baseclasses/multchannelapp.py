@@ -1,5 +1,5 @@
 from baseclasses.securityengine import SecurityEngine
-from baseclasses.config import *
+from config import *
 
 class MultChannelApp:
     def __init__(self, user):

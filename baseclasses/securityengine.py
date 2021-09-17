@@ -1,6 +1,6 @@
 from baseclasses.autonomouscontroller import AutonomousController
 from baseclasses.integrationengine import IntegrationEngine
-from baseclasses.config import *
+from config import *
 
 class SecurityEngine:
     def __init__(self, MUP, IE=None):

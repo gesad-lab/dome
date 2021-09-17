@@ -1,6 +1,5 @@
 from wit import Wit
+from config import WIT_ACCESS_KEY
 
-access_token = 'PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'
-
-client = Wit(access_token=access_token)
+client = Wit(access_token=WIT_ACCESS_KEY)
 client.interactive()

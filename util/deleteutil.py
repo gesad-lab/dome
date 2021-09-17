@@ -1,6 +1,6 @@
 import os
 import shutil
-from baseclasses.config import SUFIX_ENV
+from config import SUFIX_ENV
 
 def deleteOldManagedFiles():
     root_path = os.path.dirname(os.path.dirname(__file__)) #parent directory

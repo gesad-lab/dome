@@ -1,4 +1,4 @@
-from baseclasses.config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
 from baseclasses.analyticsengine import AnalyticsEngine
 from baseclasses.businessprocessengine import BusinessProcessEngine
 import os

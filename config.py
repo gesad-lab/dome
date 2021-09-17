@@ -7,3 +7,6 @@ OPR_ATTRIBUTE_ADD = 'attribute.add'
 SUFIX_ENV = '_env'
 SUFIX_CONFIG = '_config'
 SUFIX_WEB = '_web'
+
+#tokens
+WIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'
