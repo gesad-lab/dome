@@ -1,3 +1,4 @@
+from baseclasses.util import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.autonomouscontroller import AutonomousController
 from baseclasses.integrationengine import IntegrationEngine
 from config import *
@@ -18,17 +19,12 @@ class SecurityEngine:
     def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
 
-    def execute(self, opr, **params):
+    def execute(self, opr, data):
         if not(self.__authorize(opr)):
             return None
         #else: authorized
         #call Autonomous Controller
-        if opr == OPR_ENTITY_ADD:
-            return self.__AC.plan(opr, entity=params['entity'], name=None, type=None, notnull=None)
-        elif opr == OPR_ATTRIBUTE_ADD:
-            return self.__AC.plan(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull'])
-        #else
-        return None
+        return self.__AC.plan(opr, data)
 
     #util methods
     def getUser(self):

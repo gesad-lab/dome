@@ -8,5 +8,6 @@ class User:
         self.__pwd = pwd
     
     #util methods
+    @staticmethod
     def getRandomNewUser():
         return User(os.environ['DJANGO_SUPERUSER_USERNAME'], os.environ['DJANGO_SUPERUSER_PASSWORD'])

@@ -1,3 +1,3 @@
 # to gen doc files
 
-pyreverse baseclasses --output=jpg --filter-mode=ALL --all-associated --project=text2system --output-directory=docs
+pyreverse baseclasses --output=jpg --filter-mode=ALL --all-associated --project=text2system --output-directory=docs --module-names=n

@@ -1,4 +1,5 @@
 
+from baseclasses.util import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
 from baseclasses.domaintransformer import DomainTransformer
@@ -17,19 +18,19 @@ class AutonomousController:
     def __analyze(self):
         pass
     
-    def plan(self, opr, **params):
+    def plan(self, opr, data):
         #in this version, all tasks are going to be executed immediately
-        return self.__execute(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull']) 
+        return self.__execute(opr, data) 
     
-    def __execute(self, opr, **params):
+    def __execute(self, opr, data):
         #TODO: manager the type of task
         #...
         if opr == OPR_ENTITY_ADD:
-            return self.__DT.addEntity(params.get('entity'))
+            return self.__DT.addEntity(data['name'])
             #return True #TODO: #3 analysing return type
         elif opr == OPR_ATTRIBUTE_ADD:
-            self.__DT.addAttribute(params.get('entity'), params.get('name')
-                                   , params.get('type'), params.get('notnull'))
+            self.__DT.addAttribute(data['entity'], data['name']
+                                   , data['type'], data['notnull'])
             self.__IC.updateAppWeb()
             return True
         #else
