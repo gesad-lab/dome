@@ -1,5 +1,5 @@
 
-from baseclasses.util import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from baseclasses.util import OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
 from baseclasses.domaintransformer import DomainTransformer
@@ -25,7 +25,9 @@ class AutonomousController:
     def __execute(self, opr, data):
         #TODO: manager the type of task
         #...
-        if opr == OPR_ENTITY_ADD:
+        if opr == OPR_APP_HOME_WEB:
+            return {'homeurl': WEBAPP_HOME_URL}
+        elif opr == OPR_ENTITY_ADD:
             return self.__DT.addEntity(data['name'])
             #return True #TODO: #3 analysing return type
         elif opr == OPR_ATTRIBUTE_ADD:

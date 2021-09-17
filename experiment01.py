@@ -16,9 +16,12 @@ def boot():
 
 #deleting the old gen files
 delutil.deleteOldManagedFiles()
-    
+
 boot()
 i = 1
+
+userTest.MUP.runApp_web()
+exit()
 
 while True:
     print('creating the attribute ' + str(i) + '/10')

@@ -19,9 +19,9 @@ class SecurityEngine:
     def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
 
-    def execute(self, opr, data):
+    def execute(self, opr, data={}):
         if not(self.__authorize(opr)):
-            return None
+            return {'error': 'authorization error'}
         #else: authorized
         #call Autonomous Controller
         return self.__AC.plan(opr, data)

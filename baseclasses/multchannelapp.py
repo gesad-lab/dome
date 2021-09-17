@@ -1,8 +1,9 @@
 from config import WIT_ACCESS_KEY
-from baseclasses.util import OPR_ATTRIBUTE_ADD, OPR_CMDAPP_HOME, OPR_ENTITY_ADD
+from baseclasses.util import OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from wit import Wit
 from baseclasses.securityengine import SecurityEngine
 from util import *
+import webbrowser
 
 class MultChannelApp:
     def __init__(self, user):
@@ -10,11 +11,10 @@ class MultChannelApp:
         self.__SE = SecurityEngine(self) #security engine instance
         self.__WIT_CLIENT = None
     
-    def runCmdApp(self):
-        pass
-        #return self.__SE.execute(OPR_CMDAPP_HOME,
+    def runApp_web(self):
+        return webbrowser.open(self.__SE.execute(OPR_APP_HOME_WEB)['homeurl'])
     
-    def runWebApp(self):
+    def runApp_cmd(self):
         pass
     
     def __msgHandle(self, msg):
