@@ -12,7 +12,7 @@ def boot():
     global userTest 
     global currentEntity
     userTest = User(os.environ['DJANGO_SUPERUSER_USERNAME'], os.environ['DJANGO_SUPERUSER_PASSWORD'])
-    currentEntity = userTest.MUP.addEntity('entity01') #only one entity in this version
+    currentEntity = userTest.MUP.addEntity('students') #only one entity in this version
 
 #deleting the old gen files
 deleteutil.deleteOldManagedFiles()

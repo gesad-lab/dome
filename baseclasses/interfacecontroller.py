@@ -10,9 +10,9 @@ class InterfaceController:
     def __init__(self, AC):
         self.__MANAGEDSYSTEM_NAME = 'managedsys'
         
-        self.__root_path = os.path.dirname(__file__)
+        self.__root_path = os.path.dirname(os.path.dirname(__file__)) #get the parent directory
         os.chdir(self.__root_path)
-        
+
         self.__AC = AC #Autonomous Controller Object
         
         self.__BPE = BusinessProcessEngine(self)
