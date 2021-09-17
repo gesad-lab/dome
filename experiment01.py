@@ -1,8 +1,8 @@
-from baseclasses import *
+from baseclasses.user import User
 import time
 import os
-import shutil
 import gc
+import deleteutil
 
 userTest = None
 currentEntity = None
@@ -15,12 +15,7 @@ def boot():
     currentEntity = userTest.MUP.addEntity('entity01') #only one entity in this version
 
 #deleting the old gen files
-root_path = os.path.dirname(__file__)
-print('Excluding the old files...')
-for dir in os.listdir(root_path):
-    full_dir_path = os.path.join(root_path, dir)
-    if os.path.isdir(full_dir_path) and (dir != '.git'): 
-        shutil.rmtree(full_dir_path)
+deleteutil.deleteOldManagedFiles()
     
 boot()
 i = 1

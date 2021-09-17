@@ -1,166 +1,11 @@
+from baseclasses.config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from baseclasses.analyticsengine import AnalyticsEngine
+from baseclasses.businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput
 import platform
 
-OPR_HOMEPAGE = 'homepage'
-OPR_ENTITY_ADD = 'entity.add'
-OPR_ATTRIBUTE_ADD = 'attribute.add'
-            
-class Entity:
-    def __init__(self, name):
-        self.name = name
-        self.__attributes = []
-        #self.addAttribute('att0', 'str', True) #all entities need at least one attribute not null
-
-    def getAttributes(self):
-        return self.__attributes
-    
-    def addAttribute(self, name, type, notNull=False):
-        self.__attributes.append(Attribute(self, name, type, notNull))
-        
-    def delAttribute(self, name):
-        self.__attributes.remove(name)
-        
-class Attribute:
-    def __init__(self, entity, name, type, notNull=False):
-        self.__entity = entity
-        self.name = name
-        self.type = type
-        self.notnull = notNull
-        
-    def __eq__(self, o: object) -> bool:
-        if type(o) == type(''):
-            return self.name == o
-        elif type(o) == type(self):
-            return self.name == o.name
-        #else
-        return False 
-
-
-#arquitecture classes
-class User:
-    def __init__(self, login, pwd):
-        self.MUP = MultChannelApp(self) 
-        self.login = login
-        self.__pwd = pwd
-
-class MultChannelApp:
-    def __init__(self, user):
-        self.__user = user #same user for all
-        self.__SE = SecurityEngine(self) #security engine instance
-    
-    #navigate operations
-    def homePage(self):
-        return self.__SE.execute(OPR_HOMEPAGE)
-                    
-    #CRUD data operations
-    def addData(self, data): 
-        pass
-    def updateData(self, data): 
-        pass
-    def delData(self, data): 
-        pass
-    def selectData(self): 
-        pass
-    
-    #Meta-data operations
-    def addEntity(self, entity):
-        #TODO: #1 fix none params
-        return self.__SE.execute(OPR_ENTITY_ADD, entity=entity, name=None, type=None, notnull=None)
-    
-    def addAttribute(self, entity, name, type, notnull=False):
-        return self.__SE.execute(OPR_ATTRIBUTE_ADD, entity=entity, name=name, type=type, notnull=notnull)
-       
-    def delAttribute(self, name, type, entity):
-        pass
-
-class IntegrationEngine:
-    def __init__(self, SE):
-        self.__SE = SE
-        self.ES = ExternalService(self)
-
-class ExternalService:
-    def __init__(self, IE):
-        self.__IE = IE
-
-class SecurityEngine:
-    def __init__(self, MUP, IE=None):
-        self.__MUP = MUP #Multchannel App
-        
-        if IE is None:
-            self.__IE = IntegrationEngine(self)
-        else:
-            self.__IE = IE #Integration Engine
-        
-        #TODO: security operations
-        #...
-        #user access allowed        
-        self.__AC = AutonomousController(self) #autonomous controller instance
-
-    def __authorize(self, opr):
-        return True #for this experiment, all operations will be allowed
-
-    def execute(self, opr, **params):
-        if not(self.__authorize(opr)):
-            return None
-        #else: authorized
-        #call Autonomous Controller
-        if opr == OPR_ENTITY_ADD:
-            return self.__AC.plan(opr, entity=params['entity'], name=None, type=None, notnull=None)
-        elif opr == OPR_ATTRIBUTE_ADD:
-            return self.__AC.plan(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull'])
-        #else
-        return None
-
-    #util methods
-    def getUser(self):
-        return self.__MUP.user
-
-class AutonomousController:
-    def __init__(self, SE):
-        self.__SE = SE #Security Engine object
-        self.__DT = DomainTransformer(self) #Domain Transform object
-        self.__IC = InterfaceController(self) #Interface Controller object
-        self.__AIE = AIEngine(self) #Artificial Intelligence Engine object
-        
-    def __monitor(self):
-        pass
-
-    def __analyze(self):
-        pass
-    
-    def plan(self, opr, **params):
-        #in this version, all tasks are going to be executed immediately
-        return self.__execute(opr, entity=params['entity'], name=params['name'], type=params['type'], notnull=params['notnull']) 
-    
-    def __execute(self, opr, **params):
-        #TODO: manager the type of task
-        #...
-        if opr == OPR_ENTITY_ADD:
-            return self.__DT.addEntity(params.get('entity'))
-            #return True #TODO: #3 analysing return type
-        elif opr == OPR_ATTRIBUTE_ADD:
-            self.__DT.addAttribute(params.get('entity'), params.get('name')
-                                   , params.get('type'), params.get('notnull'))
-            self.__IC.updateAppWeb()
-            return True
-        #else
-        return None
-        
-    def __knowledge(self):
-        pass
-    
-    #util methods
-    def getEntities(self) -> list:
-        return self.__DT.getEntities()
-    
-class AIEngine:
-    def __init__(self, AC):
-        self.__AC = AC #Autonomous Controller object
-    #TODO: AI Services
-    #...
-    
 class InterfaceController:
     def __init__(self, AC):
         self.__MANAGEDSYSTEM_NAME = 'managedsys'
@@ -175,7 +20,7 @@ class InterfaceController:
         
         #starting the python virtual env
         #https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + '_env')
+        self.__venv_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + SUFIX_ENV)
         
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -196,14 +41,14 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django-livesync')
         
         print('creating config dir...')
-        self.__config_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + '_config') 
+        self.__config_path = self.__checkPath(self.__MANAGEDSYSTEM_NAME + SUFIX_CONFIG) 
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             print('starting django project...')
             self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path) #synchronous
             print('starting django project (finished)...')
 
-        self.__webapp_path = self.__MANAGEDSYSTEM_NAME + '_web' 
+        self.__webapp_path = self.__MANAGEDSYSTEM_NAME + SUFIX_WEB
 
         if not os.path.exists(self.__webapp_path):
             print('updating manage.py file...')
@@ -312,36 +157,3 @@ class InterfaceController:
         return sp.Popen(self.__checkPath(strCmd).split(), #asynchronous
                                 stdout=sp.PIPE,
                                 universal_newlines=True, shell=True)        
-
-class BusinessProcessEngine:
-    def __init__(self, IC):
-        self.__IC = IC
-
-class AnalyticsEngine:
-    def __init__(self, IC):
-        self.__IC = IC
-
-class DomainTransformer:
-    def __init__(self, AC):
-        self.__AC = AC #Autonomous Controller Object
-        self.__entities = []
-
-    def addEntity(self, name):
-        #TODO: update meta data (MDB) and Transaction Data (TDB)
-        if self.__entities.count(name) > 0:
-            return None #entity already exists
-        #else: add new entity
-        e = Entity(name)
-        self.__entities.append(e)
-        return e
-
-    def getEntities(self):
-        return self.__entities
-
-    def addAttribute(self, entity, name, type, notnull=False):
-        #TODO: #2 update meta data (MDB) and Transaction Data (TDB)
-        #...
-        entity.addAttribute(name, type, notnull)
-        return True
-   
-
