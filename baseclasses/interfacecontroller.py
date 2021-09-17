@@ -107,7 +107,7 @@ class InterfaceController:
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
                 #all fiels with the same type, in this version.
-                strFileBuffer += f'\n    {att.name}_text = models.CharField(max_length=200, null={not att.notnull}, blank={not att.notnull})' 
+                strFileBuffer += f'\n    {att.name} = models.CharField(max_length=200, null={not att.notnull}, blank={not att.notnull})' 
         #print(strFileBuffer)
         #re-writing the model.py file
         

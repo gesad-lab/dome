@@ -1,30 +1,30 @@
 from baseclasses.user import User
 import time
-import os
 import gc
-import deleteutil
+import util.deleteutil as delutil
 
 userTest = None
 currentEntity = None
+ATT_NAMES = ['name', 'middle_name', 'surname', 'email', 'home_address', "mother_name", "father_name"]
 
 def boot():
     #4tests
     global userTest 
     global currentEntity
-    userTest = User(os.environ['DJANGO_SUPERUSER_USERNAME'], os.environ['DJANGO_SUPERUSER_PASSWORD'])
-    currentEntity = userTest.MUP.addEntity('students') #only one entity in this version
+    userTest = User.getRandomNewUser()
+    currentEntity = userTest.MUP.addEntity('student') #only one entity in this version
 
 #deleting the old gen files
-deleteutil.deleteOldManagedFiles()
+delutil.deleteOldManagedFiles()
     
 boot()
 i = 1
 
 while True:
     print('creating the attribute ' + str(i) + '/10')
-    userTest.MUP.addAttribute(currentEntity, 'att_'+str(i), 'str')
+    userTest.MUP.addAttribute(currentEntity, ATT_NAMES[i-1], 'str')
     time.sleep(30) # Sleep for some seconds
-    if i==10: #10 is the max number of attributes for this test
+    if i==len(ATT_NAMES): #len(ATT_NAMES) is the max number of attributes for this test
         #memory managment
         del userTest
         del currentEntity
