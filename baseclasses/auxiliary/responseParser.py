@@ -20,6 +20,13 @@ class Entity(AutoName):
     EMAIL = auto()
     LOCATION = auto()
 
+    def update(self, body, role) -> None:
+        self.body = body
+        self.role = role
+
+class Attribute():
+    def __init__(self, ) -> None:
+        pass
 
 class ParseResponse:
     def __init__(self, response) -> None:
@@ -31,12 +38,14 @@ class ParseResponse:
             and response['intents'][0]['confidence'] > PNL_GENERAL_THRESHOLD):
                 self.__intent = Intent(response['intents'][0]['name'].upper())
 
-        #print(json.dumps(response['entities'], indent=3))
+        print(json.dumps(response, indent=3))
         
         for key in response['entities']:
             for entity in response['entities'][key]:
                 if entity['confidence'] > PNL_GENERAL_THRESHOLD:
-                    self.__entities.append(Entity(entity['name'].replace('wit$','').upper()))
+                    new_ent = Entity(entity['name'].replace('wit$','').upper())
+                    new_ent.update(entity['body'], entity['role'])
+                    self.__entities.append(new_ent)
 
     def getIntent(self) -> Intent:
         return self.__intent

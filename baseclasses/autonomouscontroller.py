@@ -69,7 +69,8 @@ class AutonomousController:
         if parse.intentIs_GREET():
             msgReturnList = GREETINGS
         #bye
-        elif parse.intentIs_CREATE_AND_UPDATE: 
+        elif parse.intentIs_CREATE_AND_UPDATE:
+             
             msgReturnList = BYE
         elif parse.intentIs_DELETE: 
             msgReturnList = BYE
