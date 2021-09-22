@@ -64,18 +64,24 @@ class AutonomousController:
         msgReturnList = MISUNDERSTANDING #default
         #celebrity = first_entity_resolved_value(response['entities'], 'wit$notable_person:notable_person')
         #greetings
-        if first_trait_value(response['traits'], 'wit$greetings'):
+        if test_confidence(response['traits'], 'wit$greetings'):
             msgReturnList = GREETINGS
         #bye
-        elif first_trait_value(response['traits'], 'wit$bye'): 
+        elif test_confidence(response['traits'], 'wit$bye'): 
             msgReturnList = BYE
         
         #
         return random.choice(msgReturnList)
 
-        
-
 #util methods
+def test_confidence(traits, trait):
+    return first_trait_confidence(traits, trait) > PNL_GENERAL_THRESHOLD
+
+def first_trait_confidence(traits, trait):
+    if trait not in traits:
+        return 0.0
+    return traits[trait][0]['confidence']
+
 def first_trait_value(traits, trait):
     if trait not in traits:
         return None
