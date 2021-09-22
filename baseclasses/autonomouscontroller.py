@@ -60,14 +60,19 @@ class AutonomousController:
         return True
     
     def app_cmd_msgHandle(self, response):
-        print(response)
-        greetings = first_trait_value(response['traits'], 'wit$greetings')
+        #print(response)
+        msgReturnList = MISUNDERSTANDING #default
         #celebrity = first_entity_resolved_value(response['entities'], 'wit$notable_person:notable_person')
-        if greetings:
-            return random.choice(GREETINGS_DEFAULT)
-        #else:
+        #greetings
+        if first_trait_value(response['traits'], 'wit$greetings'):
+            msgReturnList = GREETINGS
+        #bye
+        elif first_trait_value(response['traits'], 'wit$bye'): 
+            msgReturnList = BYE
+        
         #
-        return random.choice(MISUNDERSTANDING)
+        return random.choice(msgReturnList)
+
         
 
 #util methods
