@@ -1,4 +1,4 @@
-from baseclasses.attribute import Attribute
+from baseclasses.auxiliary.attribute import Attribute
 
 class Entity:
     def __init__(self, name):

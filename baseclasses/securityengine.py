@@ -1,4 +1,4 @@
-from baseclasses.util import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from baseclasses.auxiliary.constants import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.autonomouscontroller import AutonomousController
 from baseclasses.integrationengine import IntegrationEngine
 from config import *

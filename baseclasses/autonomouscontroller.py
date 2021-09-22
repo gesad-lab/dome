@@ -1,11 +1,11 @@
 
 import random
-from baseclasses.util import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from baseclasses.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
 from baseclasses.domaintransformer import DomainTransformer
 from config import *
-import datetime
+from baseclasses.auxiliary.responseParser import *
 
 class AutonomousController:
     def __init__(self, SE):
@@ -61,31 +61,24 @@ class AutonomousController:
     
     def app_cmd_msgHandle(self, response):
         #print(response)
+        parse = ParseResponse(response)
+        
         msgReturnList = MISUNDERSTANDING #default
         #celebrity = first_entity_resolved_value(response['entities'], 'wit$notable_person:notable_person')
         #greetings
-        if test_confidence(response['traits'], 'wit$greetings'):
+        if parse.intentIs_GREET():
             msgReturnList = GREETINGS
         #bye
-        elif test_confidence(response['traits'], 'wit$bye'): 
+        elif parse.intentIs_CREATE_AND_UPDATE: 
+            msgReturnList = BYE
+        elif parse.intentIs_DELETE: 
+            msgReturnList = BYE
+        elif parse.intentIs_READ: 
+            msgReturnList = BYE
+        elif parse.intentIs_SAY_GOODBYE: 
             msgReturnList = BYE
         
         #
         return random.choice(msgReturnList)
 
-#util methods
-def test_confidence(traits, trait):
-    return first_trait_confidence(traits, trait) > PNL_GENERAL_THRESHOLD
 
-def first_trait_confidence(traits, trait):
-    if trait not in traits:
-        return 0.0
-    return traits[trait][0]['confidence']
-
-def first_trait_value(traits, trait):
-    if trait not in traits:
-        return None
-    val = traits[trait][0]['value']
-    if not val:
-        return None
-    return val

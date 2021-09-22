@@ -1,6 +1,5 @@
-from baseclasses.util import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from baseclasses.auxiliary.constants import *
 from baseclasses.securityengine import SecurityEngine
-from util import *
 import webbrowser
 
 class MultChannelApp:
@@ -9,7 +8,7 @@ class MultChannelApp:
         self.__SE = SecurityEngine(self) #security engine instance
     
     def runApp_web(self):
-        return webbrowser.open(self.__SE.execute(OPR_APP_HOME_WEB)['homeurl'])
+        return webbrowser.open(self.__SE.execute(OPR_APP_HOME_CMD)['homeurl'])
     
     def runApp_cmd(self):
         self.__SE.execute(OPR_APP_HOME_CMD)

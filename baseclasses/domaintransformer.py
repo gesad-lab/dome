@@ -1,4 +1,4 @@
-from baseclasses.entity import Entity
+from baseclasses.auxiliary.entity import Entity
 
 class DomainTransformer:
     def __init__(self, AC):
