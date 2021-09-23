@@ -7,11 +7,9 @@ class DomainEngine:
 
     def addEntity(self, name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
-        if self.__entities.count(name) > 0:
-            return None #entity already exists
-        #else: add new entity
         e = Entity(name)
-        self.__entities.append(e)
+        if self.__entities.count(name) == 0:
+            self.__entities.append(e)
         return e
 
     def getEntities(self):

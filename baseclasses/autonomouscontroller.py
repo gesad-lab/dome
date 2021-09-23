@@ -69,17 +69,32 @@ class AutonomousController:
         if parse.intentIs_GREET():
             msgReturnList = GREETINGS
         #bye
-        elif parse.intentIs_CREATE_AND_UPDATE:
-             
-            msgReturnList = BYE
+        elif parse.intentIs_CREATE_AND_UPDATE: #TODO: #17 refactoring to change code to DomainEngine
+            classList = parse.getEntities_CLASS()
+            if len(classList) == 0:
+                pass # TODO: #5 to set correct error message (use case no indicate class)
+            elif len(classList) >= 2:
+                pass # TODO: #6 to set correct error message (use case more than one class)
+            else: #all rigth. one class use case
+                #seeking for attributes
+                attList = parse.getEntities_ATTRIBUTE()
+                if len(attList) == 0:
+                    pass # TODO: #7 to set correct error message (use case no indicate attributes)
+                elif len(attList) % 2 == 1: #it's odd
+                    pass # TODO: #8 to set correct error message (use case odd att number)
+                else: #all ok! even number!
+                    #including the entity
+                    domain_entity = self.__DE.addEntity(classList[0].body)
+                    for i in range(0, len(attList)-1, 2):
+                        self.__DE.addAttribute(domain_entity, attList[i].body, 'str') #TODO: #18 to manage the type 
+                    self.__IC.updateAppWeb(runserver=False) #TODO: #16 to analyse best implementation to run server or not 
         elif parse.intentIs_DELETE: 
-            msgReturnList = BYE
+            pass #TODO: #9 elif parse.intentIs_DELETE: 
         elif parse.intentIs_READ: 
-            msgReturnList = BYE
+            pass #TODO: #10 elif parse.intentIs_READ:
         elif parse.intentIs_SAY_GOODBYE: 
             msgReturnList = BYE
-        
-        #
+
         return random.choice(msgReturnList)
 
 

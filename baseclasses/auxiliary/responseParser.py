@@ -13,7 +13,7 @@ class Intent(AutoName):
     READ = auto()
     SAY_GOODBYE = auto()
 
-class Entity(AutoName):
+class Entity(AutoName):#TODO: #15 to change name to differ from entity.py
     ATTRIBUTE = auto()
     CLASS = auto()
     CONTACT = auto()
@@ -23,8 +23,8 @@ class Entity(AutoName):
     def update(self, body, role) -> None:
         self.body = body
         self.role = role
-
-class Attribute():
+    
+class Attribute():#TODO: #14 to change name to differ from attribute.py
     def __init__(self, ) -> None:
         pass
 
@@ -38,7 +38,7 @@ class ParseResponse:
             and response['intents'][0]['confidence'] > PNL_GENERAL_THRESHOLD):
                 self.__intent = Intent(response['intents'][0]['name'].upper())
 
-        print(json.dumps(response, indent=3))
+        #print(json.dumps(response, indent=3))
         
         for key in response['entities']:
             for entity in response['entities'][key]:
@@ -67,3 +67,19 @@ class ParseResponse:
 
     def intentIs_SAY_GOODBYE(self) -> bool:
         return self.intentIs(Intent.SAY_GOODBYE)
+
+    def getEntities(self) -> list:
+        return self.__entities
+    
+    def getEntitiesByType(self, entityType):
+        listReturn = []
+        for entity in self.getEntities():
+            if entity == entityType:
+                listReturn.append(entity)
+        return listReturn
+    
+    def getEntities_CLASS(self):
+        return self.getEntitiesByType(Entity.CLASS)
+    
+    def getEntities_ATTRIBUTE(self):
+        return self.getEntitiesByType(Entity.ATTRIBUTE)    

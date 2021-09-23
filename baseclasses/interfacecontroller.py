@@ -91,7 +91,7 @@ class InterfaceController:
     def getApp_cmd(self, msgHandle):
         return self.__AIE.getNLPEngine().interactive(msgHandle)        
         
-    def updateAppWeb(self):
+    def updateAppWeb(self, runserver=True):
         #update admin.py
         print('updating admin.py...')
         strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
@@ -125,7 +125,8 @@ class InterfaceController:
         #else:
                 
         self.migrateModel()
-        self.__runServer()
+        if runserver:
+            self.__runServer()
         
         return True
     
