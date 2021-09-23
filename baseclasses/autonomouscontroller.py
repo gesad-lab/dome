@@ -3,14 +3,14 @@ import random
 from baseclasses.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
 from baseclasses.aiengine import AIEngine
 from baseclasses.interfacecontroller import InterfaceController
-from baseclasses.domaintransformer import DomainTransformer
+from baseclasses.domainengine import DomainEngine
 from config import *
 from baseclasses.auxiliary.responseParser import *
 
 class AutonomousController:
     def __init__(self, SE):
         self.__SE = SE #Security Engine object
-        self.__DT = DomainTransformer(self) #Domain Transform object
+        self.__DE = DomainEngine(self) #Domain Engine object
         self.__IC = InterfaceController(self) #Interface Controller object
         self.__AIE = AIEngine() #Artificial Intelligence Engine object
         self.__lastChatDth = None
@@ -35,10 +35,10 @@ class AutonomousController:
             self.__IC.getApp_cmd(self.app_cmd_msgHandle)
             return True #TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
-            return self.__DT.addEntity(data['name'])
+            return self.__DE.addEntity(data['name'])
             #return True #TODO: #3 analysing return type
         elif opr == OPR_ATTRIBUTE_ADD:
-            self.__DT.addAttribute(data['entity'], data['name']
+            self.__DE.addAttribute(data['entity'], data['name']
                                    , data['type'], data['notnull'])
             self.__IC.updateAppWeb()
             return True
@@ -50,7 +50,7 @@ class AutonomousController:
     
     #util methods
     def getEntities(self) -> list:
-        return self.__DT.getEntities()
+        return self.__DE.getEntities()
     
     
     def __isNewSession(self) -> bool:

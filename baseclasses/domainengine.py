@@ -1,6 +1,6 @@
 from baseclasses.auxiliary.entity import Entity
 
-class DomainTransformer:
+class DomainEngine:
     def __init__(self, AC):
         self.__AC = AC #Autonomous Controller Object
         self.__entities = []
