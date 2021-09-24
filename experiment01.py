@@ -37,7 +37,7 @@ while True:
     else:
         i += 1 #increment the number of attributes
         
-    time.sleep(30) # Sleep for some seconds
+    time.sleep(60) # Sleep for some seconds
 
 
             
