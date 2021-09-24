@@ -23,7 +23,7 @@ i = 1
 userTest.MUP.runApp_web()
 
 while True:
-    print('creating the attribute ' + str(i) + '/10')
+    print('creating the attribute ' + str(i) + '/7')
     userTest.MUP.addAttribute(currentEntity, ATT_NAMES[i-1], 'str')
     
     if i==len(ATT_NAMES): #len(ATT_NAMES) is the max number of attributes for this test
