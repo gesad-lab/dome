@@ -87,11 +87,12 @@ class InterfaceController:
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver 0.0.0.0:80')# --noreload')       
         os.chdir(self.__checkPath('..\\'))
+        return True
     
     def getApp_cmd(self, msgHandle):
         return self.__AIE.getNLPEngine().interactive(msgHandle)        
         
-    def updateAppWeb(self, runserver=True):
+    def updateModel(self):
         #update admin.py
         print('updating admin.py...')
         strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
@@ -125,10 +126,12 @@ class InterfaceController:
         #else:
                 
         self.migrateModel()
-        if runserver:
-            self.__runServer()
+        return True #TODO: #21 to analyse the type of return
         
-        return True
+    
+    def updateAppWeb(self):
+        return self.updateModel() and self.__runServer()
+
     
     #util methods
     def __getEntities(self) -> list:

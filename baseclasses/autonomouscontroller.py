@@ -87,7 +87,7 @@ class AutonomousController:
                     domain_entity = self.__DE.addEntity(classList[0].body)
                     for i in range(0, len(attList)-1, 2):
                         self.__DE.addAttribute(domain_entity, attList[i].body, 'str') #TODO: #18 to manage the type 
-                    self.__IC.updateAppWeb(runserver=False) #TODO: #16 to analyse best implementation to run server or not 
+                    self.__IC.updateModel() #TODO: #16 to analyse best implementation to run server or not 
         elif parse.intentIs_DELETE: 
             pass #TODO: #9 elif parse.intentIs_DELETE: 
         elif parse.intentIs_READ: 
