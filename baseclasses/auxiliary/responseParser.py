@@ -56,8 +56,8 @@ class ParseResponse:
     def intentIs_GREET(self) -> bool:
         return self.intentIs(Intent.GREET)
     
-    def intentIs_CREATE_AND_UPDATE(self) -> bool:
-        return self.intentIs(Intent.CREATE_AND_UPDATE)
+    def intentIs_CREATE_OR_UPDATE(self) -> bool:
+        return self.intentIs(Intent.CREATE_OR_UPDATE)
 
     def intentIs_DELETE(self) -> bool:
         return self.intentIs(Intent.DELETE)

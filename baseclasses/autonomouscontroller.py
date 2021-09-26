@@ -68,8 +68,7 @@ class AutonomousController:
         #greetings
         if parse.intentIs_GREET():
             msgReturnList = GREETINGS
-        #bye
-        elif parse.intentIs_CREATE_AND_UPDATE: #TODO: #17 refactoring to change code to DomainEngine
+        elif parse.intentIs_CREATE_OR_UPDATE(): #TODO: #17 refactoring to change code to DomainEngine
             classList = parse.getEntities_CLASS()
             if len(classList) == 0:
                 pass # TODO: #5 to set correct error message (use case no indicate class)
@@ -89,11 +88,11 @@ class AutonomousController:
                         self.__DE.addAttribute(domain_entity, attList[i].body, 'str') #TODO: #18 to manage the type 
                     self.__IC.updateModel(showLogs=False) 
                     msgReturnList = CREATE_OR_UPDATE_SUCCESS
-        elif parse.intentIs_DELETE: 
+        elif parse.intentIs_DELETE(): 
             pass #TODO: #9 elif parse.intentIs_DELETE: 
-        elif parse.intentIs_READ: 
+        elif parse.intentIs_READ(): 
             pass #TODO: #10 elif parse.intentIs_READ:
-        elif parse.intentIs_SAY_GOODBYE: 
+        elif parse.intentIs_SAY_GOODBYE(): 
             msgReturnList = BYE
 
         return random.choice(msgReturnList)
