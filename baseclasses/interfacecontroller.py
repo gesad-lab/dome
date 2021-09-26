@@ -92,9 +92,11 @@ class InterfaceController:
     def getApp_cmd(self, msgHandle):
         return self.__AIE.getNLPEngine().interactive(msgHandle)        
         
-    def updateModel(self):
+    def updateModel(self, showLogs = True):
         #update admin.py
-        print('updating admin.py...')
+        if showLogs:
+            print('updating admin.py...')
+            
         strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
         for entity in self.__getEntities():
             #only add entities with one attribute at least
@@ -107,7 +109,9 @@ class InterfaceController:
         #else:
                 
         #update models.py
-        print('updating models.py...')
+        if showLogs:
+            print('updating models.py...')
+        
         strFileBuffer = 'from django.db import models\n'
         for entity in self.__getEntities():
             #only add entities with one attribute at least
@@ -125,7 +129,7 @@ class InterfaceController:
             return False
         #else:
                 
-        self.migrateModel()
+        self.migrateModel(showLogs)
         return True #TODO: #21 to analyse the type of return
         
     
@@ -146,8 +150,10 @@ class InterfaceController:
             f.close()
         return True     
         
-    def migrateModel(self):
-        print('migrating model...')
+    def migrateModel(self, showLogs=True):
+        if showLogs:
+            print('migrating model...')
+        
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py makemigrations ' + self.__webapp_path)
         self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py migrate')
         

@@ -11,6 +11,10 @@ BYE = ["Ok! Thank you. See you next time!"
        ,"Thank you! If you need something, please text me."
       ]
 
+CREATE_OR_UPDATE_SUCCESS = ['Ok! Information saved successfully!'
+                            , 'It done! Information saved. ;)'
+                            , "Yes! All done. We've saved your information with security."]
+
 #config variables
 MANAGED_SYSTEM_NAME = 'managedsys'
 SUFIX_ENV = '_env'
