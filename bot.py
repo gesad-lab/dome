@@ -24,7 +24,7 @@ import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 TOKEN = os.getenv('TEXT2SYSTEM_TELEGRAM_TOKEN')
-APP_NAME = 'https://text2system.herokuapp.com/baseclasses/chatbot/'
+APP_NAME = 'https://text2system.herokuapp.com/'
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
