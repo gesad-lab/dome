@@ -1,11 +1,12 @@
 
 import random
-from src.text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_BOT_HANDLE_GET, OPR_ENTITY_ADD
-from src.text2system.aiengine import AIEngine
-from src.text2system.interfacecontroller import InterfaceController
-from src.text2system.domainengine import DomainEngine
+from auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD, OPR_APP_TELEGRAM_START
+from aiengine import AIEngine
+from interfacecontroller import InterfaceController
+from domainengine import DomainEngine
 from config import *
-from src.text2system.auxiliary.responseParser import *
+from auxiliary.responseParser import *
+from src.text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 
 class AutonomousController:
     def __init__(self, SE):
@@ -32,7 +33,7 @@ class AutonomousController:
             self.__IC.updateAppWeb()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_APP_HOME_CMD:
-            self.__IC.getApp_cmd(self.app_cmd_msgHandle)
+            self.__IC.getApp_cmd(self.app_chatbot_responseProcess)
             return True #TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
             return self.__DE.addEntity(data['name'])
@@ -42,8 +43,9 @@ class AutonomousController:
                                    , data['type'], data['notnull'])
             self.__IC.updateAppWeb()
             return True
-        elif opr == OPR_BOT_HANDLE_GET:
-            return self.app_cmd_msgHandle
+        elif opr == OPR_APP_TELEGRAM_START:
+            self.__IC.startApp_telegram(self.app_chatbot_msgHandle)
+            return True #TODO: to analyse return type/value
         #else
         return None
         
@@ -61,7 +63,11 @@ class AutonomousController:
         # else:
         return True
     
-    def app_cmd_msgHandle(self, response, context):
+    def app_chatbot_msgHandle(self, msg, context):
+        msgProcess = self.__AIE.getNLPEngine().message(msg) #TODO: #22 define context (need process the telegram's context)
+        return self.app_chatbot_responseProcess(msgProcess)
+    
+    def app_chatbot_responseProcess(self, response, context=None):
         #print(response)
         parse = ParseResponse(response)
         

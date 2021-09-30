@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="text2system",                     # This is the name of the package
-    version="0.0.8",                        # The initial release version
+    version="0.0.9",                        # The initial release version
     author="Anderson Martins Gomes",                     # Full name of the author
     author_email='andersonmg@gmail.com',
     url='https://github.com/andersonmgomes/text2system',

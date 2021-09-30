@@ -1,4 +1,4 @@
-from src.text2system.auxiliary.entity import Entity
+from auxiliary.entity import Entity
 
 class DomainEngine:
     def __init__(self, AC):

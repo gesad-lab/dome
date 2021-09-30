@@ -1,7 +1,7 @@
-from src.text2system.user import User
-import util.deleteutil as delutil
+import deleteutil as delutil
+import src.text2system.user as user
 
 #deleting the old gen files
-delutil.deleteOldManagedFiles()
+#delutil.deleteOldManagedFiles()
 
-User.getRandomNewUser().MUP.runApp_cmd()
+user.User.getRandomNewUser().MUP.runApp_telegram()

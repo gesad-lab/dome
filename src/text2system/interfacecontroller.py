@@ -1,12 +1,13 @@
-from src.text2system.aiengine import AIEngine
+from aiengine import AIEngine
 from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
-from src.text2system.analyticsengine import AnalyticsEngine
-from src.text2system.businessprocessengine import BusinessProcessEngine
+from analyticsengine import AnalyticsEngine
+from businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput
 import platform
 from config import MANAGED_SYSTEM_NAME
+from src.text2system.auxiliary.telegramHandle import TelegramHandle
 
 class InterfaceController:
     def __init__(self, AC): #TODO: #4 to analyze the bidirectional relation
@@ -14,7 +15,7 @@ class InterfaceController:
         self.__AIE = AIEngine() #relation 8.1
         self.__BPE = BusinessProcessEngine(self) #relation 8.2
         self.__AE = AnalyticsEngine(self) #relation 8.3
-        
+        self.__TELEGRAM_HANDLE = None
         self.__root_path = os.path.dirname(os.path.dirname(__file__)) #get the parent directory
         os.chdir(self.__root_path)
 
@@ -92,6 +93,11 @@ class InterfaceController:
     def getApp_cmd(self, msgHandle):
         return self.__AIE.getNLPEngine().interactive(msgHandle)        
         
+    def startApp_telegram(self, msgHandle):
+        if self.__TELEGRAM_HANDLE is None:
+            self.__TELEGRAM_HANDLE = TelegramHandle(msgHandle)
+        return True
+    
     def updateModel(self, showLogs = True):
         #update admin.py
         if showLogs:

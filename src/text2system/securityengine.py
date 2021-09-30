@@ -1,6 +1,6 @@
-from src.text2system.auxiliary.constants import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
-from src.text2system.autonomouscontroller import AutonomousController
-from src.text2system.integrationengine import IntegrationEngine
+from auxiliary.constants import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from autonomouscontroller import AutonomousController
+from integrationengine import IntegrationEngine
 from config import *
 
 class SecurityEngine:
