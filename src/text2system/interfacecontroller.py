@@ -1,7 +1,7 @@
-from text2system.text2system.aiengine import AIEngine
+from src.text2system.aiengine import AIEngine
 from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
-from text2system.text2system.analyticsengine import AnalyticsEngine
-from text2system.text2system.businessprocessengine import BusinessProcessEngine
+from src.text2system.analyticsengine import AnalyticsEngine
+from src.text2system.businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput

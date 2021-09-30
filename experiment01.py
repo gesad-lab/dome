@@ -1,4 +1,4 @@
-from text2system.text2system.user import User
+from src.text2system.user import User
 import time
 import gc
 import util.deleteutil as delutil
@@ -41,4 +41,4 @@ while True:
 
 
             
-#pyreverse text2system.text2system.py --output=jpg --filter-mode=ALL --all-associated
+#pyreverse src.text2system.py --output=jpg --filter-mode=ALL --all-associated

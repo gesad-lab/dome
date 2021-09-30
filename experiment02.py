@@ -1,4 +1,4 @@
-from text2system.text2system.user import User
+from src.text2system.user import User
 import util.deleteutil as delutil
 
 #deleting the old gen files

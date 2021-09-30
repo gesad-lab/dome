@@ -8,4 +8,5 @@ integrationengine
 interfacecontroller
 multchannelapp
 securityengine
+text2system
 user
