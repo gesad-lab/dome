@@ -1,4 +1,4 @@
-from baseclasses.user import User
+from text2system.user import User
 import util.deleteutil as delutil
 
 #deleting the old gen files

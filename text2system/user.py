@@ -1,5 +1,5 @@
 import os
-from baseclasses.multchannelapp import MultChannelApp
+from text2system.multchannelapp import MultChannelApp
 
 class User:
     def __init__(self, login, pwd):

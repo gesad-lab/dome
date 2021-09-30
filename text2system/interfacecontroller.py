@@ -1,7 +1,7 @@
-from baseclasses.aiengine import AIEngine
+from text2system.aiengine import AIEngine
 from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
-from baseclasses.analyticsengine import AnalyticsEngine
-from baseclasses.businessprocessengine import BusinessProcessEngine
+from text2system.analyticsengine import AnalyticsEngine
+from text2system.businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput

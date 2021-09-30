@@ -1,11 +1,11 @@
 
 import random
-from baseclasses.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
-from baseclasses.aiengine import AIEngine
-from baseclasses.interfacecontroller import InterfaceController
-from baseclasses.domainengine import DomainEngine
+from text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_BOT_HANDLE_GET, OPR_ENTITY_ADD
+from text2system.aiengine import AIEngine
+from text2system.interfacecontroller import InterfaceController
+from text2system.domainengine import DomainEngine
 from config import *
-from baseclasses.auxiliary.responseParser import *
+from text2system.auxiliary.responseParser import *
 
 class AutonomousController:
     def __init__(self, SE):
@@ -42,6 +42,8 @@ class AutonomousController:
                                    , data['type'], data['notnull'])
             self.__IC.updateAppWeb()
             return True
+        elif opr == OPR_BOT_HANDLE_GET:
+            return self.app_cmd_msgHandle
         #else
         return None
         
@@ -59,7 +61,7 @@ class AutonomousController:
         # else:
         return True
     
-    def app_cmd_msgHandle(self, response):
+    def app_cmd_msgHandle(self, response, context):
         #print(response)
         parse = ParseResponse(response)
         

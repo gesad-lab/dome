@@ -1,5 +1,5 @@
-from baseclasses.auxiliary.constants import *
-from baseclasses.securityengine import SecurityEngine
+from text2system.auxiliary.constants import *
+from text2system.securityengine import SecurityEngine
 import webbrowser
 
 class MultChannelApp:
@@ -13,7 +13,9 @@ class MultChannelApp:
     def runApp_cmd(self):
         self.__SE.execute(OPR_APP_HOME_CMD)
     
-    
+    def getBotHandle(self):
+        return self.__SE.execute(OPR_BOT_HANDLE_GET)        
+        
     #CRUD data operations
     def addData(self, data): 
         pass
