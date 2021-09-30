@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: text2system
+Version: 0.0.1
+Summary: A self-adaptative arquitecture implementation
+Home-page: UNKNOWN
+Author: Anderson Martins Gomes
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+
+# text2system
+Text2System Experiment
+
+## Before deploy setup the follow environment variables:
+DJANGO_SUPERUSER_USERNAME=some_user_name<br/>
+DJANGO_SUPERUSER_PASSWORD=some_password<br/>
+DJANGO_SUPERUSER_EMAIL=some_email<br/>
+
+
+

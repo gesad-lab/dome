@@ -1,11 +1,11 @@
 
 import random
-from text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_BOT_HANDLE_GET, OPR_ENTITY_ADD
-from text2system.aiengine import AIEngine
-from text2system.interfacecontroller import InterfaceController
-from text2system.domainengine import DomainEngine
+from text2system.src.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_BOT_HANDLE_GET, OPR_ENTITY_ADD
+from text2system.src.aiengine import AIEngine
+from text2system.src.interfacecontroller import InterfaceController
+from text2system.src.domainengine import DomainEngine
 from config import *
-from text2system.auxiliary.responseParser import *
+from text2system.src.auxiliary.responseParser import *
 
 class AutonomousController:
     def __init__(self, SE):

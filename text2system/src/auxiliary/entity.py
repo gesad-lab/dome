@@ -1,4 +1,4 @@
-from text2system.auxiliary.attribute import Attribute
+from text2system.src.auxiliary.attribute import Attribute
 
 class Entity: #TODO: #12 choose other name to differ from responseParse.entity
     def __init__(self, name):
