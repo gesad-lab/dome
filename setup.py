@@ -5,9 +5,11 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="text2system",                     # This is the name of the package
-    version="0.0.1",                        # The initial release version
+    version="0.0.2",                        # The initial release version
     author="Anderson Martins Gomes",                     # Full name of the author
-    description="A self-adaptative arquitecture implementation",
+    author_email='andersonmg@gmail.com',
+    url='https://github.com/andersonmgomes/text2system',
+    description="A self-adaptative architecture implementation.",
     long_description=long_description,      # Long description read from the the readme file
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),    # List of all python modules to be installed
@@ -17,7 +19,18 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],                                      # Information to filter the project on PyPi website
     python_requires='>=3.6',                # Minimum version requirement of the package
-    py_modules=["text2system"],             # Name of the python package
-    package_dir={'':'text2system/src'},     # Directory of the source code of the package
+    py_modules=['aiengine'
+                ,'analyticsengine'
+                ,'autonomouscontroller'
+                ,'businessprocessengine'
+                ,'domainengine'
+                ,'externalservice'
+                ,'integrationengine'
+                ,'interfacecontroller'
+                ,'multchannelapp'
+                ,'user'
+                , 'securityengine'],             # Name of the python package
+    
+    package_dir={'':'text2system/text2system'},     # Directory of the source code of the package
     install_requires=[]                     # Install other dependencies if any
 )
