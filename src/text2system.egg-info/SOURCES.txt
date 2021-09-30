@@ -18,8 +18,3 @@ src/text2system.egg-info/PKG-INFO
 src/text2system.egg-info/SOURCES.txt
 src/text2system.egg-info/dependency_links.txt
 src/text2system.egg-info/top_level.txt
-src/text2system/auxiliary/__init__.py
-src/text2system/auxiliary/attribute.py
-src/text2system/auxiliary/constants.py
-src/text2system/auxiliary/entity.py
-src/text2system/auxiliary/responseParser.py
