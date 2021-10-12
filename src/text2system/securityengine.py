@@ -28,4 +28,4 @@ class SecurityEngine:
 
     #util methods
     def getUser(self):
-        return self.__MUP.user
+        return self.__MUP.getUser()

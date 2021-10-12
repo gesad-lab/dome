@@ -2,5 +2,6 @@
     "python.analysis.extraPaths": [
         "C:\\Users\\PRF\\Google Drive\\04-AmgInvest\\amginvest",
         "./src/text2system"
-    ]
+    ],
+    "jupyter.debugJustMyCode": false
 }

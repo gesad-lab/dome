@@ -34,3 +34,5 @@ class MultChannelApp:
         return self.__SE.execute(OPR_ATTRIBUTE_ADD, {'entity':entity, 'name':name
                                                      , 'type':type, 'notnull':notnull})
        
+    def getUser(self):
+        return self.__user       

@@ -13,6 +13,8 @@ class Intent(AutoName):
     READ = auto()
     SAY_GOODBYE = auto()
     HELP = auto()
+    CANCEL = auto()
+    CONFIRM = auto()    
 
 class Entity(AutoName):#TODO: #15 to change name to differ from entity.py
     ATTRIBUTE = auto()
@@ -37,7 +39,7 @@ class ParseResponse:
         
         if (len(response['intents'])>0
             and response['intents'][0]['confidence'] > PNL_GENERAL_THRESHOLD):
-                self.__intent = Intent(response['intents'][0]['name'].upper())
+                self.__intent = Intent(response['intents'][0]['name'].upper().replace('WIT$',''))
 
         #print(json.dumps(response, indent=3))
         
@@ -71,6 +73,12 @@ class ParseResponse:
 
     def intentIs_HELP(self) -> bool:
         return self.intentIs(Intent.HELP)
+
+    def intentIs_CANCEL(self) -> bool:
+        return self.intentIs(Intent.CANCEL)
+
+    def intentIs_CONFIRM(self) -> bool:
+        return self.intentIs(Intent.CONFIRM)
 
     def getEntities(self) -> list:
         return self.__entities

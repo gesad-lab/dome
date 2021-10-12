@@ -7,6 +7,7 @@ class User:
         self.MUP = MultChannelApp(self) 
         self.login = login
         self.__pwd = pwd
+        self.chatbot_data = {}
     
     #util methods
     @staticmethod

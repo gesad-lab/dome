@@ -18,9 +18,13 @@ HELP = ["""I'm a bot that helps you save your information in an organized, secur
         ,"""I'm your bot that securely saves your information. I understand better direct sentences. \nThus let me know first what you want to do (save, read or delete some data), what type the information you want to operate (a sale, a product, a contact, an appointment, etc.), and, finally, the data itself. \nSome examples: 'add student with name=Anderson', 'delete my last purchase', 'get info about the product with name=T-Shirt'."""
         ]
 
+CANCEL = ['No problem! The operation was canceled successfully.']
+
 CREATE_OR_UPDATE_SUCCESS = ['Ok! Information saved successfully!'
                             , 'It done! Information saved. ;)'
                             , "Yes! All done. We've saved your data with security."]
+
+CREATE_OR_UPDATE_MISSING_CLASS = ["Would you please inform me of the information type that you want to save? For instance, if you are trying to save data about an appointment, say 'appointment'.\n(If you wish to cancel this operation, say 'cancel'.)"]
 
 #config variables
 MANAGED_SYSTEM_NAME = 'managedsys'
