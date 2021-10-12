@@ -70,7 +70,7 @@ class AutonomousController:
     def app_chatbot_responseProcess(self, response, context=None):
         #print(response)
         parse = ParseResponse(response)
-        
+        print(context)
         msgReturnList = MISUNDERSTANDING #default
         #celebrity = first_entity_resolved_value(response['entities'], 'wit$notable_person:notable_person')
         #greetings
@@ -102,6 +102,8 @@ class AutonomousController:
             pass #TODO: #10 elif parse.intentIs_READ:
         elif parse.intentIs_SAY_GOODBYE(): 
             msgReturnList = BYE
+        elif parse.intentIs_HELP(): 
+            msgReturnList = HELP
 
         return random.choice(msgReturnList)
 

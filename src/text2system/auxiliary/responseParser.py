@@ -12,6 +12,7 @@ class Intent(AutoName):
     GREET = auto()
     READ = auto()
     SAY_GOODBYE = auto()
+    HELP = auto()
 
 class Entity(AutoName):#TODO: #15 to change name to differ from entity.py
     ATTRIBUTE = auto()
@@ -67,6 +68,9 @@ class ParseResponse:
 
     def intentIs_SAY_GOODBYE(self) -> bool:
         return self.intentIs(Intent.SAY_GOODBYE)
+
+    def intentIs_HELP(self) -> bool:
+        return self.intentIs(Intent.HELP)
 
     def getEntities(self) -> list:
         return self.__entities
