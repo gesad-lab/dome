@@ -20,12 +20,22 @@ HELP = ["""I'm a bot that helps you save your information in an organized, secur
 
 CANCEL = ['No problem! The operation was canceled successfully.']
 
+ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel\n...or simply continue doing this operation ;)]'
+               , "[Any time you can say 'ok' to confirm the operation, or 'cancel' to cancel the current operation]"
+               ] 
+
+ATTRIBUTE_FORMAT = ["I'll understand better if the data is in the following format:\n<<data name>> = <<data value>>\nFor example:\nage = 21"]
+
+ATTRIBUTE_FORMAT_FIRST_ATTEMPT = lambda opr, clas: [f"Ok! We are going to {opr} a {clas}. Please, now inform the data in the following format:\n<<data name>> = <<data value>>\nFor example:\nage = 21"]
+
+ATTRIBUTE_OK = ["Ok! I got it!"]
+
 CREATE_OR_UPDATE_SUCCESS = ['Ok! Information saved successfully!'
                             , 'It done! Information saved. ;)'
                             , "Yes! All done. We've saved your data with security."]
 
-CREATE_OR_UPDATE_MISSING_CLASS = ["Would you please inform me of the information type that you want to save? For instance, if you are trying to save data about an appointment, say 'appointment'.\n(If you wish to cancel this operation, say 'cancel'.)"]
-
+MISSING_CLASS = ["Would you please inform me of the information type that you want to operate? For instance, if you are trying to save data about an appointment, say 'appointment'.\n(If you wish to cancel this operation, say 'cancel'.)"]
+MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
 #config variables
 MANAGED_SYSTEM_NAME = 'managedsys'
 SUFIX_ENV = '_env'
