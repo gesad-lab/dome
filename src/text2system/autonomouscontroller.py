@@ -73,13 +73,13 @@ class AutonomousController:
             #new session
             user_data['user_id'] = context._user_id_and_data[0]
             user_data['chat_id'] = context._chat_id_and_data[0]
-            user_data['debug_mode'] = False
+            user_data['debug_mode'] = DEBUG_MODE
             self.__clear_opr(user_data)
         
-        if msg == 'debug_mode=on':
+        if msg == 'debug_mode:on':
             user_data['debug_mode'] = True
             return 'debug_mode is on!'
-        if msg == 'debug_mode=off':
+        if msg == 'debug_mode:off':
             user_data['debug_mode'] = False
             return 'debug_mode is off!'
         
@@ -92,7 +92,6 @@ class AutonomousController:
         user_data['pending_class'] = None
         user_data['pending_atts'] = {}
         user_data['pending_atts_first_attempt'] = True
-        user_data['pending_intent_str'] = None
     
     def app_chatbot_msgProcess(self, msg, user_data=None, context=None):
 
@@ -110,16 +109,16 @@ class AutonomousController:
                 and user_data['pending_class'] is not None
                 and len(user_data['pending_atts']) > 0
                 ):
-                if parse.intentIs_CREATE_OR_UPDATE(): #TODO: #17 refactoring to change code to DomainEngine
+                if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
                             #including the entity
-                            domain_entity = self.__DE.addEntity(user_data['pending_intent'])
-                            #for i in range(0, len(attList)-1, 2):
-                            #    self.__DE.addAttribute(domain_entity, attList[i].body, 'str') #TODO: #18 to manage the type 
+                            domain_entity = self.__DE.addEntity(user_data['pending_class'])
+                            for att_name, att_value in user_data['pending_atts'].items():
+                                self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
                             self.__IC.updateModel(showLogs=False) 
-                            msgReturnList = CREATE_OR_UPDATE_SUCCESS
-                elif parse.intentIs_DELETE(): 
+                            msgReturnList = SAVE_SUCCESS
+                elif user_data['pending_intent'] == Intent.DELETE: 
                     pass #TODO: #9 elif parse.intentIs_DELETE: 
-                elif parse.intentIs_READ(): 
+                elif user_data['pending_intent'] == Intent.READ: 
                     pass #TODO: #10 elif parse.intentIs_READ:
                 self.__clear_opr(user_data)
         elif parse.intentIs_CANCEL():
@@ -138,16 +137,8 @@ class AutonomousController:
         else:
             if parse.getIntent() is None:
                 if user_data['pending_intent'] is not None: #there is a previous pending operation
-                    msg_considered = ''
-                    if user_data['pending_intent'] == Intent.CREATE_OR_UPDATE:
-                        msg_considered = 'add '
-                    elif user_data['pending_intent'] == Intent.DELETE:
-                        msg_considered = 'del '
-                    elif user_data['pending_intent'] == Intent.READ:
-                        msg_considered = 'read '
-                    
-                    user_data['pending_intent_str'] = msg_considered.strip()                    
-                    
+                    msg_considered = str(user_data['pending_intent']) + ' '
+
                     if user_data['pending_class'] is not None:
                         msg_considered += str(user_data['pending_class']) + ' '
 
@@ -169,7 +160,7 @@ class AutonomousController:
                     attList = parse.getEntities_ATTRIBUTE()
                     if (len(attList) == 0) or (len(attList) % 2 == 1): #it's odd
                         if user_data['pending_atts_first_attempt']:
-                            msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(user_data['pending_intent_str'], user_data['pending_class'])
+                            msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), user_data['pending_class'])
                         else:
                             msgReturnList = ATTRIBUTE_FORMAT
                     else: #all ok! even number!
@@ -177,7 +168,7 @@ class AutonomousController:
                         #adding new attributes
                         for i in range(0, len(attList)-1, 2):
                             user_data['pending_atts'][attList[i].body] = attList[i+1].body
-                        msgReturnList = ATTRIBUTE_OK(user_data['pending_intent_str'], user_data['pending_class'])
+                        msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
     
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
         return random.choice(msgReturnList) + user_data['debug_mode']*('\n---debug info:\n[' + msg +']')

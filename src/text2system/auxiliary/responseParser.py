@@ -1,4 +1,4 @@
-from config import PNL_GENERAL_THRESHOLD
+from config import SAVE_SUCCESS, PNL_GENERAL_THRESHOLD
 from enum import Enum, auto
 import json
 
@@ -7,30 +7,32 @@ class AutoName(Enum):
         return name
 
 class Intent(AutoName):
-    CREATE_OR_UPDATE = auto()
+    SAVE = auto()
     DELETE = auto()
     GREET = auto()
     READ = auto()
     SAY_GOODBYE = auto()
     HELP = auto()
     CANCEL = auto()
-    CONFIRM = auto()    
-
-class Entity(AutoName):#TODO: #15 to change name to differ from entity.py
+    CONFIRMATION = auto()
+    
+    def __str__(self):
+        return self.name
+    
+class EntityType(AutoName):#TODO: #15 to change name to differ from entity.py
     ATTRIBUTE = auto()
     CLASS = auto()
     CONTACT = auto()
     EMAIL = auto()
     LOCATION = auto()
 
-    def update(self, body, role) -> None:
+class Entity:
+    def __init__(self, type, body, role, start) -> None:
+        self.type = type
         self.body = body
         self.role = role
+        self.start = start
     
-class Attribute():#TODO: #14 to change name to differ from attribute.py
-    def __init__(self, ) -> None:
-        pass
-
 class ParseResponse:
     def __init__(self, response) -> None:
         self.__response = response
@@ -42,13 +44,17 @@ class ParseResponse:
                 self.__intent = Intent(response['intents'][0]['name'].upper().replace('WIT$',''))
 
         #print(json.dumps(response, indent=3))
-        
         for key in response['entities']:
             for entity in response['entities'][key]:
                 if entity['confidence'] > PNL_GENERAL_THRESHOLD:
-                    new_ent = Entity(entity['name'].replace('wit$','').upper())
-                    new_ent.update(entity['body'], entity['role'])
+                    new_ent = Entity(EntityType(entity['name'].replace('wit$','').upper())
+                                     , entity['body']
+                                     , entity['role']
+                                     , entity['start'])
                     self.__entities.append(new_ent)
+        
+        self.__entities.sort(key=lambda x: x.start)
+
 
     def getIntent(self) -> Intent:
         return self.__intent
@@ -59,8 +65,8 @@ class ParseResponse:
     def intentIs_GREET(self) -> bool:
         return self.intentIs(Intent.GREET)
     
-    def intentIs_CREATE_OR_UPDATE(self) -> bool:
-        return self.intentIs(Intent.CREATE_OR_UPDATE)
+    def intentIs_SAVE(self) -> bool:
+        return self.intentIs(Intent.SAVE)
 
     def intentIs_DELETE(self) -> bool:
         return self.intentIs(Intent.DELETE)
@@ -78,7 +84,7 @@ class ParseResponse:
         return self.intentIs(Intent.CANCEL)
 
     def intentIs_CONFIRM(self) -> bool:
-        return self.intentIs(Intent.CONFIRM)
+        return self.intentIs(Intent.CONFIRMATION)
 
     def getEntities(self) -> list:
         return self.__entities
@@ -86,12 +92,12 @@ class ParseResponse:
     def getEntitiesByType(self, entityType):
         listReturn = []
         for entity in self.getEntities():
-            if entity == entityType:
+            if entity.type == entityType:
                 listReturn.append(entity)
         return listReturn
     
     def getEntities_CLASS(self):
-        return self.getEntitiesByType(Entity.CLASS)
+        return self.getEntitiesByType(EntityType.CLASS)
     
     def getEntities_ATTRIBUTE(self):
-        return self.getEntitiesByType(Entity.ATTRIBUTE)    
+        return self.getEntitiesByType(EntityType.ATTRIBUTE)    
