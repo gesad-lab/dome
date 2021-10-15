@@ -28,7 +28,7 @@ ATTRIBUTE_FORMAT = ["I'll understand better if the data is in the following form
 
 ATTRIBUTE_FORMAT_FIRST_ATTEMPT = lambda opr, clas: [f"Ok! We are going to {opr} a {clas}. Please, now inform the data in the following format:\n<<data name>> = <<data value>>\nFor example:\nage = 21"]
 
-ATTRIBUTE_OK = ["Ok! I got it!"]
+ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to {opr} a {clas}.\nSay 'Ok' to confirm\n'Cancel' to cancel this operation\nor simply continue informing the data..."]
 
 CREATE_OR_UPDATE_SUCCESS = ['Ok! Information saved successfully!'
                             , 'It done! Information saved. ;)'

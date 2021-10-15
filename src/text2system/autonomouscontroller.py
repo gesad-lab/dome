@@ -73,8 +73,16 @@ class AutonomousController:
             #new session
             user_data['user_id'] = context._user_id_and_data[0]
             user_data['chat_id'] = context._chat_id_and_data[0]
+            user_data['debug_mode'] = False
             self.__clear_opr(user_data)
-            
+        
+        if msg == 'debug_mode=on':
+            user_data['debug_mode'] = True
+            return 'debug_mode is on!'
+        if msg == 'debug_mode=off':
+            user_data['debug_mode'] = False
+            return 'debug_mode is off!'
+        
         response = self.app_chatbot_msgProcess(msg, user_data=user_data)
         
         return response
@@ -169,10 +177,9 @@ class AutonomousController:
                         #adding new attributes
                         for i in range(0, len(attList)-1, 2):
                             user_data['pending_atts'][attList[i].body] = attList[i+1].body
-                        msgReturnList = ATTRIBUTE_OK
+                        msgReturnList = ATTRIBUTE_OK(user_data['pending_intent_str'], user_data['pending_class'])
     
-
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
-        return random.choice(msgReturnList)
+        return random.choice(msgReturnList) + user_data['debug_mode']*('\n---debug info:\n[' + msg +']')
 
 
