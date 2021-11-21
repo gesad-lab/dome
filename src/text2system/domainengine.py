@@ -1,5 +1,6 @@
 from auxiliary.entity import Entity
 import sqlite3
+import pandas as pd
 
 class DomainEngine:
     def __init__(self, AC):
@@ -26,8 +27,9 @@ class DomainEngine:
     def __executeSqlCmd(self, sqlCmd):
         if self.__TDB is None:
             self.__TDB = sqlite3.connect(self.__AC.getTransactionDB_path())
-        self.__TDB.cursor().execute(sqlCmd)
+        result = self.__TDB.cursor().execute(sqlCmd)
         self.__TDB.commit()
+        return result
         
     def __getEntityDBName(self, entityname):
         return self.__AC.getWebApp_path() + '_' + entityname
@@ -44,6 +46,15 @@ class DomainEngine:
         sqlCmd += ")"
         self.__executeSqlCmd(sqlCmd)
         
+    def read(self, entity, attributes):
+        sqlCmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where " 
+        for k in attributes.keys():
+            sqlCmd += "LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%') AND "
+        sqlCmd = sqlCmd[:-4] #removing the last comma
+        query = self.__executeSqlCmd(sqlCmd)
+        cols = [column[0] for column in query.description]
+        return pd.DataFrame.from_records(data = query.fetchall(), columns = cols, index=['id'])
+            
 
 
         

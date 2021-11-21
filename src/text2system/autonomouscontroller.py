@@ -8,6 +8,7 @@ from config import *
 from auxiliary.responseParser import *
 from src.text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 import datetime as dth
+from tabulate import tabulate
 
 class AutonomousController:
     def __init__(self, SE):
@@ -110,18 +111,19 @@ class AutonomousController:
                 and len(user_data['pending_atts']) > 0
                 ):
                 if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
-                            #including the entity
-                            domain_entity = self.__DE.addEntity(user_data['pending_class'])
-                            for att_name in user_data['pending_atts'].keys():
-                                self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
-                            self.__IC.updateModel(showLogs=False) 
-                            #save the data
-                            self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
-                            msgReturnList = SAVE_SUCCESS
+                    #including the entity
+                    domain_entity = self.__DE.addEntity(user_data['pending_class'])
+                    for att_name in user_data['pending_atts'].keys():
+                        self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
+                    self.__IC.updateModel(showLogs=False) 
+                    #save the data
+                    self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
+                    msgReturnList = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.DELETE: 
                     pass #TODO: #9 elif parse.intentIs_DELETE: 
                 elif user_data['pending_intent'] == Intent.READ: 
-                    pass #TODO: #10 elif parse.intentIs_READ:
+                    query_result = self.__DE.read(user_data['pending_class'], user_data['pending_atts'])
+                    msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.__clear_opr(user_data)
         elif parse.intentIs_CANCEL():
             if user_data['pending_intent'] is not None:
