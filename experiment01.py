@@ -1,7 +1,7 @@
 from user import User
 import time
 import gc
-import util.deleteutil as delutil
+import deleteutil as delutil
 
 userTest = None
 currentEntity = None

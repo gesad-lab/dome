@@ -112,9 +112,11 @@ class AutonomousController:
                 if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
                             #including the entity
                             domain_entity = self.__DE.addEntity(user_data['pending_class'])
-                            for att_name, att_value in user_data['pending_atts'].items():
+                            for att_name in user_data['pending_atts'].keys():
                                 self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
                             self.__IC.updateModel(showLogs=False) 
+                            #save the data
+                            self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
                             msgReturnList = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.DELETE: 
                     pass #TODO: #9 elif parse.intentIs_DELETE: 
@@ -173,4 +175,8 @@ class AutonomousController:
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
         return random.choice(msgReturnList) + user_data['debug_mode']*('\n---debug info:\n[' + msg +']')
 
-
+    def getTransactionDB_path(self):
+        return self.__IC.getTransactionDB_path()
+    
+    def getWebApp_path(self):
+        return self.__IC.getWebApp_path()    

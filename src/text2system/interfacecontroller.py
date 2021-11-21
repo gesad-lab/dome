@@ -182,3 +182,11 @@ class InterfaceController:
         return sp.Popen(self.__checkPath(strCmd).split(), #asynchronous
                                 stdout=sp.PIPE,
                                 universal_newlines=True, shell=True)        
+
+    def getTransactionDB_path(self):
+        return self.__checkPath(self.__config_path + '\\db.sqlite3')
+    
+    def getWebApp_path(self):
+        return self.__webapp_path
+        
+    
