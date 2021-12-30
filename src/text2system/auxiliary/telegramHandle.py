@@ -1,6 +1,7 @@
 import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.error import NetworkError
 
 class TelegramHandle:
     def __init__(self, msgHandle) -> None:
@@ -37,8 +38,9 @@ class TelegramHandle:
         # Run the bot until you press Ctrl-C or the process receives SIGINT,
         # SIGTERM or SIGABRT. This should be used most of the time, since
         # start_polling() is non-blocking and will stop the bot gracefully.
-        
         updater.idle()
+        
+        self.__tryagain = True
 
 
     def start(self, update, context):
@@ -53,17 +55,14 @@ class TelegramHandle:
 
     def echo(self, update, context):
         """Echo the user message."""
-        #update.message.reply_text(update.message.text)
         update.message.reply_text(self.__MSG_HANDLE(update.message.text, context))
+        self.__tryagain = True #msg processed, then the control variable is set to True
 
 
     def error(self, update, context):
         """Log Errors caused by Updates."""
-        self.__logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
-#4test
-#def respondeTest(msg, context):
-#    return msg + " [PROCESS]" + str(context)
-
-#TelegramHandle(respondeTest)
+        self.__logger.warning('[TEXT2SYSTEM] Update "%s" caused error "%s"', update, context.error)
+        if (self.__tryagain #only if the msg was not processed and only once
+            and type(context.error)==NetworkError): #only for ConnectionResetError
+            self.__tryagain = False #to forces only one execution of the code
+            self.echo(update, context) #trying resend message to avoid the error to be lost

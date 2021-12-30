@@ -1,6 +1,8 @@
 from config import WIT_ACCESS_KEY
 from wit import Wit
 
+#TODO: https://spacy.io/
+
 class AIEngine:
     def __init__(self):
         self.__WIT_CLIENT = None
