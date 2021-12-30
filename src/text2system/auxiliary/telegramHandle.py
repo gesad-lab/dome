@@ -60,9 +60,11 @@ class TelegramHandle:
 
 
     def error(self, update, context):
-        """Log Errors caused by Updates."""
-        self.__logger.warning('[TEXT2SYSTEM] Update "%s" caused error "%s"', update, context.error)
         if (self.__tryagain #only if the msg was not processed and only once
             and type(context.error)==NetworkError): #only for ConnectionResetError
             self.__tryagain = False #to forces only one execution of the code
             self.echo(update, context) #trying resend message to avoid the error to be lost
+        else:
+            """Log Errors caused by Updates."""
+            self.__logger.warning('[TEXT2SYSTEM] Update "%s" caused error "%s"', update, context.error)
+            
