@@ -61,7 +61,8 @@ class TelegramHandle:
 
     def error(self, update, context):
         if (self.__tryagain #only if the msg was not processed and only once
-            and type(context.error)==NetworkError): #only for ConnectionResetError
+            and not(context.error is None)#type(context.error)==NetworkError #only for ConnectionResetError
+            ): 
             self.__tryagain = False #to forces only one execution of the code
             self.echo(update, context) #trying resend message to avoid the error to be lost
         else:
