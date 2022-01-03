@@ -39,6 +39,8 @@ DELETE_SUCCESS = lambda n_del: [f"Ok! {n_del} registers deleted."
                                 , f"{n_del} registers deleted successfully."
                                 ]
 
+DELETE_FAILURE = ['Nothing to delete. Please, try again.']
+
 CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."
                                 ]
 
