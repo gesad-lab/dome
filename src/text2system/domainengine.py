@@ -5,9 +5,14 @@ import pandas as pd
 class DomainEngine:
     def __init__(self, AC):
         self.__AC = AC #Autonomous Controller Object
-        self.__entities = []
         self.__TDB = None #Transaction Database Connection
-
+        self.__entities = []        
+        #get table names
+        sqlCmd = "SELECT name FROM sqlite_schema WHERE type ='table' AND name LIKE '" + self.__getEntityDBNamePrefix() + "%';"
+        query = self.__executeSqlCmd(sqlCmd)
+        for row in query.fetchall():
+            self.__entities.append(Entity(row[0].replace(self.__getEntityDBNamePrefix(),'')))
+                
     def addEntity(self, name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
         e = Entity(name)
@@ -24,16 +29,22 @@ class DomainEngine:
         entity.addAttribute(name, type, notnull)
         return True
     
+    def entityExists(self, entity_name):
+        return self.getEntities().count(entity_name) > 0
+    
     def __executeSqlCmd(self, sqlCmd):
         if self.__TDB is None:
-            self.__TDB = sqlite3.connect(self.__AC.getTransactionDB_path())
+            self.__TDB = sqlite3.connect(self.__AC.getTransactionDB_path(), check_same_thread=False)
         result = self.__TDB.cursor().execute(sqlCmd)
         self.__TDB.commit()
         return result
         
     def __getEntityDBName(self, entityname):
-        return self.__AC.getWebApp_path() + '_' + entityname
+        return self.__getEntityDBNamePrefix() + entityname
         
+    def __getEntityDBNamePrefix(self):
+        return self.__AC.getWebApp_path() + '_'
+    
     def save(self, entity, attributes):
         sqlCmd = "INSERT OR REPLACE INTO " + self.__getEntityDBName(entity) + "(" 
         for k in attributes.keys():
@@ -50,11 +61,17 @@ class DomainEngine:
         sqlCmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where " 
         for k in attributes.keys():
             sqlCmd += "LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%') AND "
-        sqlCmd = sqlCmd[:-4] #removing the last comma
+        sqlCmd = sqlCmd[:-4] #removing the last AND
         query = self.__executeSqlCmd(sqlCmd)
         cols = [column[0] for column in query.description]
         return pd.DataFrame.from_records(data = query.fetchall(), columns = cols, index=['id'])
             
+    def delete(self, entity, attributes):
+        sqlCmd = "DELETE FROM " + self.__getEntityDBName(entity) + " where " 
+        for k in attributes.keys():
+            sqlCmd += "LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%') AND "
+        sqlCmd = sqlCmd[:-4] #removing the last AND
+        return self.__executeSqlCmd(sqlCmd)
 
 
         

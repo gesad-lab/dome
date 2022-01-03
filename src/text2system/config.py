@@ -34,6 +34,14 @@ SAVE_SUCCESS = ['Ok! Information saved successfully!'
                             , 'It done! Information saved. ;)'
                             , "Yes! All done. We've saved your data with security."]
 
+DELETE_SUCCESS = lambda n_del: [f"Ok! {n_del} registers deleted."
+                                , f"Done! {n_del} deleted."
+                                , f"{n_del} registers deleted successfully."
+                                ]
+
+CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."
+                                ]
+
 MISSING_CLASS = ["Would you please inform me of the information type that you want to operate? For instance, if you are trying to save data about an appointment, say 'appointment'.\n(If you wish to cancel this operation, say 'cancel'.)"]
 MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
 #config variables

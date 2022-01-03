@@ -13,9 +13,9 @@ from tabulate import tabulate
 class AutonomousController:
     def __init__(self, SE):
         self.__SE = SE #Security Engine object
-        self.__DE = DomainEngine(self) #Domain Engine object
         self.__IC = InterfaceController(self) #Interface Controller object
         self.__AIE = AIEngine() #Artificial Intelligence Engine object
+        self.__DE = DomainEngine(self) #Domain Engine object
         self.__lastChatDth = None
 
     def __monitor(self):
@@ -57,13 +57,6 @@ class AutonomousController:
     #util methods
     def getEntities(self) -> list:
         return self.__DE.getEntities()
-    
-    
-    def __isNewSession(self) -> bool:
-        if self.__lastChatDth is None:
-            return False
-        # else:
-        return True
     
     def app_chatbot_msgHandle(self, msg, context):
         user_data = self.__SE.getUser().chatbot_data
@@ -120,7 +113,8 @@ class AutonomousController:
                     self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
                     msgReturnList = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.DELETE: 
-                    pass #TODO: #9 elif parse.intentIs_DELETE: 
+                    query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_atts'])
+                    msgReturnList = DELETE_SUCCESS(query_result.rowcount)
                 elif user_data['pending_intent'] == Intent.READ: 
                     query_result = self.__DE.read(user_data['pending_class'], user_data['pending_atts'])
                     msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
@@ -160,19 +154,24 @@ class AutonomousController:
                     msgReturnList = MULTIPLE_CLASSES
                 else: #all rigth. one class use case
                     user_data['pending_class'] = classList[0].body
-                    #seeking for new attributes
-                    attList = parse.getEntities_ATTRIBUTE()
-                    if (len(attList) == 0) or (len(attList) % 2 == 1): #it's odd
-                        if user_data['pending_atts_first_attempt']:
-                            msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), user_data['pending_class'])
-                        else:
-                            msgReturnList = ATTRIBUTE_FORMAT
-                    else: #all ok! even number!
-                        user_data['pending_atts_first_attempt'] = False                        
-                        #adding new attributes
-                        for i in range(0, len(attList)-1, 2):
-                            user_data['pending_atts'][attList[i].body] = attList[i+1].body
-                        msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
+                    #if is DELETE use case, test if the class is in the domain
+                    if ((not self.__DE.entityExists(user_data['pending_class']))
+                        and (user_data['pending_intent']==Intent.DELETE)):
+                        msgReturnList = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
+                    else: #class exists
+                        #seeking for new attributes
+                        attList = parse.getEntities_ATTRIBUTE()
+                        if (len(attList) == 0) or (len(attList) % 2 == 1): #it's odd
+                            if user_data['pending_atts_first_attempt']:
+                                msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), user_data['pending_class'])
+                            else:
+                                msgReturnList = ATTRIBUTE_FORMAT
+                        else: #all ok! even number!
+                            user_data['pending_atts_first_attempt'] = False                        
+                            #adding new attributes
+                            for i in range(0, len(attList)-1, 2):
+                                user_data['pending_atts'][attList[i].body] = attList[i+1].body
+                            msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
     
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
         return random.choice(msgReturnList) + user_data['debug_mode']*('\n---debug info:\n[' + msg +']')
