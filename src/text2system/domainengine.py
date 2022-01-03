@@ -7,11 +7,20 @@ class DomainEngine:
         self.__AC = AC #Autonomous Controller Object
         self.__TDB = None #Transaction Database Connection
         self.__entities = []        
-        #get table names
+        #update table names
         sqlCmd = "SELECT name FROM sqlite_schema WHERE type ='table' AND name LIKE '" + self.__getEntityDBNamePrefix() + "%';"
         query = self.__executeSqlCmd(sqlCmd)
         for row in query.fetchall():
-            self.__entities.append(Entity(row[0].replace(self.__getEntityDBNamePrefix(),'')))
+            entity = Entity(row[0].replace(self.__getEntityDBNamePrefix(),''))
+            #gettting attributes
+            sqlCmd = "SELECT name FROM PRAGMA_TABLE_INFO('" + row[0] + "') where name<>'id';" #TODO: manage id
+            query2 = self.__executeSqlCmd(sqlCmd)            
+            for col_name in query2.fetchall():
+                entity.addAttribute(col_name[0], 'string', False) #TODO: manage type and notnull
+            
+            self.__entities.append(entity)
+            
+
                 
     def addEntity(self, name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
