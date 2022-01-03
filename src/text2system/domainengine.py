@@ -73,7 +73,11 @@ class DomainEngine:
         sqlCmd = sqlCmd[:-4] #removing the last AND
         query = self.__executeSqlCmd(sqlCmd)
         cols = [column[0] for column in query.description]
-        return pd.DataFrame.from_records(data = query.fetchall(), columns = cols, index=['id'])
+        data = query.fetchall()
+        if len(data)==0:
+            return None
+        #else
+        return pd.DataFrame.from_records(data = data, columns = cols, index=['id'])
             
     def delete(self, entity, attributes):
         sqlCmd = "DELETE FROM " + self.__getEntityDBName(entity) + " where " 

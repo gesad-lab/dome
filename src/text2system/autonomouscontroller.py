@@ -120,7 +120,10 @@ class AutonomousController:
                         msgReturnList = DELETE_SUCCESS(query_result.rowcount)
                 elif user_data['pending_intent'] == Intent.READ: 
                     query_result = self.__DE.read(user_data['pending_class'], user_data['pending_atts'])
-                    msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
+                    if query_result is None:
+                        msgReturnList = NO_REGISTERS
+                    else:
+                        msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.__clear_opr(user_data)
         elif parse.intentIs_CANCEL():
             if user_data['pending_intent'] is not None:
