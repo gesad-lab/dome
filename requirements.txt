@@ -38,7 +38,7 @@ python_memcached==1.59
 python_socks==2.0.1
 pywatchman==1.4.1
 PyYAML==6.0
-secrets==1.0.2
+secrets==1.0.2; platform_system == "Windows" 
 websockets==10.1
 wincertstore==0.2.1
 wsaccel==0.6.3
