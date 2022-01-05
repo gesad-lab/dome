@@ -5,3 +5,7 @@ libgirepository-1.0-1
 libgirepository1.0-dev
 libgirepository-1.0.so.1.0.0
 libgirepository-1.0.so.1.0
+
+https://github.com/heroku/heroku-buildpack-apt
+
+https://github.com/heroku/heroku-buildpack-apt.git
