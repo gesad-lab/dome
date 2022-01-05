@@ -42,3 +42,4 @@ secrets==1.0.2; platform_system == "Windows"
 websockets==10.1
 wincertstore==0.2.1; platform_system == "Windows" 
 wsaccel==0.6.3
+gobject-introspection==1.54.0
