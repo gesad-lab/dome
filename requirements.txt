@@ -46,6 +46,6 @@ wsaccel==0.6.3
 Flask
 gunicorn
 #PyGObject
-rsvg2==3.0.9
-gobject-introspection==3.0.9
-gio2==3.0.9
+#rsvg2==3.0.9
+#gobject-introspection==3.0.9
+#gio2==3.0.9
