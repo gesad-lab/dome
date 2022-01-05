@@ -38,7 +38,7 @@ class AutonomousController:
             self.__IC.getApp_cmd(self.app_chatbot_responseProcess)
             return True #TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
-            return self.__DE.addEntity(data['name'])
+            return self.__DE.saveEntity(data['name'])
             #return True #TODO: #3 analysing return type
         elif opr == OPR_ATTRIBUTE_ADD:
             self.__DE.addAttribute(data['entity'], data['name']
@@ -105,7 +105,7 @@ class AutonomousController:
                 ):
                 if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
                     #including the entity
-                    domain_entity = self.__DE.addEntity(user_data['pending_class'])
+                    domain_entity = self.__DE.saveEntity(user_data['pending_class'])
                     for att_name in user_data['pending_atts'].keys():
                         self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
                     self.__IC.updateModel(showLogs=False) 
@@ -178,6 +178,10 @@ class AutonomousController:
                             #adding new attributes
                             for i in range(0, len(attList)-1, 2):
                                 user_data['pending_atts'][attList[i].body] = attList[i+1].body
+                            #if is READ use case, call recursively to show results
+                            if user_data['pending_intent'] == Intent.READ:
+                                return self.app_chatbot_msgProcess('ok', user_data=user_data)
+                            #else
                             msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
     
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)

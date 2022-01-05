@@ -6,31 +6,38 @@ class DomainEngine:
     def __init__(self, AC):
         self.__AC = AC #Autonomous Controller Object
         self.__TDB = None #Transaction Database Connection
-        self.__entities = []        
+        self.__entities_map = {} #map of entities        
         #update table names
         sqlCmd = "SELECT name FROM sqlite_schema WHERE type ='table' AND name LIKE '" + self.__getEntityDBNamePrefix() + "%';"
         query = self.__executeSqlCmd(sqlCmd)
         for row in query.fetchall():
-            entity = Entity(row[0].replace(self.__getEntityDBNamePrefix(),''))
+            entity_name = row[0].replace(self.__getEntityDBNamePrefix(),'')
+            entity_obj = Entity(entity_name)
             #gettting attributes
             sqlCmd = "SELECT name FROM PRAGMA_TABLE_INFO('" + row[0] + "') where name<>'id';" #TODO: manage id
             query2 = self.__executeSqlCmd(sqlCmd)            
             for col_name in query2.fetchall():
-                entity.addAttribute(col_name[0], 'string', False) #TODO: manage type and notnull
+                entity_obj.addAttribute(col_name[0], 'string', False) #TODO: manage type and notnull
             
-            self.__entities.append(entity)
+            self.__entities_map[entity_name] = entity_obj
             
 
                 
-    def addEntity(self, name):
+    def saveEntity(self, entity_name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
-        e = Entity(name)
-        if self.__entities.count(name) == 0:
-            self.__entities.append(e)
+        #if entity already exists, return the object from map
+        if self.entityExists(entity_name):
+            return self.__entities_map.get(entity_name)
+        #else
+        #create new entity
+        e = Entity(entity_name)
+        #save entity in map
+        self.__entities_map[entity_name] = e
+        #return entity
         return e
 
     def getEntities(self):
-        return self.__entities
+        return list(self.__entities_map.values())
 
     def addAttribute(self, entity, name, type, notnull=False):
         #TODO: #2 update meta data (MDB) and Transaction Data (TDB)
@@ -39,7 +46,7 @@ class DomainEngine:
         return True
     
     def entityExists(self, entity_name):
-        return self.getEntities().count(entity_name) > 0
+        return self.__entities_map.get(entity_name) is not None
     
     def __executeSqlCmd(self, sqlCmd):
         if self.__TDB is None:
