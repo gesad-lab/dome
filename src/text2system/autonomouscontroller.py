@@ -101,7 +101,7 @@ class AutonomousController:
         if parse.intentIs_CONFIRM():
             if (user_data['pending_intent'] is not None
                 and user_data['pending_class'] is not None
-                and len(user_data['pending_atts']) > 0
+                and ((len(user_data['pending_atts']) > 0) or (user_data['pending_intent']==Intent.READ))
                 ):
                 if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
                     #including the entity
@@ -167,7 +167,8 @@ class AutonomousController:
                     else: #class exists
                         #seeking for new attributes
                         attList = parse.getEntities_ATTRIBUTE()
-                        if (len(attList) == 0) or (len(attList) % 2 == 1): #it's odd
+                        if ( ((user_data['pending_intent']!=Intent.READ) and (len(attList)==0))
+                            or (len(attList) % 2 == 1)): #it's odd
                             if user_data['pending_atts_first_attempt']:
                                 msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), user_data['pending_class'])
                             else:
