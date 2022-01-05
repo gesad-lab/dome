@@ -45,3 +45,4 @@ wsaccel==0.6.3
 #heroku: manual packages install
 #Flask
 #gunicorn
+PyGObject==3.30.2
