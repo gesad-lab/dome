@@ -1,0 +1,6 @@
+build:
+    docker:
+      web: Dockerfile
+run:
+  #web: gunicorn braincabin.wsgi --log-file -
+  python experiment02.py
