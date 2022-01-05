@@ -44,5 +44,5 @@ wincertstore==0.2.1; platform_system == "Windows"
 wsaccel==0.6.3
 #heroku: manual packages install
 #Flask
-#gunicorn
+gunicorn
 PyGObject==3.30.2
