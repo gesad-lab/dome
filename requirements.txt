@@ -43,9 +43,5 @@ websockets==10.1
 wincertstore==0.2.1; platform_system == "Windows" 
 wsaccel==0.6.3
 #heroku: manual packages install
-Flask
-gunicorn
-#PyGObject
-#rsvg2==3.0.9
-#gobject-introspection==3.0.9
-#gio2==3.0.9
+#Flask
+#gunicorn
