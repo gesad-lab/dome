@@ -1,3 +1,0 @@
-run:
-  #web: gunicorn braincabin.wsgi --log-file -
-  worker: python experiment02.py
