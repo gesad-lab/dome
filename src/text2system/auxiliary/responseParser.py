@@ -32,7 +32,8 @@ class Entity:
         self.body = body
         self.role = role
         self.start = start
-    
+        if self.role != 'attribute_value':
+            self.body = self.body.lower().strip().replace(' ', '_')
 class ParseResponse:
     def __init__(self, response) -> None:
         self.__response = response
