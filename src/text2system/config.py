@@ -1,6 +1,6 @@
 #bot msgs
 MISUNDERSTANDING = ["""Um. I don't recognize it. Which operation do you want to do? Save, update, delete or get some information? (say 'help' for samples)"""
-                    , """Sorry, but I didn't get it. Try something like 'register new sale' or 'get product information type=T-Shirt' (say 'help' for more samples)"""
+                    , """Sorry, but I didn't get it. Try something like 'register new student' or 'get student information gender=Male' (say 'help' for more samples)"""
                     , "Please, repeat in another way, because I didn't get it. (say 'help' for more info)"]
 
 GREETINGS = ["Hi! You can say something like 'Save student with name=Anderson'"
@@ -13,9 +13,9 @@ BYE = ["Ok! Thank you. See you next time!"
        ,"Thank you! If you need save some info, please text me."
       ]
 
-HELP = ["""I'm a bot that helps you save your information in an organized, secure, and flexible way. Say what you want to save, update, delete or only get info. \nFor example, say something like 'save a $10 value shirt purchase', 'view purchases for the current month', or 'delete my last purchase'."""
-        , """I'm a bot that allows you to save your information using natural language. Like a traditional system, but more accessible and flexible. \nFor instance, to add some appointment to your calendar, say 'add meeting tomorrow with my co-workers' or 'cancel the presentation next Wednesday'."""
-        ,"""I'm your bot that securely saves your information. I understand better direct sentences. \nThus let me know first what you want to do (save, read or delete some data), what type the information you want to operate (a sale, a product, a contact, an appointment, etc.), and, finally, the data itself. \nSome examples: 'add student with name=Anderson', 'delete my last purchase', 'get info about the product with name=T-Shirt'."""
+HELP = ["""I'm a bot that helps you save your information in an organized, secure, and flexible way. Say what you want to save, update, delete or only get info. \nFor example, say something like 'save a class with name=Self-Adaptive Systems', 'view classes', or 'delete class name=Java'."""
+        , """I'm a bot that allows you to save your information using natural language. Like a traditional system, but more accessible and flexible. \nFor instance, to register a student, say 'add student with gender=Female, name=Mary, email=mary@school.com' or 'delete student name=Mary'."""
+        ,"""I'm your bot that securely saves your information. I understand better direct sentences. \nThus let me know first what you want to do (save, read or delete some data), what type the information you want to operate (a student, a class, a class registration, etc.), and, finally, the data itself. \nSome examples: 'add class registration with student=Anderson, class=Python', 'delete registration student=Anderson', 'get info about the class=Python'."""
         ]
 
 CANCEL = ['No problem! The operation was canceled successfully.']
@@ -46,7 +46,7 @@ NO_REGISTERS = ['There are no info to show.']
 CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."
                                 ]
 
-MISSING_CLASS = ["Would you please inform me of the information type that you want to operate? For instance, if you are trying to save data about an appointment, say 'appointment'.\n(If you wish to cancel this operation, say 'cancel'.)"]
+MISSING_CLASS = ["Would you please inform me of the information type that you want to operate? For instance, if you are trying to save data about a student, say 'student'.\n(If you wish to cancel this operation, say 'cancel'.)"]
 MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
 #config variables
 MANAGED_SYSTEM_NAME = 'managedsys'
