@@ -74,10 +74,10 @@ class DomainEngine:
         self.__executeSqlCmd(sqlCmd)
         
     def read(self, entity, attributes):
-        sqlCmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where " 
+        sqlCmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where (1=1)" 
         for k in attributes.keys():
-            sqlCmd += "LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%') AND "
-        sqlCmd = sqlCmd[:-4] #removing the last AND
+            sqlCmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
+
         query = self.__executeSqlCmd(sqlCmd)
         cols = [column[0] for column in query.description]
         data = query.fetchall()

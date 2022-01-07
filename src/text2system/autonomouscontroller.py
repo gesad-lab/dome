@@ -160,9 +160,10 @@ class AutonomousController:
                     msgReturnList = MULTIPLE_CLASSES
                 else: #all rigth. one class use case
                     user_data['pending_class'] = classList[0].body
-                    #if is DELETE use case, test if the class is in the domain
+                    #if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))
-                        and (user_data['pending_intent']==Intent.DELETE)):
+                        and ((user_data['pending_intent']==Intent.DELETE) 
+                             or (user_data['pending_intent']==Intent.READ))):
                         msgReturnList = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
                     else: #class exists
                         #seeking for new attributes
