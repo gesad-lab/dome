@@ -1,12 +1,12 @@
 
 import random
-from auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD, OPR_APP_TELEGRAM_START
-from aiengine import AIEngine
-from interfacecontroller import InterfaceController
-from domainengine import DomainEngine
-from config import *
-from auxiliary.responseParser import *
-from src.text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
+from text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD, OPR_APP_TELEGRAM_START
+from text2system.aiengine import AIEngine
+from text2system.interfacecontroller import InterfaceController
+from text2system.domainengine import DomainEngine
+from text2system.config import *
+from text2system.auxiliary.responseParser import *
+from text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 import datetime as dth
 from tabulate import tabulate
 

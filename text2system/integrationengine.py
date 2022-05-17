@@ -1,4 +1,4 @@
-from externalservice import ExternalService
+from text2system.externalservice import ExternalService
 
 class IntegrationEngine:
     def __init__(self, SE):

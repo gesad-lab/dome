@@ -1,4 +1,4 @@
-from config import WIT_ACCESS_KEY
+from text2system.config import WIT_ACCESS_KEY
 from wit import Wit
 
 #TODO: https://spacy.io/

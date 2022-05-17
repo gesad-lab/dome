@@ -1,6 +1,7 @@
 import os
 
-from multchannelapp import MultChannelApp
+from text2system.multchannelapp import MultChannelApp
+from util.django_util import get_django_user, get_django_pwd
 
 class User:
     def __init__(self, login, pwd):
@@ -12,4 +13,4 @@ class User:
     #util methods
     @staticmethod
     def getRandomNewUser():
-        return User(os.environ['DJANGO_SUPERUSER_USERNAME'], os.environ['DJANGO_SUPERUSER_PASSWORD'])
+        return User(get_django_user(), get_django_pwd())

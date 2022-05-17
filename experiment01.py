@@ -1,7 +1,7 @@
-from user import User
+from text2system.user import User
 import time
 import gc
-import deleteutil as delutil
+import util.delete_util as delutil
 
 userTest = None
 currentEntity = None

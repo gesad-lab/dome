@@ -1,13 +1,14 @@
-from aiengine import AIEngine
-from config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
-from analyticsengine import AnalyticsEngine
-from businessprocessengine import BusinessProcessEngine
+from text2system.aiengine import AIEngine
+from text2system.config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from text2system.analyticsengine import AnalyticsEngine
+from text2system.businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput
 import platform
-from config import MANAGED_SYSTEM_NAME
-from src.text2system.auxiliary.telegramHandle import TelegramHandle
+from text2system.config import MANAGED_SYSTEM_NAME
+from text2system.auxiliary.telegramHandle import TelegramHandle
+from util.django_util import init_django_user
 
 class InterfaceController:
     def __init__(self, AC): #TODO: #4 to analyze the bidirectional relation
@@ -79,6 +80,7 @@ class InterfaceController:
             os.environ['DJANGO_SUPERUSER_EMAIL'] = '<<some email>>'
             '''
             print('creating Django superuser...')
+            init_django_user() #initializing the django user envoirements variables
             self.__runSyncCmd('Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput') #--username=root --email=andersonmg@gmail.com')
             
         self.migrateModel()

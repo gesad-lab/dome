@@ -1,4 +1,4 @@
-from config import SAVE_SUCCESS, PNL_GENERAL_THRESHOLD
+from text2system.config import SAVE_SUCCESS, PNL_GENERAL_THRESHOLD
 from enum import Enum, auto
 import json
 

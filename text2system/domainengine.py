@@ -1,4 +1,4 @@
-from auxiliary.entity import Entity
+from text2system.auxiliary.entity import Entity
 import sqlite3
 import pandas as pd
 

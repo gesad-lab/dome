@@ -1,5 +1,5 @@
-from auxiliary.constants import *
-from securityengine import SecurityEngine
+from text2system.auxiliary.constants import *
+from text2system.securityengine import SecurityEngine
 import webbrowser
 
 class MultChannelApp:

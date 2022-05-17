@@ -1,7 +1,7 @@
-from auxiliary.constants import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
-from autonomouscontroller import AutonomousController
-from integrationengine import IntegrationEngine
-from config import *
+from text2system.auxiliary.constants import OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD
+from text2system.autonomouscontroller import AutonomousController
+from text2system.integrationengine import IntegrationEngine
+from text2system.config import *
 
 class SecurityEngine:
     def __init__(self, MUP, IE=None):
