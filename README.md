@@ -8,7 +8,7 @@ With software engineering techniques, self-adaptive systems, and artificial inte
 ## Before deploy, setup the follow environment variables:
 TEXT2SYSTEM_TELEGRAM_TOKEN=telegram_bot_token<br/>
 
-## For a specialized user data, before deploy, setup the follow environment variables:
+## For a custom user data, before deploy, setup the follow environment variables:
 DJANGO_SUPERUSER_USERNAME=some_user_name<br/>
 DJANGO_SUPERUSER_PASSWORD=some_password<br/>
 DJANGO_SUPERUSER_EMAIL=some_email<br/>

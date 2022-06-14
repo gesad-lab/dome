@@ -46,6 +46,7 @@ class AutonomousController:
             self.__IC.updateAppWeb()
             return True
         elif opr == OPR_APP_TELEGRAM_START:
+            self.__IC.updateAppWeb()
             self.__IC.startApp_telegram(self.app_chatbot_msgHandle)
             return True #TODO: to analyse return type/value
         #else
@@ -108,7 +109,7 @@ class AutonomousController:
                     domain_entity = self.__DE.saveEntity(user_data['pending_class'])
                     for att_name in user_data['pending_atts'].keys():
                         self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
-                    self.__IC.updateModel(showLogs=False) 
+                    self.__IC.updateAppWeb() 
                     #save the data
                     self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
                     msgReturnList = SAVE_SUCCESS
