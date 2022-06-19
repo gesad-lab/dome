@@ -1,11 +1,9 @@
-
 import random
 from text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD, OPR_APP_TELEGRAM_START
-from text2system.aiengine import AIEngine
+from text2system.aiengine import *
 from text2system.interfacecontroller import InterfaceController
 from text2system.domainengine import DomainEngine
 from text2system.config import *
-from text2system.auxiliary.witParser import *
 from text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 import datetime as dth
 from tabulate import tabulate
@@ -14,10 +12,9 @@ class AutonomousController:
     def __init__(self, SE):
         self.__SE = SE #Security Engine object
         self.__IC = InterfaceController(self) #Interface Controller object
-        self.__AIE = AIEngine() #Artificial Intelligence Engine object
         self.__DE = DomainEngine(self) #Domain Engine object
-        self.__lastChatDth = None
-
+        self.__AIE = AIEngine(self) #Artificial Intelligence Engine object
+ 
     def __monitor(self):
         pass
 
@@ -58,14 +55,16 @@ class AutonomousController:
     #util methods
     def getEntities(self) -> list:
         return self.__DE.getEntities()
-    
-    def app_chatbot_msgHandle(self, msg, context):
+
+    def testMsg(self, msg):
         print(msg)
         response = 'É uma saudação? ' + str(self.__AIE.msgIsGreeting(msg))
         response += '\nSentimento positivo? ' + str(self.__AIE.msgIsPositive(msg))
         response += '\nÉ uma despedida? ' + str(self.__AIE.msgIsGoodbye(msg))
         print(response)
         return response
+    
+    def app_chatbot_msgHandle(self, msg, context):
         
         user_data = self.__SE.getUser().chatbot_data
 
@@ -101,9 +100,7 @@ class AutonomousController:
             or  user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
             
-        #msgProcess = self.__AIE.getNLPEngine().message(msg) 
-        #parse = WITParser(msgProcess)
-        parse = WITParser(msg)
+        parse = self.__AIE.getMsgParser(msg)
         msgReturnList = MISUNDERSTANDING #default
 
         if parse.intentIs_CONFIRM():
@@ -160,14 +157,15 @@ class AutonomousController:
                     return  self.app_chatbot_msgProcess(msg_considered, user_data=user_data)
             else:#parse.getIntent() is not None
                 user_data['pending_intent'] = parse.getIntent()
-                classList = parse.getEntities_CLASS()
+                #classList = parse.getEntities_CLASS()
+                classList = self.__AIE.getClasses(msg)
                 if len(classList) == 0:
                     # use case no indicate class
                     msgReturnList = MISSING_CLASS
                 elif len(classList) >= 2:
                     msgReturnList = MULTIPLE_CLASSES
                 else: #all rigth. one class use case
-                    user_data['pending_class'] = classList[0].body
+                    user_data['pending_class'] = classList[0]
                     #if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))
                         and ((user_data['pending_intent']==Intent.DELETE) 
@@ -201,3 +199,6 @@ class AutonomousController:
     
     def getWebApp_path(self):
         return self.__IC.getWebApp_path()    
+    
+    def getEntitiesMap(self):
+        return self.__DE.getEntitiesMap()

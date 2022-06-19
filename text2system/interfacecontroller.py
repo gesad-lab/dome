@@ -13,7 +13,7 @@ from util.django_util import init_django_user
 class InterfaceController:
     def __init__(self, AC): #TODO: #4 to analyze the bidirectional relation
         self.__AC = AC #Autonomous Controller Object 
-        self.__AIE = AIEngine() #relation 8.1
+        self.__AIE = AIEngine(AC) #relation 8.1
         self.__BPE = BusinessProcessEngine(self) #relation 8.2
         self.__AE = AnalyticsEngine(self) #relation 8.3
         self.__TELEGRAM_HANDLE = None

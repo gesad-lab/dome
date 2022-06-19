@@ -12,17 +12,15 @@ class DomainEngine:
         query = self.__executeSqlCmd(sqlCmd)
         for row in query.fetchall():
             entity_name = row[0].replace(self.__getEntityDBNamePrefix(),'')
-            entity_obj = Entity(entity_name)
+            entity_obj = self.saveEntity(entity_name)
             #gettting attributes
             sqlCmd = "SELECT name FROM PRAGMA_TABLE_INFO('" + row[0] + "') where name<>'id';" #TODO: manage id
             query2 = self.__executeSqlCmd(sqlCmd)            
             for col_name in query2.fetchall():
                 entity_obj.addAttribute(col_name[0], 'string', False) #TODO: manage type and notnull
             
-            self.__entities_map[entity_name] = entity_obj
+            #self.__entities_map[entity_name] = entity_obj
             
-
-                
     def saveEntity(self, entity_name):
         #TODO: update meta data (MDB) and Transaction Data (TDB)
         #if entity already exists, return the object from map
@@ -38,6 +36,9 @@ class DomainEngine:
 
     def getEntities(self):
         return list(self.__entities_map.values())
+    
+    def getEntitiesMap(self):
+        return self.__entities_map
 
     def addAttribute(self, entity, name, type, notnull=False):
         #TODO: #2 update meta data (MDB) and Transaction Data (TDB)
@@ -46,7 +47,7 @@ class DomainEngine:
         return True
     
     def entityExists(self, entity_name):
-        return self.__entities_map.get(entity_name) is not None
+        return entity_name in self.__entities_map.keys()
     
     def __executeSqlCmd(self, sqlCmd):
         if self.__TDB is None:
