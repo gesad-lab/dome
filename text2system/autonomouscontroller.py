@@ -63,6 +63,7 @@ class AutonomousController:
         print(msg)
         response = 'É uma saudação? ' + str(self.__AIE.msgIsGreeting(msg))
         response += '\nSentimento positivo? ' + str(self.__AIE.msgIsPositive(msg))
+        response += '\nÉ uma despedida? ' + str(self.__AIE.msgIsGoodbye(msg))
         print(response)
         return response
         
