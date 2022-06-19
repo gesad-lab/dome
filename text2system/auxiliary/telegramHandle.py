@@ -12,7 +12,8 @@ class TelegramHandle:
         self.__logger = logging.getLogger(__name__)
         self.__PORT = int(os.environ.get('PORT', '8443'))
         self.__MSG_HANDLE = msgHandle
-
+        self.__tryagain = True
+        
         """Start the bot."""
         # Create the Updater and pass it your bot's token.
         # Make sure to set use_context=True to use the new context based callbacks
@@ -39,9 +40,6 @@ class TelegramHandle:
         # SIGTERM or SIGABRT. This should be used most of the time, since
         # start_polling() is non-blocking and will stop the bot gracefully.
         updater.idle()
-        
-        self.__tryagain = True
-
 
     def start(self, update, context):
         """Send a message when the command /start is issued."""

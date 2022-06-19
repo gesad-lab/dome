@@ -60,6 +60,12 @@ class AutonomousController:
         return self.__DE.getEntities()
     
     def app_chatbot_msgHandle(self, msg, context):
+        print(msg)
+        response = self.__AIE.doSentimentAnalysis(msg)
+        print(response)
+        return response
+             
+        
         user_data = self.__SE.getUser().chatbot_data
 
         if ('chat_id' not in user_data 
@@ -90,7 +96,6 @@ class AutonomousController:
     
     def app_chatbot_msgProcess(self, msg, user_data=None, context=None):
 
-            
         if ('session_expiration_time' not in user_data 
             or  user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
