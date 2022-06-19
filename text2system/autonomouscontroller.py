@@ -5,7 +5,7 @@ from text2system.aiengine import AIEngine
 from text2system.interfacecontroller import InterfaceController
 from text2system.domainengine import DomainEngine
 from text2system.config import *
-from text2system.auxiliary.responseParser import *
+from text2system.auxiliary.witParser import *
 from text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 import datetime as dth
 from tabulate import tabulate
@@ -61,10 +61,10 @@ class AutonomousController:
     
     def app_chatbot_msgHandle(self, msg, context):
         print(msg)
-        response = self.__AIE.doSentimentAnalysis(msg)
+        response = 'É uma saudação? ' + str(self.__AIE.msgIsGreeting(msg))
+        response += '\nSentimento positivo? ' + str(self.__AIE.msgIsPositive(msg))
         print(response)
         return response
-             
         
         user_data = self.__SE.getUser().chatbot_data
 
@@ -100,8 +100,9 @@ class AutonomousController:
             or  user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
             
-        msgProcess = self.__AIE.getNLPEngine().message(msg) 
-        parse = ParseResponse(msgProcess)
+        #msgProcess = self.__AIE.getNLPEngine().message(msg) 
+        #parse = WITParser(msgProcess)
+        parse = WITParser(msg)
         msgReturnList = MISUNDERSTANDING #default
 
         if parse.intentIs_CONFIRM():
