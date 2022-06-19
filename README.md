@@ -13,6 +13,6 @@ DJANGO_SUPERUSER_USERNAME=some_user_name<br/>
 DJANGO_SUPERUSER_PASSWORD=some_password<br/>
 DJANGO_SUPERUSER_EMAIL=some_email<br/>
 
-# credits
+# Credits
 This project is linked with the Master's Degree Program of the University of State of Ceará (http://www.uece.br/ppgcc/). 
 Project Supervisor: PhD Paulo Henrique Maia (https://gesad.github.io/team/paulo-henrique/)
