@@ -16,3 +16,6 @@ DJANGO_SUPERUSER_EMAIL=some_email<br/>
 # credits
 This project is linked with the Master's Degree Program of the University of State of Ceará (http://www.uece.br/ppgcc/). 
 Project Supervisor: PhD Paulo Henrique Maia
+
+
+... testing git credentials
