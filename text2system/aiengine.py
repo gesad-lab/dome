@@ -3,7 +3,7 @@ from wit import Wit
 from transformers import pipeline
 from text2system.config import PNL_GENERAL_THRESHOLD
 from enum import Enum, auto
-
+from sentence_transformers import SentenceTransformer, util
 class AutoName(Enum):
     def _generate_next_value_(name, start, count, last_values):
         return name
@@ -98,9 +98,6 @@ class WITParser:
             if entity.type == entityType:
                 listReturn.append(entity)
         return listReturn
-
-    ###def getEntities_CLASS(self):
-    ###    return self.getEntitiesByType(EntityType.CLASS)
     
     def getEntities_ATTRIBUTE(self):
         return self.getEntitiesByType(EntityType.ATTRIBUTE)    
@@ -109,6 +106,8 @@ class AIEngine:
         self.__AC = AC #Autonomous Controller Object
         self.__WIT_CLIENT = None
         self.__pipelines = {}
+        #adding specialized pipelines/models
+        self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
 
     def getMsgParser(self, msg) -> WITParser:
         processedMsg = self.__getWitClient().message(msg) 
@@ -134,31 +133,70 @@ class AIEngine:
     
     def getClasses(self, msg) -> list[str]:
         question_answerer = self.__getPipeline('question-answering')
-        response = question_answerer(question="What are the classes in Text2System?",
+        response = question_answerer(question="What is the entity class that the user command refers to?",
                                      context=self.__getContext(msg))
         print(response)
         return [response['answer']]
     
+    def __posTagMsg(self, msg):
+        token_classifier = self.__getPipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
+        return token_classifier(msg)
+    
     def __getContext(self, msg) -> str:
-        context = "The original command was: " + msg + ". "
-        context += "\nFurthermore, the intent of the original command is " + self.getMsgParser(msg).getIntent().name  + ". "
-        context += "\nFurthermore, currently, there are the following classes in Text2System:"
+        context = "The user command was: " + msg + ". "
+        context += "\nThe intent of the user command is " + self.getMsgParser(msg).getIntent().name  + ". "
+        #adding the candidates
+        candidates = []
+        tags = self.__posTagMsg(msg)
+        for word in tags:
+            if word['entity'] == 'NOUN':
+                candidates.append(word['word'])
+        if len(candidates) > 0:
+            context += "\nThe entity class is one of these: " + str(candidates) + ". "
+        #adding current classes    
         for class_key in self.__AC.getEntitiesMap().keys():
-            context += "\n" + class_key + ";"
+            context += "\nThere is the following entity class already registered in the system: " + class_key + "."
+            not_str = "not "
+            if self.__textsAreSimilar(class_key, candidates):
+                not_str = ""
+            context += " This entity class(" + class_key + ") is " + not_str + "one of the candidates that appear on the user command."
+                
+        #adding current attributes    
         for class_key, class_value in self.__AC.getEntitiesMap().items():
             for attribute in class_value.getAttributes():
-                context += "\nFurthermore, the class " + class_key + " has the attribute " + attribute.name + ". "
+                context += "\nThe entity class " + class_key + " has the attribute " + attribute.name + ". "
+                if self.__textsAreSimilar(attribute.name, candidates):
+                    context += " This attribute(" + attribute.name + ") is not the entity class the user command refers to."
 
         print(context)
         return context
+    
+    def __textsAreSimilar(self, text_key, candidates) -> bool:
+        #if candidates is str type, convert to list
+        if type(candidates) == str:
+            candidates = [candidates]
+            
+        model = self.__getPipeline("text-similarity")
+        for candidate in candidates:
+            #Compute embedding for both lists
+            embedding_1= model.encode(text_key, convert_to_tensor=True)
+            embedding_2 = model.encode(candidate, convert_to_tensor=True)
+            result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
+            if result > PNL_GENERAL_THRESHOLD:
+                return True            
+            
+        return False
     
     def __getWitClient(self):
         if self.__WIT_CLIENT == None:
             self.__WIT_CLIENT = Wit(access_token=WIT_ACCESS_KEY)
         return self.__WIT_CLIENT
 
-    def __getPipeline(self, pipeline_name):
+    def __getPipeline(self, pipeline_name, model=None):
         if pipeline_name not in self.__pipelines:
-            self.__pipelines[pipeline_name] = pipeline(pipeline_name)
-        return self.__pipelines[pipeline_name]    
+            self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model))
+        return self.__pipelines[pipeline_name]
+    
+    def __addToPipeline(self, pipeline_name, pipeline_object):
+        self.__pipelines[pipeline_name] = pipeline_object
     
