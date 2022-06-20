@@ -57,7 +57,7 @@ WEBAPP_HOME_URL = 'http://localhost/admin'
 
 PNL_GENERAL_THRESHOLD = 0.75
 
-DEBUG_MODE = False #23 DEBUG = False #TODO: put in an env variable
+DEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable
 
 #tokens
 WIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'

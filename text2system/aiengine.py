@@ -106,8 +106,14 @@ class AIEngine:
         self.__AC = AC #Autonomous Controller Object
         self.__WIT_CLIENT = None
         self.__pipelines = {}
+        
         #adding specialized pipelines/models
         self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
+        
+        #initializing the simmilarity cache
+        #key: alternative name of the entity (class or attribute)
+        #value: string representation of the entity
+        self.__simmilarityCache = {} 
 
     def getMsgParser(self, msg) -> WITParser:
         processedMsg = self.__getWitClient().message(msg) 
@@ -131,19 +137,22 @@ class AIEngine:
          #return True if positive or False if negative
         return response[0]['label'] == 'POSITIVE'
     
-    def getClasses(self, msg) -> list[str]:
+    def getEntityClass(self, msg) -> str:
         question_answerer = self.__getPipeline('question-answering')
         response = question_answerer(question="What is the entity class that the user command refers to?",
-                                     context=self.__getContext(msg))
+                                     context=self.__getEntityClassContext(msg))
         print(response)
-        return [response['answer']]
+        if response['answer'] in self.__simmilarityCache.keys():
+            return self.__simmilarityCache[response['answer']]
+        #else
+        return response['answer']
     
     def __posTagMsg(self, msg):
         token_classifier = self.__getPipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
         return token_classifier(msg)
     
-    def __getContext(self, msg) -> str:
-        context = "The user command was: " + msg + ". "
+    def __getEntityClassContext(self, msg) -> str:
+        context = "This is the user command: " + msg + ". "
         context += "\nThe intent of the user command is " + self.getMsgParser(msg).getIntent().name  + ". "
         #adding the candidates
         candidates = []
@@ -151,40 +160,48 @@ class AIEngine:
         for word in tags:
             if word['entity'] == 'NOUN':
                 candidates.append(word['word'])
-        if len(candidates) > 0:
-            context += "\nThe entity class is one of these: " + str(candidates) + ". "
+                context += "\nPerhaps the entity class may be this: " + word['word'] + ". "
+                break
+        #if len(candidates) > 0:
+        #    context += "\nThe entity class is one of these: " + str(candidates) + ". "
         #adding current classes    
+        break_loop = False
         for class_key in self.__AC.getEntitiesMap().keys():
-            context += "\nThere is the following entity class already registered in the system: " + class_key + "."
-            not_str = "not "
-            if self.__textsAreSimilar(class_key, candidates):
-                not_str = ""
-            context += " This entity class(" + class_key + ") is " + not_str + "one of the candidates that appear on the user command."
+            #context += "\nThere is the following entity class already registered in the system: " + class_key + "."
+            #not_str = "not "
+            for candidate in candidates:
+                if self.__textsAreSimilar(class_key, candidate):
+                    self.__simmilarityCache[candidate] = class_key
+                    context += "\nThe entity class is definitely this: " + class_key
+                    break_loop = True
+                    break
+            if break_loop:
+                break
                 
         #adding current attributes    
+        '''
         for class_key, class_value in self.__AC.getEntitiesMap().items():
             for attribute in class_value.getAttributes():
                 context += "\nThe entity class " + class_key + " has the attribute " + attribute.name + ". "
                 if self.__textsAreSimilar(attribute.name, candidates):
                     context += " This attribute(" + attribute.name + ") is not the entity class the user command refers to."
-
+        '''
         print(context)
         return context
     
-    def __textsAreSimilar(self, text_key, candidates) -> bool:
-        #if candidates is str type, convert to list
-        if type(candidates) == str:
-            candidates = [candidates]
-            
+    def __textsAreSimilar(self, str1, str2) -> bool:
+        #if the texts are equal, return True
+        if str1 == str2:
+            return True
+        #else test similarity
         model = self.__getPipeline("text-similarity")
-        for candidate in candidates:
-            #Compute embedding for both lists
-            embedding_1= model.encode(text_key, convert_to_tensor=True)
-            embedding_2 = model.encode(candidate, convert_to_tensor=True)
-            result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
-            if result > PNL_GENERAL_THRESHOLD:
-                return True            
-            
+        #Compute embedding for both texts
+        embedding_1= model.encode(str1, convert_to_tensor=True)
+        embedding_2 = model.encode(str2, convert_to_tensor=True)
+        result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
+        if result > PNL_GENERAL_THRESHOLD:
+            return True            
+        #else            
         return False
     
     def __getWitClient(self):
