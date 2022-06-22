@@ -188,7 +188,17 @@ class AIEngine:
                                     break
                             if break_flag:
                                 break
-
+                elif token_i['entity'] == 'PROPN':
+                    #iterate over the following tokens to get the full name
+                    for token_j in tags[token_i['index']:]:
+                        if token_j['entity'] == 'PROPN':
+                            if token_j['word'][0] == '#': #if the word starts with #, it is a mask because the previous token
+                                att_str += token_j['word'][len(tags[token_j['index']-2]['word']):] #starting of the number of chars of the previous token
+                            else:
+                                att_str += ' ' + token_j['word']
+                            token_idx_min = token_j['end']
+                        else:
+                            break
                 attList.append(att_str)
         
         print(attList)
@@ -241,7 +251,7 @@ class AIEngine:
             for candidate in candidates:
                 if self.__textsAreSimilar(class_key, candidate):
                     self.__simmilarityCache[candidate] = class_key
-                    context += "\nThe entity class is definitely this: " + class_key
+                    context = "The entity class is definitely this: " + class_key
                     break_loop = True
                     break
             if break_loop:
