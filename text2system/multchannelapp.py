@@ -7,6 +7,9 @@ class MultChannelApp:
         self.__user = user #same user for all
         self.__SE = SecurityEngine(self) #security engine instance
     
+    def getSE(self):
+        return self.__SE
+    
     def runApp_web(self):
         return webbrowser.open(self.__SE.execute(OPR_APP_HOME_WEB)['homeurl'])
     

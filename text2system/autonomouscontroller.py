@@ -94,7 +94,7 @@ class AutonomousController:
         user_data['pending_atts'] = {}
         user_data['pending_atts_first_attempt'] = True
     
-    def app_chatbot_msgProcess(self, msg, user_data=None, context=None):
+    def app_chatbot_msgProcess(self, msg, user_data=None):
 
         if ('session_expiration_time' not in user_data 
             or  user_data['session_expiration_time'] < dth.datetime.now()):

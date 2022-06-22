@@ -16,6 +16,10 @@ class SecurityEngine:
         #...
         #user access allowed        
         self.__AC = AutonomousController(self) #autonomous controller instance
+    
+    def getAC(self):
+        return self.__AC
+    
     def __authorize(self, opr):
         return True #for this experiment, all operations will be allowed
 
