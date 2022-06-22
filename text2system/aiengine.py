@@ -136,20 +136,80 @@ class AIEngine:
         response = self.__getPipeline('sentiment-analysis')(msg)
          #return True if positive or False if negative
         return response[0]['label'] == 'POSITIVE'
+
+    def __posTagMsg(self, msg):
+        token_classifier = self.__getPipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
+        return token_classifier(msg)
     
-    def getEntityClass(self, msg) -> str:
+    def __getSynonyms(self, entity_name) -> list:
+        synonyms = [entity_name]
+        for alternative, original_name in self.__simmilarityCache.items():
+            if entity_name == original_name:
+                synonyms.append(alternative)
+        return synonyms
+    
+    def getAttributesFromMsg(self, msg, entity_class) -> list:
+        attList = []
+        tags = self.__posTagMsg(msg)
+        synonyms = self.__getSynonyms(entity_class)
+        print(tags)
+        
+        #check if there is email in the message
+        token_email = self.getEmailFromMsg(msg)
+        token_email_idx_start = -1
+        token_email_idx_end = -1
+        if token_email: # not is none
+            #update the indexes of the email
+            token_email_idx_start = token_email['start']
+            token_email_idx_end = token_email['end']
+        
+        token_idx_min = -1
+        for token_i in tags:
+            if token_i['start']==token_email_idx_start:
+                #get the email and move i to next token
+                attList.append(token_email['answer'])
+                token_idx_min = token_email_idx_end
+            elif (token_i['start'] > token_idx_min and 
+                  token_i['entity'] in ['NOUN', 'PROPN', 'NUM'] and
+                  not(token_i['word'] in synonyms)):
+                att_str = token_i['word']
+                if token_i['entity'] == 'NOUN' and att_str in self.__simmilarityCache.keys():
+                    att_str = self.__simmilarityCache[att_str]
+                attList.append(att_str)
+        
+        print(attList)
+        return attList
+        #adding current attributes    
+        '''
+        for class_key, class_value in self.__AC.getEntitiesMap().items():
+            for attribute in class_value.getAttributes():
+                context += "\nThe entity class " + class_key + " has the attribute " + attribute.name + ". "
+                if self.__textsAreSimilar(attribute.name, candidates):
+                    context += " This attribute(" + attribute.name + ") is not the entity class the user command refers to."
+        '''
+
+    def getEmailFromMsg(self, msg):
+        if not("@" in msg):
+            return None
+        
+        #using question_answerer to get the email
+        question_answerer = self.__getPipeline('question-answering')
+        response = question_answerer(question="What is the email address in the message?",
+                                        context=msg)
+        
+        if response['score'] < PNL_GENERAL_THRESHOLD:
+            return None
+        
+        return response
+
+    def getEntityClassFromMsg(self, msg) -> str:
         question_answerer = self.__getPipeline('question-answering')
         response = question_answerer(question="What is the entity class that the user command refers to?",
                                      context=self.__getEntityClassContext(msg))
-        print(response)
         if response['answer'] in self.__simmilarityCache.keys():
             return self.__simmilarityCache[response['answer']]
         #else
         return response['answer']
-    
-    def __posTagMsg(self, msg):
-        token_classifier = self.__getPipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
-        return token_classifier(msg)
     
     def __getEntityClassContext(self, msg) -> str:
         context = "This is the user command: " + msg + ". "
@@ -162,13 +222,10 @@ class AIEngine:
                 candidates.append(word['word'])
                 context += "\nPerhaps the entity class may be this: " + word['word'] + ". "
                 break
-        #if len(candidates) > 0:
-        #    context += "\nThe entity class is one of these: " + str(candidates) + ". "
+
         #adding current classes    
         break_loop = False
         for class_key in self.__AC.getEntitiesMap().keys():
-            #context += "\nThere is the following entity class already registered in the system: " + class_key + "."
-            #not_str = "not "
             for candidate in candidates:
                 if self.__textsAreSimilar(class_key, candidate):
                     self.__simmilarityCache[candidate] = class_key
@@ -178,14 +235,6 @@ class AIEngine:
             if break_loop:
                 break
                 
-        #adding current attributes    
-        '''
-        for class_key, class_value in self.__AC.getEntitiesMap().items():
-            for attribute in class_value.getAttributes():
-                context += "\nThe entity class " + class_key + " has the attribute " + attribute.name + ". "
-                if self.__textsAreSimilar(attribute.name, candidates):
-                    context += " This attribute(" + attribute.name + ") is not the entity class the user command refers to."
-        '''
         print(context)
         return context
     

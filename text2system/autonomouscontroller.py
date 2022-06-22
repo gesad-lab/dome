@@ -158,14 +158,12 @@ class AutonomousController:
             else:#parse.getIntent() is not None
                 user_data['pending_intent'] = parse.getIntent()
                 #classList = parse.getEntities_CLASS()
-                classList = [self.__AIE.getEntityClass(msg)]
-                if len(classList) == 0: #TODO: review this code because it is not necessary
+                entity_class = self.__AIE.getEntityClassFromMsg(msg)
+                if entity_class is None: 
                     # use case no indicate class
                     msgReturnList = MISSING_CLASS
-                elif len(classList) >= 2:
-                    msgReturnList = MULTIPLE_CLASSES
                 else: #all rigth. one class use case
-                    user_data['pending_class'] = classList[0]
+                    user_data['pending_class'] = entity_class
                     #if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))
                         and ((user_data['pending_intent']==Intent.DELETE) 
@@ -173,7 +171,7 @@ class AutonomousController:
                         msgReturnList = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
                     else: #class exists
                         #seeking for new attributes
-                        attList = parse.getEntities_ATTRIBUTE()
+                        attList = self.__AIE.getAttributesFromMsg(msg, user_data['pending_class'])
                         if ( ((user_data['pending_intent']!=Intent.READ) and (len(attList)==0))
                             or (len(attList) % 2 == 1)): #it's odd
                             if user_data['pending_atts_first_attempt']:
@@ -184,7 +182,7 @@ class AutonomousController:
                             user_data['pending_atts_first_attempt'] = False                        
                             #adding new attributes
                             for i in range(0, len(attList)-1, 2):
-                                user_data['pending_atts'][attList[i].body] = attList[i+1].body
+                                user_data['pending_atts'][attList[i]] = attList[i+1]
                             #if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msgProcess('ok', user_data=user_data)
