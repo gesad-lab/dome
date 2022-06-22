@@ -173,8 +173,22 @@ class AIEngine:
                   token_i['entity'] in ['NOUN', 'PROPN', 'NUM'] and
                   not(token_i['word'] in synonyms)):
                 att_str = token_i['word']
-                if token_i['entity'] == 'NOUN' and att_str in self.__simmilarityCache.keys():
-                    att_str = self.__simmilarityCache[att_str]
+                if token_i['entity'] == 'NOUN': 
+                    if att_str in self.__simmilarityCache.keys():
+                        att_str = self.__simmilarityCache[att_str]
+                    else:
+                        #test similarity with all current attributes from model
+                        break_flag = False
+                        for entity_class_obj in self.__AC.getEntitiesMap().values():
+                            for att_on_model in entity_class_obj.getAttributes():
+                                if self.__textsAreSimilar(att_on_model.name, att_str):
+                                    self.__simmilarityCache[att_str] = att_on_model.name
+                                    att_str = att_on_model.name
+                                    break_flag = True
+                                    break
+                            if break_flag:
+                                break
+
                 attList.append(att_str)
         
         print(attList)
