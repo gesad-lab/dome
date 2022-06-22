@@ -177,7 +177,7 @@ class AIEngine:
                     if att_str in self.__simmilarityCache.keys():
                         att_str = self.__simmilarityCache[att_str]
                     else:
-                        #test similarity with all current attributes from model
+                        #testing similarity with all current attributes from model
                         break_flag = False
                         for entity_class_obj in self.__AC.getEntitiesMap().values():
                             for att_on_model in entity_class_obj.getAttributes():
@@ -193,14 +193,6 @@ class AIEngine:
         
         print(attList)
         return attList
-        #adding current attributes    
-        '''
-        for class_key, class_value in self.__AC.getEntitiesMap().items():
-            for attribute in class_value.getAttributes():
-                context += "\nThe entity class " + class_key + " has the attribute " + attribute.name + ". "
-                if self.__textsAreSimilar(attribute.name, candidates):
-                    context += " This attribute(" + attribute.name + ") is not the entity class the user command refers to."
-        '''
 
     def getEmailFromMsg(self, msg):
         if not("@" in msg):
@@ -216,23 +208,29 @@ class AIEngine:
         
         return response
 
-    def getEntityClassFromMsg(self, msg) -> str:
+    def getEntityClassFromMsg(self, msg, intent_name) -> str:
         question_answerer = self.__getPipeline('question-answering')
         response = question_answerer(question="What is the entity class that the user command refers to?",
-                                     context=self.__getEntityClassContext(msg))
+                                     context=self.__getEntityClassContext(msg, intent_name))
         if response['answer'] in self.__simmilarityCache.keys():
             return self.__simmilarityCache[response['answer']]
         #else
+        if response['answer'] == intent_name:
+            return None #it's an error. Probably the user did not informe the entity class in the right way.
+        #else
         return response['answer']
     
-    def __getEntityClassContext(self, msg) -> str:
+    def __getEntityClassContext(self, msg, intent_name) -> str:
         context = "This is the user command: " + msg + ". "
-        context += "\nThe intent of the user command is " + self.getMsgParser(msg).getIntent().name  + ". "
+        context += "\nThe intent of the user command is " + intent_name + ". "
         #adding the candidates
         candidates = []
         tags = self.__posTagMsg(msg)
+        attributes = self.__getAllAttributes()
         for word in tags:
-            if word['entity'] == 'NOUN':
+            if (word['entity'] == 'NOUN' and #only nouns
+                not(word['word'] in attributes) #not an knowed attribute
+                ):
                 candidates.append(word['word'])
                 context += "\nPerhaps the entity class may be this: " + word['word'] + ". "
                 break
@@ -251,6 +249,13 @@ class AIEngine:
                 
         print(context)
         return context
+    
+    def __getAllAttributes(self) -> list:
+        attList = []
+        for class_key in self.__AC.getEntitiesMap().keys():
+            for att_on_model in self.__AC.getEntitiesMap()[class_key].getAttributes():
+                attList.append(att_on_model.name)
+        return attList
     
     def __textsAreSimilar(self, str1, str2) -> bool:
         #if the texts are equal, return True

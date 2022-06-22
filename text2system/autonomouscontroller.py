@@ -158,7 +158,7 @@ class AutonomousController:
             else:#parse.getIntent() is not None
                 user_data['pending_intent'] = parse.getIntent()
                 #classList = parse.getEntities_CLASS()
-                entity_class = self.__AIE.getEntityClassFromMsg(msg)
+                entity_class = self.__AIE.getEntityClassFromMsg(msg, user_data['pending_intent'].name)
                 if entity_class is None: 
                     # use case no indicate class
                     msgReturnList = MISSING_CLASS
