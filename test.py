@@ -25,7 +25,7 @@ class TestT2S(unittest.TestCase):
         user_data['debug_mode'] = False
         
         def assertInDefaultResponseList(msg, response_list):
-            self.assertTrue(self.AC.app_chatbot_msgProcess(msg, user_data) in response_list)
+            self.assertTrue(self.AC.app_chatbot_msgProcess(msg, user_data)['response_msg'] in response_list)
             
         assertInDefaultResponseList('hi', GREETINGS)
         assertInDefaultResponseList('bye', BYE)

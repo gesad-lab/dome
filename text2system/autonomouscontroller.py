@@ -86,7 +86,7 @@ class AutonomousController:
         
         response = self.app_chatbot_msgProcess(msg, user_data=user_data)
         
-        return response
+        return response['response_msg']
     
     def __clear_opr(self, user_data):
         user_data['pending_intent'] = None 
@@ -190,7 +190,15 @@ class AutonomousController:
                             msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
     
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
-        return random.choice(msgReturnList) + user_data['debug_mode']*('\n---debug info:\n[' + msg +']')
+        
+        return_dict = {
+            'response_msg': random.choice(msgReturnList),
+            'user_msg': msg,
+            'user_data': user_data, 
+            'debug_info': '\n---debug info:\n[' + msg +']'
+            }
+        
+        return return_dict
 
     def getTransactionDB_path(self):
         return self.__IC.getTransactionDB_path()
