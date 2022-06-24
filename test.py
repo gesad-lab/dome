@@ -2,7 +2,7 @@ import unittest
 
 from text2system import user as user_lib
 from text2system.aiengine import Intent
-from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, SAVE_SUCCESS
+from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, GREETINGS, HELP, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
     #initializing some variables

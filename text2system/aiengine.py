@@ -226,7 +226,17 @@ class AIEngine:
         candidates = []
         tags = self.__posTagMsg(msg)
         attributes = self.__getAllAttributes()
-        for word in tags:
+        
+        #get end index of the first VERB token in the message
+        verb_intent_idx = -1
+        #iterate over the tokens and find the first verb token
+        for token in tags:
+            verb_intent_idx += 1 
+            if token['entity'] == 'VERB':
+                break
+        
+        #iterate over the tags after the verb token (intent)
+        for word in tags[verb_intent_idx+1:]:
             if (word['entity'] == 'NOUN' and #only nouns
                 not(word['word'] in attributes) #not an knowed attribute
                 ):
