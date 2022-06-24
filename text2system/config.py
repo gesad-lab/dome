@@ -54,6 +54,7 @@ SUFIX_ENV = '_env'
 SUFIX_CONFIG = '_config'
 SUFIX_WEB = '_web'
 WEBAPP_HOME_URL = 'http://localhost/admin'
+RUN_WEB_SERVER = False
 
 PNL_GENERAL_THRESHOLD = 0.75
 

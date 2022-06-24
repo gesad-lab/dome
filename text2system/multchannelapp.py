@@ -1,6 +1,11 @@
-from text2system.auxiliary.constants import *
-from text2system.securityengine import SecurityEngine
 import webbrowser
+
+from text2system.auxiliary.constants import (OPR_APP_HOME_CMD,
+                                             OPR_APP_HOME_WEB,
+                                             OPR_APP_TELEGRAM_START,
+                                             OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
+from text2system.securityengine import SecurityEngine
+
 
 class MultChannelApp:
     def __init__(self, user):

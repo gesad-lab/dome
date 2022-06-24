@@ -1,5 +1,5 @@
 from text2system.aiengine import AIEngine
-from text2system.config import SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from text2system.config import RUN_WEB_SERVER, SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
 from text2system.analyticsengine import AnalyticsEngine
 from text2system.businessprocessengine import BusinessProcessEngine
 import os
@@ -86,6 +86,8 @@ class InterfaceController:
         self.migrateModel()
 
     def __runServer(self):
+        if not RUN_WEB_SERVER:
+            return False
         print('running server')
         os.chdir(self.__config_path)
         self.__runAsyncCmd('..\\Scripts\\python.exe manage.py runserver 0.0.0.0:80')# --noreload')       
