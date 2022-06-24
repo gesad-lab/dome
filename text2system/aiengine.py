@@ -5,8 +5,8 @@ from text2system.config import PNL_GENERAL_THRESHOLD
 from enum import Enum, auto
 from sentence_transformers import SentenceTransformer, util
 class AutoName(Enum):
-    def _generate_next_value_(name, start, count, last_values):
-        return name
+    def _generate_next_value_(self, start, count, last_values):
+        return self #==name
 
 class Intent(AutoName):
     SAVE = auto()
@@ -29,16 +29,15 @@ class EntityType(AutoName):#TODO: #15 to change name to differ from entity.py
     LOCATION = auto()
 
 class Entity:
-    def __init__(self, type, body, role, start) -> None:
-        self.type = type
+    def __init__(self, _type, body, role, start) -> None:
+        self.type = _type
         self.body = body
         self.role = role
         self.start = start
-        if self.role != 'attribute_value':
+        if self.role == 'attribute_name':
             self.body = self.body.lower().strip().replace(' ', '_')
 class WITParser:
     def __init__(self, response) -> None:
-        self.__response = response
         self.__intent = None
         self.__entities = []
         
@@ -134,12 +133,25 @@ class AIEngine:
     #sentiment analysis
     def msgIsPositive(self, msg) -> bool:
         response = self.__getPipeline('sentiment-analysis')(msg)
-         #return True if positive or False if negative
+        #return True if positive or False if negative
         return response[0]['label'] == 'POSITIVE'
 
     def __posTagMsg(self, msg):
+        #configure the pipeline
+        #pip = pipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
         token_classifier = self.__getPipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
-        return token_classifier(msg)
+
+        #setting do_lower_case=False for all keys in the dictionary
+        '''
+        for config_key in token_classifier.tokenizer.pretrained_init_configuration.keys():
+            token_classifier.tokenizer.pretrained_init_configuration[config_key]['do_lower_case'] = False
+        token_classifier.tokenizer.do_lower_case = False
+        token_classifier.tokenizer._decode_use_source_tokenizer = True
+        token_classifier.tokenizer.init_kwargs['do_lower_case'] = False
+        token_classifier.tokenizer.decoder.cleanup = False
+        '''
+        tokens = token_classifier(msg)
+        return tokens
     
     def __getSynonyms(self, entity_name) -> list:
         synonyms = [entity_name]
@@ -152,7 +164,7 @@ class AIEngine:
         attList = []
         tags = self.__posTagMsg(msg)
         synonyms = self.__getSynonyms(entity_class)
-        print(tags)
+        #print(tags)
         
         #check if there is email in the message
         token_email = self.getEmailFromMsg(msg)
@@ -164,14 +176,23 @@ class AIEngine:
             token_email_idx_end = token_email['end']
         
         token_idx_min = -1
+        found_entity_class = False
         for token_i in tags:
+            #advance forward until the token of the entity class is found
+            if not found_entity_class:
+                if token_i['word'] in synonyms:
+                    found_entity_class=True
+                continue
+            #advance foward until the token of the type "NOUN" is found (i.e. the first attribute name)
+            if token_i['entity'] != 'NOUN':
+                continue
+            #else
             if token_i['start']==token_email_idx_start:
                 #get the email and move i to next token
                 attList.append(token_email['answer'])
                 token_idx_min = token_email_idx_end
             elif (token_i['start'] > token_idx_min and 
-                  token_i['entity'] in ['NOUN', 'PROPN', 'NUM'] and
-                  not(token_i['word'] in synonyms)):
+                  token_i['entity'] != 'PUNCT'):
                 att_str = token_i['word']
                 if token_i['entity'] == 'NOUN': 
                     if att_str in self.__simmilarityCache.keys():
@@ -192,8 +213,8 @@ class AIEngine:
                     #iterate over the following tokens to get the full name
                     for token_j in tags[token_i['index']:]:
                         if token_j['entity'] == 'PROPN':
-                            if token_j['word'][0] == '#': #if the word starts with #, it is a mask because the previous token
-                                att_str += token_j['word'][len(tags[token_j['index']-2]['word']):] #starting of the number of chars of the previous token
+                            if token_j['word'][0:2] == '##': #if the word starts with ##, it is a mask because the previous token
+                                att_str += token_j['word'][2:] #starting of the number of chars of the previous token
                             else:
                                 att_str += ' ' + token_j['word']
                             token_idx_min = token_j['end']
@@ -287,9 +308,9 @@ class AIEngine:
             self.__WIT_CLIENT = Wit(access_token=WIT_ACCESS_KEY)
         return self.__WIT_CLIENT
 
-    def __getPipeline(self, pipeline_name, model=None):
+    def __getPipeline(self, pipeline_name, model=None, config=None):
         if pipeline_name not in self.__pipelines:
-            self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model))
+            self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config))
         return self.__pipelines[pipeline_name]
     
     def __addToPipeline(self, pipeline_name, pipeline_object):

@@ -1,12 +1,17 @@
-import random
-from text2system.auxiliary.constants import OPR_APP_HOME_CMD, OPR_APP_HOME_WEB, OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD, OPR_APP_TELEGRAM_START
-from text2system.aiengine import *
-from text2system.interfacecontroller import InterfaceController
-from text2system.domainengine import DomainEngine
-from text2system.config import *
-from text2system.auxiliary.constants import OPR_APP_TELEGRAM_START
 import datetime as dth
+import random
+
 from tabulate import tabulate
+
+from text2system.aiengine import *
+from text2system.auxiliary.constants import (OPR_APP_HOME_CMD,
+                                             OPR_APP_HOME_WEB,
+                                             OPR_APP_TELEGRAM_START,
+                                             OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
+from text2system.config import *
+from text2system.domainengine import DomainEngine
+from text2system.interfacecontroller import InterfaceController
+
 
 class AutonomousController:
     def __init__(self, SE):
@@ -64,6 +69,12 @@ class AutonomousController:
         print(response)
         return response
     
+    def __clear_opr(self, user_data):
+        user_data['pending_intent'] = None 
+        user_data['pending_class'] = None
+        user_data['pending_atts'] = {}
+        user_data['pending_atts_first_attempt'] = True
+
     def app_chatbot_msgHandle(self, msg, context):
         
         user_data = self.__SE.getUser().chatbot_data
@@ -88,14 +99,10 @@ class AutonomousController:
         
         return response['response_msg']
     
-    def __clear_opr(self, user_data):
-        user_data['pending_intent'] = None 
-        user_data['pending_class'] = None
-        user_data['pending_atts'] = {}
-        user_data['pending_atts_first_attempt'] = True
-    
     def app_chatbot_msgProcess(self, msg, user_data=None):
-
+        
+        return_dict = {'user_msg': msg}
+        
         if ('session_expiration_time' not in user_data 
             or  user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
@@ -129,6 +136,7 @@ class AutonomousController:
                         msgReturnList = NO_REGISTERS
                     else:
                         msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
+                return_dict['entity_class_name'] = user_data['pending_class']
                 self.__clear_opr(user_data)
         elif parse.intentIs_CANCEL():
             if user_data['pending_intent'] is not None:
@@ -191,12 +199,15 @@ class AutonomousController:
     
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
         
-        return_dict = {
-            'response_msg': random.choice(msgReturnList),
-            'user_msg': msg,
-            'user_data': user_data, 
-            'debug_info': '\n---debug info:\n[' + msg +']'
-            }
+        #updating return_dict
+        return_dict['response_msg'] = random.choice(msgReturnList)
+        return_dict['user_data'] = user_data
+        return_dict['intent'] = parse.getIntent()
+        if not ('entity_class_name' in return_dict):
+            #only if not already in return_dict
+            return_dict['entity_class_name'] = user_data['pending_class']
+        return_dict['attributes'] = user_data['pending_atts']
+        return_dict['debug_info'] = '---debug info:\n[' + msg +']'
         
         return return_dict
 
