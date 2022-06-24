@@ -2,7 +2,7 @@ import unittest
 
 from text2system import user as user_lib
 from text2system.aiengine import Intent
-from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, GREETINGS, HELP, SAVE_SUCCESS
+from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
     #initializing some variables
@@ -23,7 +23,7 @@ class TestT2S(unittest.TestCase):
     def __talk(self, msg):
         return self.AC.app_chatbot_msgProcess(msg, self.user_data)
 
-    def __check(self, cmd_str, intent, entity_name, attList, response_list):
+    def __check(self, cmd_str, intent, entity_name, attList, response_list=None):
         response = self.__talk(cmd_str)
         self.assertEqual(response['intent'], intent, 'intent not correct. response[intent]=' + str(response['intent']))
         self.assertEqual(response['entity_class_name'], entity_name, 'entity class not correct.\nresponse[entity_class_name]=' + 
@@ -35,8 +35,9 @@ class TestT2S(unittest.TestCase):
         if intent != Intent.CONFIRMATION:
             self.assertEqual(response['attributes'], att_dict, 'attributes not correct.\nresponse[attributes]=' +
                         str(response['attributes']) + '\natt_list=' + str(attList))
-        self.assertTrue(response['response_msg'] in response_list, 'response message not correct.\nresponse[response_msg]=' +
-                        str(response['response_msg']) + '\nresponse_list=' + str(response_list))
+        if response_list:    
+            self.assertTrue(response['response_msg'] in response_list, 'response message not correct.\nresponse[response_msg]=' +
+                            str(response['response_msg']) + '\nresponse_list=' + str(response_list))
     
     def __test_SAVE(self, entity_name, attList, cmd_str=None):
         if not cmd_str:
@@ -86,7 +87,14 @@ class TestT2S(unittest.TestCase):
         
     def test_help_intent(self):
         self.__check("help", Intent.HELP, None , [], HELP)
-        
     
+    def test_delete_intent(self):
+        self.__check("delete student name is Anderson", Intent.DELETE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.DELETE), "student"))
+        self.__check('ok', Intent.CONFIRMATION, "student", ['name', 'Anderson'])
+
+    def test_read_intent(self):
+        #TODO: fix the bug regards the intent type
+        self.__check("show all students", Intent.CONFIRMATION, "student", []) 
+
 if __name__ == '__main__':
     unittest.main()
