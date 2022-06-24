@@ -159,86 +159,54 @@ class AIEngine:
             if entity_name == original_name:
                 synonyms.append(alternative)
         return synonyms
-    
+
     def getAttributesFromMsg(self, msg, entity_class) -> list:
         attList = []
         tags = self.__posTagMsg(msg)
         synonyms = self.__getSynonyms(entity_class)
-        #print(tags)
         
-        #check if there is email in the message
-        token_email = self.getEmailFromMsg(msg)
-        token_email_idx_start = -1
-        token_email_idx_end = -1
-        if token_email: # not is none
-            #update the indexes of the email
-            token_email_idx_start = token_email['start']
-            token_email_idx_end = token_email['end']
-        
-        token_idx_min = -1
-        found_entity_class = False
-        for token_i in tags:
+        #finding the index after the entity class name in the message
+        entity_class_token_idx = -1
+        for i, token_i in enumerate(tags):
             #advance forward until the token of the entity class is found
-            if not found_entity_class:
-                if token_i['word'] in synonyms:
-                    found_entity_class=True
-                continue
-            #advance foward until the token of the type "NOUN" is found (i.e. the first attribute name)
-            if token_i['entity'] != 'NOUN':
-                continue
-            #else
-            if token_i['start']==token_email_idx_start:
-                #get the email and move i to next token
-                attList.append(token_email['answer'])
-                token_idx_min = token_email_idx_end
-            elif (token_i['start'] > token_idx_min and 
-                  token_i['entity'] != 'PUNCT'):
-                att_str = token_i['word']
-                if token_i['entity'] == 'NOUN': 
-                    if att_str in self.__simmilarityCache.keys():
-                        att_str = self.__simmilarityCache[att_str]
+            if token_i['word'] in synonyms:
+                entity_class_token_idx = i                    
+                break
+        
+        if entity_class_token_idx>-1: #if the entity class token was found
+            question_answerer = self.__getPipeline('question-answering')
+            #iterate over the tokens and find the attribute names and values
+            j = entity_class_token_idx + 1
+            while j < len(tags):
+                #advance foward until the token of the type "NOUN" is found (i.e. the first noun it is an attribute name)
+                token_j = None
+                while j < len(tags) and token_j is None:
+                    if tags[j]['entity'] == 'NOUN':
+                        token_j = tags[j]
                     else:
-                        #testing similarity with all current attributes from model
-                        break_flag = False
-                        for entity_class_obj in self.__AC.getEntitiesMap().values():
-                            for att_on_model in entity_class_obj.getAttributes():
-                                if self.__textsAreSimilar(att_on_model.name, att_str):
-                                    self.__simmilarityCache[att_str] = att_on_model.name
-                                    att_str = att_on_model.name
-                                    break_flag = True
-                                    break
-                            if break_flag:
-                                break
-                elif token_i['entity'] == 'PROPN':
-                    #iterate over the following tokens to get the full name
-                    for token_j in tags[token_i['index']:]:
-                        if token_j['entity'] == 'PROPN':
-                            if token_j['word'][0:2] == '##': #if the word starts with ##, it is a mask because the previous token
-                                att_str += token_j['word'][2:] #starting of the number of chars of the previous token
-                            else:
-                                att_str += ' ' + token_j['word']
-                            token_idx_min = token_j['end']
-                        else:
-                            break
-                attList.append(att_str)
-        
-        print(attList)
+                        j += 1
+
+                if token_j:
+                    #found the first noun after token_j. It is the attribute name
+                    attribute_name = token_j['word']        
+                    #ask by the attribute value using question-answering pipeline
+                    response = question_answerer(question='What is the ' + attribute_name + 
+                                                 ' of the ' + entity_class + '?', context=msg)
+                    #save the pair of attribute name and attribute value in the result list
+                    attList.extend([attribute_name, response['answer']])
+                    #update the j index to the next token after the attribute value
+                    #get the end index in the original msg
+                    att_value_idx_end = msg.find(response['answer'])
+                    if att_value_idx_end > -1:
+                        att_value_idx_end = att_value_idx_end + len(response['answer'])
+                        while j < len(tags) and tags[j]['start'] < att_value_idx_end:
+                            j += 1
+                else:
+                    #no noun found after token_j. It is the end of the attribute list
+                    break
+                
         return attList
-
-    def getEmailFromMsg(self, msg):
-        if not("@" in msg):
-            return None
-        
-        #using question_answerer to get the email
-        question_answerer = self.__getPipeline('question-answering')
-        response = question_answerer(question="What is the email address in the message?",
-                                        context=msg)
-        
-        if response['score'] < PNL_GENERAL_THRESHOLD:
-            return None
-        
-        return response
-
+    
     def getEntityClassFromMsg(self, msg, intent_name) -> str:
         question_answerer = self.__getPipeline('question-answering')
         response = question_answerer(question="What is the entity class that the user command refers to?",
