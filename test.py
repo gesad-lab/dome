@@ -1,7 +1,7 @@
 import unittest
 
 from text2system import user as user_lib
-from text2system.aiengine import Intent
+from text2system.auxiliary.enums.intent import Intent
 from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, GREETINGS, HELP, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
@@ -65,10 +65,12 @@ class TestT2S(unittest.TestCase):
     #testing the 'hi' msg
     def test_greetings(self):
         self.__assertInDefaultResponseList('hi', GREETINGS)
+        self.__assertInDefaultResponseList('hello! Nice to meet you!', GREETINGS)
         
     #testing the 'bye' msg
     def test_bye(self):
         self.__assertInDefaultResponseList('bye', BYE)
+        self.__assertInDefaultResponseList('I wanna say bye!', BYE)
         
     #testing the 'add' intent
     def test_add_intent(self):
@@ -83,7 +85,7 @@ class TestT2S(unittest.TestCase):
     
     def test_cancel_intent(self):
         self.__check("add student name=Anderson", Intent.SAVE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.SAVE), "student"))
-        self.__check('cancel', Intent.CANCEL, None , [], CANCEL)
+        self.__check('cancel', Intent.CANCELATION, None , [], CANCEL)
         
     def test_help_intent(self):
         self.__check("help", Intent.HELP, None , [], HELP)

@@ -1,3 +1,17 @@
+#intent mapping
+# >>>>> !!! DON'T CHANGE THE KEYS OF THE INTENT_MAP !!! <<<<<
+# >>>>> !!! KEEP ALL ELEMENTS OF THE VALUE LISTS IN LOWER CASE !!! <<<<<
+INTENT_MAP = {
+        'GREETING':['greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'],
+        'SAVE': ['save', 'add', 'create', 'update', 'insert'],
+        'READ' : ['read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve'],
+        'DELETE' : ['delete', 'remove', 'destroy', 'del', 'erase', 'kill'],
+        'CANCELATION' : ['cancelation', 'cancel', 'stop', 'quit', 'exit'],
+        'CONFIRMATION' : ['confirmation', 'confirm', 'ok', 'yes'],
+        'HELP' : ['help'],
+        'GOODBYE' : ['bye', 'goodbye']
+        }
+
 #bot msgs
 MISUNDERSTANDING = ["""Um. I don't recognize it. Which operation do you want to do? Save, update, delete or get some information? (say 'help' for samples)"""
                     , """Sorry, but I didn't get it. Try something like 'register new student' or 'get student information gender=Male' (say 'help' for more samples)"""

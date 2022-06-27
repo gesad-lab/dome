@@ -3,5 +3,14 @@
         "C:\\Users\\PRF\\Google Drive\\04-AmgInvest\\amginvest",
         "./src/text2system"
     ],
-    "jupyter.debugJustMyCode": false
+    "jupyter.debugJustMyCode": false,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "test*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
 }
