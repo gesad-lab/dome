@@ -194,22 +194,6 @@
         "documentation": {}
     },
     {
-        "label": "auto",
-        "importPath": "enum",
-        "description": "enum",
-        "isExtraImport": true,
-        "detail": "enum",
-        "documentation": {}
-    },
-    {
-        "label": "Enum",
-        "importPath": "enum",
-        "description": "enum",
-        "isExtraImport": true,
-        "detail": "enum",
-        "documentation": {}
-    },
-    {
         "label": "INTENT_MAP",
         "importPath": "text2system.config",
         "description": "text2system.config",
@@ -219,14 +203,6 @@
     },
     {
         "label": "PNL_GENERAL_THRESHOLD",
-        "importPath": "text2system.config",
-        "description": "text2system.config",
-        "isExtraImport": true,
-        "detail": "text2system.config",
-        "documentation": {}
-    },
-    {
-        "label": "WIT_ACCESS_KEY",
         "importPath": "text2system.config",
         "description": "text2system.config",
         "isExtraImport": true,
@@ -560,14 +536,6 @@
         "description": "transformers",
         "isExtraImport": true,
         "detail": "transformers",
-        "documentation": {}
-    },
-    {
-        "label": "Wit",
-        "importPath": "wit",
-        "description": "wit",
-        "isExtraImport": true,
-        "detail": "wit",
         "documentation": {}
     },
     {
@@ -1321,38 +1289,11 @@
         "documentation": {}
     },
     {
-        "label": "EntityType",
-        "kind": 6,
-        "importPath": "text2system.aiengine",
-        "description": "text2system.aiengine",
-        "peekOfCode": "class EntityType(Enum):#TODO: #15 to change name to differ from entity.py\n    ATTRIBUTE = auto()\n    CLASS = auto()\n    CONTACT = auto()\n    EMAIL = auto()\n    LOCATION = auto()\nclass Entity:\n    def __init__(self, _type, body, role, start) -> None:\n        self.type = _type\n        self.body = body",
-        "detail": "text2system.aiengine",
-        "documentation": {}
-    },
-    {
-        "label": "Entity",
-        "kind": 6,
-        "importPath": "text2system.aiengine",
-        "description": "text2system.aiengine",
-        "peekOfCode": "class Entity:\n    def __init__(self, _type, body, role, start) -> None:\n        self.type = _type\n        self.body = body\n        self.role = role\n        self.start = start\n        if self.role == 'attribute_name':\n            self.body = self.body.lower().strip().replace(' ', '_')\nclass WITParser:\n    def __init__(self, response) -> None:",
-        "detail": "text2system.aiengine",
-        "documentation": {}
-    },
-    {
-        "label": "WITParser",
-        "kind": 6,
-        "importPath": "text2system.aiengine",
-        "description": "text2system.aiengine",
-        "peekOfCode": "class WITParser:\n    def __init__(self, response) -> None:\n        self.__intent = None\n        self.__entities = []\n        if (len(response['intents'])>0\n            and response['intents'][0]['confidence'] > PNL_GENERAL_THRESHOLD):\n                self.__intent = Intent(response['intents'][0]['name'].upper().replace('WIT$',''))\n        #print(json.dumps(response, indent=3))\n        for key in response['entities']:\n            for entity in response['entities'][key]:",
-        "detail": "text2system.aiengine",
-        "documentation": {}
-    },
-    {
         "label": "AIEngine",
         "kind": 6,
         "importPath": "text2system.aiengine",
         "description": "text2system.aiengine",
-        "peekOfCode": "class AIEngine:\n    #Wrapper class for encapsulate parsing services\n    class __MsgParser:\n        def __init__(self, user_msg, aie_obj) -> None:\n            self.user_msg = user_msg\n            self.__aie_obj = aie_obj\n            self.intent = None\n            #pos-tagging the user_msg\n            self.tokens =aie_obj.posTagMsg(user_msg)\n            #build a tokens type map",
+        "peekOfCode": "class AIEngine:\n    #Wrapper class for encapsulate parsing services\n    class __MsgParser:\n        def __init__(self, user_msg, aie_obj) -> None:\n            self.user_msg = user_msg\n            self.__AIE = aie_obj\n            self.intent = None\n            self.entity_class = None\n            self.attributes = None\n            #pos-tagging the user_msg",
         "detail": "text2system.aiengine",
         "documentation": {}
     },
@@ -1541,7 +1482,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "MANAGED_SYSTEM_NAME = 'managedsys'\nSUFIX_ENV = '_env'\nSUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'",
+        "peekOfCode": "MANAGED_SYSTEM_NAME = 'managedsys'\nSUFIX_ENV = '_env'\nSUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1550,7 +1491,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "SUFIX_ENV = '_env'\nSUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user",
+        "peekOfCode": "SUFIX_ENV = '_env'\nSUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1559,7 +1500,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "SUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'",
+        "peekOfCode": "SUFIX_CONFIG = '_config'\nSUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1568,7 +1509,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "SUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'",
+        "peekOfCode": "SUFIX_WEB = '_web'\nWEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1577,7 +1518,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "WEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
+        "peekOfCode": "WEBAPP_HOME_URL = 'http://localhost/admin'\nRUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1586,7 +1527,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "RUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
+        "peekOfCode": "RUN_WEB_SERVER = False\nPNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1595,7 +1536,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "PNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
+        "peekOfCode": "PNL_GENERAL_THRESHOLD = 0.75\nDEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },
@@ -1604,7 +1545,7 @@
         "kind": 5,
         "importPath": "text2system.config",
         "description": "text2system.config",
-        "peekOfCode": "DEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#tokens\nWIT_ACCESS_KEY='PPKWS6JBWM7FMOXYIS2VW4ZFNGJ3N7ZI'\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
+        "peekOfCode": "DEBUG_MODE = True #23 DEBUG = False #TODO: put in an env variable\n#django default user\nDJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'\nDJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'\nDJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'",
         "detail": "text2system.config",
         "documentation": {}
     },

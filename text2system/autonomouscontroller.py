@@ -112,10 +112,10 @@ class AutonomousController:
             or  user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
             
-        parse = self.__AIE.getMsgParser(msg)
+        parser = self.__AIE.getMsgParser(msg)
         msgReturnList = MISUNDERSTANDING #default
 
-        if parse.intentIs_CONFIRM():
+        if parser.intent == Intent.CONFIRMATION:
             if (user_data['pending_intent'] is not None
                 and user_data['pending_class'] is not None
                 and ((len(user_data['pending_atts']) > 0) or (user_data['pending_intent']==Intent.READ))
@@ -141,23 +141,22 @@ class AutonomousController:
                         msgReturnList = NO_REGISTERS
                     else:
                         msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
-                return_dict['entity_class_name'] = user_data['pending_class']
                 self.__clear_opr(user_data)
-        elif parse.intentIs_CANCEL():
+        elif parser.intent == Intent.CANCELATION:
             if user_data['pending_intent'] is not None:
                 self.__clear_opr(user_data)
                 msgReturnList = CANCEL
-        elif parse.intentIs_GREET():
+        elif parser.intent == Intent.GREETING:
             self.__clear_opr(user_data)
             msgReturnList = GREETINGS
-        elif parse.intentIs_SAY_GOODBYE(): 
+        elif parser.intent == Intent.GOODBYE: 
             self.__clear_opr(user_data)
             msgReturnList = BYE
-        elif parse.intentIs_HELP(): 
+        elif parser.intent == Intent.HELP: 
             self.__clear_opr(user_data)
             msgReturnList = HELP
         else:
-            if parse.getIntent() is None:
+            if parser.intent is None:
                 if user_data['pending_intent'] is not None: #there is a previous pending operation
                     msg_considered = str(user_data['pending_intent']) + ' '
 
@@ -169,33 +168,31 @@ class AutonomousController:
                     #recursive call with the modified msg
                     return  self.app_chatbot_msgProcess(msg_considered, user_data=user_data)
             else:#parse.getIntent() is not None
-                user_data['pending_intent'] = parse.getIntent()
-                #classList = parse.getEntities_CLASS()
-                entity_class = self.__AIE.getEntityClassFromMsg(msg, user_data['pending_intent'].name)
-                if entity_class is None: 
+                user_data['pending_intent'] = parser.intent
+                if parser.entity_class is None: 
                     # use case no indicate class
                     msgReturnList = MISSING_CLASS
                 else: #all rigth. one class use case
-                    user_data['pending_class'] = entity_class
+                    user_data['pending_class'] = parser.entity_class
                     #if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))
                         and ((user_data['pending_intent']==Intent.DELETE) 
                              or (user_data['pending_intent']==Intent.READ))):
                         msgReturnList = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
                     else: #class exists
-                        #seeking for new attributes
-                        attList = self.__AIE.getAttributesFromMsg(msg, user_data['pending_class'])
-                        if ( ((user_data['pending_intent']!=Intent.READ) and (len(attList)==0))
-                            or (len(attList) % 2 == 1)): #it's odd
+                        #processing the attributes
+                        if ( ((user_data['pending_intent']!=Intent.READ) and (len(parser.attributes)==0))
+                            or (len(parser.attributes) % 2 == 1)): #it's odd
                             if user_data['pending_atts_first_attempt']:
-                                msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), user_data['pending_class'])
+                                msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), 
+                                                                               user_data['pending_class'])
                             else:
                                 msgReturnList = ATTRIBUTE_FORMAT
                         else: #all ok! even number!
                             user_data['pending_atts_first_attempt'] = False                        
                             #adding new attributes
-                            for i in range(0, len(attList)-1, 2):
-                                user_data['pending_atts'][attList[i]] = attList[i+1]
+                            for i in range(0, len(parser.attributes)-1, 2):
+                                user_data['pending_atts'][parser.attributes[i]] = parser.attributes[i+1]
                             #if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msgProcess('ok', user_data=user_data)
@@ -207,11 +204,7 @@ class AutonomousController:
         #updating return_dict
         return_dict['response_msg'] = random.choice(msgReturnList)
         return_dict['user_data'] = user_data
-        return_dict['intent'] = parse.getIntent()
-        if not ('entity_class_name' in return_dict):
-            #only if not already in return_dict
-            return_dict['entity_class_name'] = user_data['pending_class']
-        return_dict['attributes'] = user_data['pending_atts']
+        return_dict['parser'] = parser
         return_dict['debug_info'] = '---debug info:\n[' + msg +']'
         
         return return_dict
