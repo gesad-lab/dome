@@ -2,7 +2,7 @@ import unittest
 
 from text2system import user as user_lib
 from text2system.auxiliary.enums.intent import Intent
-from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, GREETINGS, HELP, SAVE_SUCCESS
+from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
     #initializing some variables
@@ -89,8 +89,10 @@ class TestT2S(unittest.TestCase):
         self.__check("help", Intent.HELP, None , None, HELP)
     
     def test_delete_intent(self):
-        self.__check("delete student name is Anderson", Intent.DELETE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.DELETE), "student"))
-        self.__check('ok', Intent.CONFIRMATION, "student", ['name', 'Anderson'])
+        self.__test_SAVE('student', ['name', 'Anderson', 'age', '199'])
+        self.__check("delete student name is Anderson, and age is 199", Intent.DELETE, "student" , ['name', 'Anderson', 'age', '199'],
+                     ATTRIBUTE_OK(str(Intent.DELETE), "student"))
+        self.__check('ok', Intent.CONFIRMATION, None, None, DELETE_SUCCESS(1))
 
     def test_read_intent(self):
         #TODO: fix the bug regards the intent type and the entity class

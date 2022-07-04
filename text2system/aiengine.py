@@ -33,9 +33,6 @@ class AIEngine:
                     self.attributes = self.__getAttributesFromMsg()
 
         def __getIntentFromMsg(self) -> Intent:
-            if "delete" in self.user_msg: #TODO: #16 resolve this problem about delete token
-                return Intent.DELETE
-            #else:
             considered_msg = self.user_msg
             candidate_labels=[str(e) for e in Intent]
             first_verb = self.getFirstTokenByType('VERB')
@@ -209,21 +206,15 @@ class AIEngine:
 
     def posTagMsg(self, msg):
         #configure the pipeline
-        #pip = pipeline("token-classification", model = "vblagoje/bert-english-uncased-finetuned-pos")
         token_classifier = self.getPipeline("token-classification", 
                                             model = "vblagoje/bert-english-uncased-finetuned-pos",
                                             aggregation_strategy=None)
 
-        #setting do_lower_case=False for all keys in the dictionary
-        '''
-        for config_key in token_classifier.tokenizer.pretrained_init_configuration.keys():
-            token_classifier.tokenizer.pretrained_init_configuration[config_key]['do_lower_case'] = False
-        token_classifier.tokenizer.do_lower_case = False
-        token_classifier.tokenizer._decode_use_source_tokenizer = True
-        token_classifier.tokenizer.init_kwargs['do_lower_case'] = False
-        token_classifier.tokenizer.decoder.cleanup = False
-        '''
-        tokens = token_classifier(msg)
+        
+        considered_msg = msg.lower().replace('delete', 'to delete') #TODO: to solve bug about delete
+        
+        tokens = token_classifier(considered_msg)
+        
         return tokens
     
     def getEntitiesMap(self) -> dict:

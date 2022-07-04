@@ -3,6 +3,7 @@ __pycache__
 .env
 
 #vscode config files
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
