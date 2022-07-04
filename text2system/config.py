@@ -9,7 +9,8 @@ INTENT_MAP = {
         'CANCELATION' : ['cancelation', 'cancel', 'stop', 'quit', 'exit'],
         'CONFIRMATION' : ['confirmation', 'confirm', 'ok', 'yes'],
         'HELP' : ['help'],
-        'GOODBYE' : ['bye', 'goodbye']
+        'GOODBYE' : ['bye', 'goodbye'],
+        'UNKNOWN' :['unknown']
         }
 
 #bot msgs

@@ -53,7 +53,7 @@ class AIEngine:
                 #there is no verb in the message
                 #removing some candidate labels
                 candidate_labels.remove(str(Intent.SAVE))
-                #candidate_labels.remove(str(Intent.DELETE))
+                candidate_labels.remove(str(Intent.DELETE))
                 candidate_labels.remove(str(Intent.READ))
                 #seeking for direct commands without verb
                 considered_tokens_count = len(self.tokens)
@@ -65,12 +65,20 @@ class AIEngine:
                         if Intent(label) == self.tokens[0]['word']:
                             intent_return = Intent(label)
                             break
-                
+
             if not intent_return:
                 #no direct command found
+                #trying to eliminate some possible candidates
+                zero_shotter = self.__AIE.getPipeline("zero-shot-classification")
+                for label in candidate_labels.copy():
+                    if label != str(Intent.UNKNOWN):
+                        response = zero_shotter("Could the intent of the message '" + considered_msg + "' be a type of " + str(label) + 
+                                                     ", yes or no?", ['yes', 'no'])
+                        if response['labels'][0] == 'no':
+                            candidate_labels.remove(label)
+
                 #find the intent
-                intent_classifier = self.__AIE.getPipeline("zero-shot-classification")
-                intent_class_result = intent_classifier(considered_msg, candidate_labels=candidate_labels)
+                intent_class_result = zero_shotter(considered_msg, candidate_labels=candidate_labels)
                 intent_return = Intent(intent_class_result['labels'][0].upper())
             
             return intent_return

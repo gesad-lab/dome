@@ -2,7 +2,7 @@ import unittest
 
 from text2system import user as user_lib
 from text2system.auxiliary.enums.intent import Intent
-from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, SAVE_SUCCESS
+from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
     #initializing some variables
@@ -97,6 +97,13 @@ class TestT2S(unittest.TestCase):
     def test_read_intent(self):
         #TODO: fix the bug regards the intent type and the entity class
         self.__check("show all students", Intent.CONFIRMATION) 
-
+        
+    def test_corner_cases(self):
+        def check_corner_case(msg):
+            self.__check(msg, Intent.UNKNOWN, None, None, MISUNDERSTANDING) 
+        check_corner_case("bla bla bla")
+        check_corner_case("123456789133 $%^&*()")
+        check_corner_case("Please, the god is god!")
+        
 if __name__ == '__main__':
     unittest.main()

@@ -16,6 +16,7 @@ class Intent(AutoName):
     HELP = auto()
     CANCELATION = auto()
     CONFIRMATION = auto()
+    UNKNOWN = auto()
     
     def __str__(self):
         return self.name
