@@ -4,7 +4,7 @@
 INTENT_MAP = {
         'GREETING':['greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'],
         'SAVE': ['save', 'add', 'create', 'update', 'insert'],
-        'READ' : ['read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve'],
+        'READ' : ['read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view'],
         'DELETE' : ['delete', 'remove', 'destroy', 'del', 'erase', 'kill'],
         'CANCELATION' : ['cancelation', 'cancel', 'stop', 'quit', 'exit'],
         'CONFIRMATION' : ['confirmation', 'confirm', 'ok', 'yes'],

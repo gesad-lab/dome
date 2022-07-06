@@ -72,9 +72,10 @@ class AIEngine:
                 zero_shotter = self.__AIE.getPipeline("zero-shot-classification")
                 for label in candidate_labels.copy():
                     if label != str(Intent.UNKNOWN):
-                        response = zero_shotter("Could the intent of the message '" + considered_msg + "' be a type of " + str(label) + 
-                                                     ", yes or no?", ['yes', 'no'])
-                        if response['labels'][0] == 'no':
+                        alternatives = str(Intent(label).getSynonyms())[1:-1]
+                        response = zero_shotter("The intent of the message '" + considered_msg + "' is one of these: " + alternatives + 
+                                                     " ?", ['yes', 'no'])
+                        if response['labels'][0] == 'no': #or response['scores'][0] < PNL_GENERAL_THRESHOLD:
                             candidate_labels.remove(label)
 
                 #find the intent

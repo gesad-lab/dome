@@ -37,7 +37,7 @@ class TestT2S(unittest.TestCase):
             self.assertTrue(response['response_msg'] in response_list, 'response message not correct.\nresponse[response_msg]=' +
                             str(response['response_msg']) + '\nresponse_list=' + str(response_list))
     
-    def __test_SAVE(self, entity_name, attList, cmd_str=None):
+    def __check_SAVE(self, entity_name, attList, cmd_str=None):
         if not cmd_str:
             cmd_str = 'add ' + entity_name
             if len(attList) > 0:
@@ -61,49 +61,104 @@ class TestT2S(unittest.TestCase):
         self.assertIsNotNone(self.AC)
     
     #testing the 'hi' msg
-    def test_greetings(self):
-        self.__assertInDefaultResponseList('hi', GREETINGS)
-        self.__assertInDefaultResponseList('hello! Nice to meet you!', GREETINGS)
+    def __check_greetings(self, msg):
+        self.__assertInDefaultResponseList(msg, GREETINGS)
         
-    #testing the 'bye' msg
-    def test_bye(self):
-        self.__assertInDefaultResponseList('bye', BYE)
-        self.__assertInDefaultResponseList('I wanna say bye!', BYE)
+    def test_greetings_1(self):    
+        self.__check_greetings('hi')
         
-    #testing the 'add' intent
-    def test_add_intent(self):
-        self.__test_SAVE('student', ['name', 'Anderson Martins Gomes', 'age', '20'])
-        self.__test_SAVE('subject', ['name', 'Brazilian History', 'description', 'The history of Brazil'])
-        self.__test_SAVE('teacher', ['name', 'Paulo Henrique', 'age', '65', 'email', 'ph@uece.br'])
-        #save a subject name=Math, and description is 'The best subject ever!'
-        self.__test_SAVE('subject', ['name', 'Math', 'description', "The best subject ever"])
-        #TODO: solve the "'" problem
-        #self.__test_SAVE('subject', ['name', 'Math', 'description', "The best subject ever!"], 
-        #                 cmd_str="add subject with name=Math, description='The best subject ever!'")
-    
-    def test_cancel_intent(self):
-        self.__check("add student name=Anderson", Intent.SAVE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.SAVE), "student"))
-        self.__check('cancel', Intent.CANCELATION, None , None, CANCEL)
-        
-    def test_help_intent(self):
-        self.__check("help", Intent.HELP, None , None, HELP)
-    
-    def test_delete_intent(self):
-        self.__test_SAVE('student', ['name', 'Anderson', 'age', '199'])
-        self.__check("delete student name is Anderson, and age is 199", Intent.DELETE, "student" , ['name', 'Anderson', 'age', '199'],
-                     ATTRIBUTE_OK(str(Intent.DELETE), "student"))
-        self.__check('ok', Intent.CONFIRMATION, None, None, DELETE_SUCCESS(1))
+    def test_greetings_2(self):    
+        self.__check_greetings('hello! Nice to meet you!')
 
-    def test_read_intent(self):
-        #TODO: fix the bug regards the intent type and the entity class
-        self.__check("show all students", Intent.CONFIRMATION) 
+    def test_greetings_3(self):    
+        self.__check_greetings('good morning!')
+
+    #testing the 'bye' msg
+    def ___check_bye(self, msg):
+        self.__assertInDefaultResponseList(msg, BYE)
         
-    def test_corner_cases(self):
-        def check_corner_case(msg):
-            self.__check(msg, Intent.UNKNOWN, None, None, MISUNDERSTANDING) 
-        check_corner_case("bla bla bla")
-        check_corner_case("123456789133 $%^&*()")
-        check_corner_case("Please, the god is god!")
+    def test_bye_1(self):    
+        self.___check_bye('bye')
+        
+    def test_bye_2(self):    
+        self.___check_bye('I wanna say bye!')
+
+    def test_bye_3(self):    
+        self.___check_bye('ok. bye bye!')
+
+    #testing the 'add' intent
+    def test_add_1(self):
+        self.__check_SAVE('student', ['name', 'Anderson Martins Gomes', 'age', '20'])
+
+    def test_add_2(self):
+        self.__check_SAVE('subject', ['name', 'Brazilian History', 'description', 'The history of Brazil'])
+
+    def test_add_3(self):
+        self.__check_SAVE('teacher', ['name', 'Paulo Henrique', 'age', '65', 'email', 'ph@uece.br'])
+
+    def test_add_4(self):
+        #save a subject name=Math, and description is 'The best subject ever!'
+        self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever"])
+        
+    def test_add_5(self):
+        #TODO: solve the "'" problem
+        self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever!"], 
+                         cmd_str="add subject with name=Math, description='The best subject ever!'")
+    
+    def __check_cancel(self, msg='cancel'):
+        self.__check(msg, Intent.CANCELATION, None , None, CANCEL)
+        
+    def test_cancel_1(self):
+        self.__check("add student name=Anderson", Intent.SAVE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.SAVE), "student"))
+        
+    def test_cancel_2(self):
+        self.__check_corner_case("crazy message 12334")
+        self.__check_cancel('please, cancel')
+        
+    def __check_help(self, msg='help'):
+        self.__check(msg, Intent.HELP, None , None, HELP)
+        
+    def test_help_1(self):
+        self.__check_help()
+    
+    def test_help_2(self):
+        self.__check_help('I want to know how to use the bot')
+        
+    def test_help_3(self):
+        self.__check_help('Please, help me!')
+
+    def __check_delete(self, entity_name, delete_msg, att_list):
+        self.__check_SAVE(entity_name, att_list)
+        self.__check(delete_msg, Intent.DELETE, entity_name , att_list,
+                     ATTRIBUTE_OK(str(Intent.DELETE), entity_name))
+        self.__check('ok', Intent.CONFIRMATION, None, None, DELETE_SUCCESS(1))
+    
+    def test_delete_1(self):
+        self.__check_delete('student', 'delete student name is Anderson, and age is 199', ['name', 'Anderson', 'age', '199'])
+
+    def __check_read(self, msg):
+        self.__check(msg, Intent.CONFIRMATION) 
+
+    def test_read_1(self):
+        self.__check_read("show all students") 
+        
+    def test_read_2(self):
+        self.__check_read("view students")
+        
+    def test_read_3(self):
+        self.__check_read("fetch the students")
+        
+    def __check_corner_case(self, msg):
+        self.__check(msg, Intent.UNKNOWN, None, None, MISUNDERSTANDING) 
+
+    def test_corner_case_1(self):
+        self.__check_corner_case("bla bla bla")
+        
+    def test_corner_case_2(self):
+        self.__check_corner_case("123456789133 $%^&*()")
+        
+    def test_corner_case_3(self):
+        self.__check_corner_case("Please, the god is god!")
         
 if __name__ == '__main__':
     unittest.main()
