@@ -58,13 +58,15 @@ class AIEngine:
                 #seeking for direct commands without verb
                 considered_tokens_count = len(self.tokens)
                 considered_tokens_count -= len(self.getTokensByType('PUNCT'))
-                if considered_tokens_count == 1:
-                    #only one meaniful token in the message
-                    #iterating over the candidate_labels for finding a direct command
+                if considered_tokens_count <= 2:#Intent.MAX_NUMBER_OF_TOKENS:
+                    #only one or two meaniful token in the message
+                    #finding in msg a direct command
                     for label in candidate_labels:
-                        if Intent(label) == self.tokens[0]['word']:
-                            intent_return = Intent(label)
-                            break
+                        intent = Intent(label)
+                        for key_term in intent.getSynonyms():
+                            if key_term in considered_msg:
+                                intent_return = intent
+                                break
 
             if not intent_return:
                 #no direct command found
@@ -73,9 +75,9 @@ class AIEngine:
                 for label in candidate_labels.copy():
                     if label != str(Intent.UNKNOWN):
                         alternatives = str(Intent(label).getSynonyms())[1:-1]
-                        response = zero_shotter("The intent of the message '" + considered_msg + "' is one of these: " + alternatives + 
-                                                     " ?", ['yes', 'no'])
-                        if response['labels'][0] == 'no': #or response['scores'][0] < PNL_GENERAL_THRESHOLD:
+                        response = zero_shotter("The message '" + considered_msg + "' is one type of: " + 
+                                                alternatives + " ?", ['yes', 'no'])
+                        if response['labels'][0] == 'no':
                             candidate_labels.remove(label)
 
                 #find the intent
