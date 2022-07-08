@@ -110,9 +110,10 @@ class TestT2S(unittest.TestCase):
         
     def test_cancel_1(self):
         self.__check("add student name=Anderson", Intent.SAVE, "student" , ['name', 'Anderson'], ATTRIBUTE_OK(str(Intent.SAVE), "student"))
+        self.__check_cancel('cancel')
         
     def test_cancel_2(self):
-        self.__check_corner_case("crazy message 12334")
+        self.__check_corner_case("bla bla bla")
         self.__check_cancel('please, cancel')
         
     def __check_help(self, msg='help'):
@@ -159,6 +160,9 @@ class TestT2S(unittest.TestCase):
         
     def test_corner_case_3(self):
         self.__check_corner_case("Please, the god is god!")
+        
+    def test_corner_case_4(self):
+        self.__check_corner_case("crazy message 12334")
         
 if __name__ == '__main__':
     unittest.main()
