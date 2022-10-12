@@ -1,5 +1,5 @@
 import util.delete_util as delutil
-from text2system import user as user
+from dome import user as user
 
 #deleting the old gen files
 #delutil.deleteOldManagedFiles()

@@ -3,19 +3,19 @@ import random
 
 from tabulate import tabulate
 
-from text2system.aiengine import AIEngine, Intent
-from text2system.auxiliary.constants import (OPR_APP_HOME_CMD,
-                                             OPR_APP_HOME_WEB,
-                                             OPR_APP_TELEGRAM_START,
-                                             OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
-from text2system.config import (ATTRIBUTE_FORMAT,
-                                ATTRIBUTE_FORMAT_FIRST_ATTEMPT, ATTRIBUTE_OK,
-                                BYE, CANCEL, CLASS_NOT_IN_DOMAIN, DEBUG_MODE,
-                                DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
-                                HELP, MISSING_CLASS, MISUNDERSTANDING,
-                                NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL)
-from text2system.domainengine import DomainEngine
-from text2system.interfacecontroller import InterfaceController
+from dome.aiengine import AIEngine, Intent
+from dome.auxiliary.constants import (OPR_APP_HOME_CMD,
+                                      OPR_APP_HOME_WEB,
+                                      OPR_APP_TELEGRAM_START,
+                                      OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
+from dome.config import (ATTRIBUTE_FORMAT,
+                         ATTRIBUTE_FORMAT_FIRST_ATTEMPT, ATTRIBUTE_OK,
+                         BYE, CANCEL, CLASS_NOT_IN_DOMAIN, DEBUG_MODE,
+                         DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
+                         HELP, MISSING_CLASS, MISUNDERSTANDING,
+                         NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL)
+from dome.domainengine import DomainEngine
+from dome.interfacecontroller import InterfaceController
 
 
 class AutonomousController:

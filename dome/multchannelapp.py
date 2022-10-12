@@ -1,10 +1,10 @@
 import webbrowser
 
-from text2system.auxiliary.constants import (OPR_APP_HOME_CMD,
-                                             OPR_APP_HOME_WEB,
-                                             OPR_APP_TELEGRAM_START,
-                                             OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
-from text2system.securityengine import SecurityEngine
+from dome.auxiliary.constants import (OPR_APP_HOME_CMD,
+                                      OPR_APP_HOME_WEB,
+                                      OPR_APP_TELEGRAM_START,
+                                      OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
+from dome.securityengine import SecurityEngine
 
 
 class MultChannelApp:

@@ -1,8 +1,8 @@
 import unittest
 
-from text2system import user as user_lib
-from text2system.auxiliary.enums.intent import Intent
-from text2system.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS
+from dome import user as user_lib
+from dome.auxiliary.enums.intent import Intent
+from dome.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS
 
 class TestT2S(unittest.TestCase):
     #initializing some variables

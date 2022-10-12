@@ -5,7 +5,7 @@ With software engineering techniques, self-adaptive systems, and artificial inte
 
 ## Installation
 # Setup the follow environment variables:
-TEXT2SYSTEM_TELEGRAM_TOKEN=telegram_bot_token<br/>
+DOME_TELEGRAM_TOKEN=telegram_bot_token<br/>
 
 # For a custom user data, before deploy, setup the follow environment variables:
 DJANGO_SUPERUSER_USERNAME=some_user_name<br/>

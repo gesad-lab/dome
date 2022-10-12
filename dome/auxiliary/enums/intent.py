@@ -1,6 +1,6 @@
 from enum import auto, Enum
 
-from text2system.config import INTENT_MAP
+from dome.config import INTENT_MAP
 
 class AutoName(Enum):
     def _generate_next_value_(self, start, count, last_values):

@@ -1,6 +1,6 @@
 import os
 
-from text2system.multchannelapp import MultChannelApp
+from dome.multchannelapp import MultChannelApp
 from util.django_util import get_django_user, get_django_pwd
 
 class User:

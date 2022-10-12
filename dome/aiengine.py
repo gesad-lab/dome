@@ -1,8 +1,8 @@
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
-from text2system.auxiliary.enums.intent import Intent
+from dome.auxiliary.enums.intent import Intent
 
-from text2system.config import (PNL_GENERAL_THRESHOLD)
+from dome.config import (PNL_GENERAL_THRESHOLD)
 class AIEngine:
     #Wrapper class for encapsulate parsing services
     class __MsgParser:

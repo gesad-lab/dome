@@ -5,7 +5,7 @@ from telegram.error import NetworkError
 
 class TelegramHandle:
     def __init__(self, msgHandle) -> None:
-        self.__TOKEN = os.getenv('TEXT2SYSTEM_TELEGRAM_TOKEN')
+        self.__TOKEN = os.getenv('DOME_TELEGRAM_TOKEN')
         #Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -65,5 +65,5 @@ class TelegramHandle:
             self.echo(update, context) #trying resend message to avoid the error to be lost
         else:
             """Log Errors caused by Updates."""
-            self.__logger.warning('[TEXT2SYSTEM] Update "%s" caused error "%s"', update, context.error)
+            self.__logger.warning('[DOME] Update "%s" caused error "%s"', update, context.error)
             

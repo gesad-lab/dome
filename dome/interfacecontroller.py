@@ -1,13 +1,13 @@
-from text2system.aiengine import AIEngine
-from text2system.config import RUN_WEB_SERVER, SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
-from text2system.analyticsengine import AnalyticsEngine
-from text2system.businessprocessengine import BusinessProcessEngine
+from dome.aiengine import AIEngine
+from dome.config import RUN_WEB_SERVER, SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from dome.analyticsengine import AnalyticsEngine
+from dome.businessprocessengine import BusinessProcessEngine
 import os
 import subprocess as sp
 import fileinput
 import platform
-from text2system.config import MANAGED_SYSTEM_NAME
-from text2system.auxiliary.telegramHandle import TelegramHandle
+from dome.config import MANAGED_SYSTEM_NAME
+from dome.auxiliary.telegramHandle import TelegramHandle
 from util.django_util import init_django_user
 
 class InterfaceController:

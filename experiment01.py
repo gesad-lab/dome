@@ -1,4 +1,4 @@
-from text2system.user import User
+from dome.user import User
 import time
 import gc
 import util.delete_util as delutil

@@ -1,5 +1,5 @@
-from text2system.autonomouscontroller import AutonomousController
-from text2system.integrationengine import IntegrationEngine
+from dome.autonomouscontroller import AutonomousController
+from dome.integrationengine import IntegrationEngine
 
 class SecurityEngine:
     def __init__(self, MUP, IE=None):

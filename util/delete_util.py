@@ -1,6 +1,6 @@
 import os
 import shutil
-from text2system.config import SUFIX_ENV
+from dome.config import SUFIX_ENV
 
 def deleteOldManagedFiles():
     root_path = os.path.dirname(os.path.dirname(__file__)) #parent directory
