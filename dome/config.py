@@ -19,7 +19,7 @@ MISUNDERSTANDING = ["""Um. I don't recognize it. Which operation do you want to 
                     , "Please, repeat in another way, because I didn't get it. (say 'help' for more info)"]
 
 GREETINGS = ["Hi! You can say something like 'Save student with name=Anderson'"
-             ,"Hello! Please say something like 'Get info about student with name=Anderson'"
+             ,"Hello! Please say something like 'Get student with name=Anderson'"
              ,"Hello! Good see you here! Please say some data operation like 'Include student with name=Anderson, email=andersonmg@gmail.com'"
             ]
 
