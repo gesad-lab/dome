@@ -53,7 +53,7 @@ class AutonomousController:
             self.__IC.updateAppWeb()
             return True
         elif opr == OPR_APP_TELEGRAM_START:
-            self.__IC.updateAppWeb()
+            self.__IC.updateAppWeb(True)
             self.__IC.startApp_telegram(self.app_chatbot_msgHandle)
             return True  # TODO: to analyse return type/value
         # else
