@@ -35,7 +35,7 @@ HELP = ["""I'm a bot that helps you save your information in an organized, secur
 
 CANCEL = ['No problem! The operation was canceled successfully.']
 
-ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel\n...or simply continue doing this operation ;)]'
+ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel. ;)]'
                , "[Any time you can say 'ok' to confirm the operation, or 'cancel' to cancel the current operation]"
                ] 
 
@@ -43,7 +43,7 @@ ATTRIBUTE_FORMAT = ["I'll understand better if the data is in the following form
 
 ATTRIBUTE_FORMAT_FIRST_ATTEMPT = lambda opr, clas: [f"Ok! We are going to {opr} a {clas}. Please, now inform the data in the following format:\n<<data name>> = <<data value>>\nFor example:\nage = 21"]
 
-ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to {opr} a {clas}.\nSay 'Ok' to confirm\n'Cancel' to cancel this operation\nor simply continue informing the complementary data..."]
+ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to {opr} a {clas}.\nSay 'Ok' to confirm\n'Cancel' to cancel this operation."]
 
 SAVE_SUCCESS = ['Ok! Information saved successfully!'
                             , 'It done! Information saved. ;)'
@@ -69,7 +69,7 @@ SUFIX_ENV = '_env'
 SUFIX_CONFIG = '_config'
 SUFIX_WEB = '_web'
 WEBAPP_HOME_URL = 'http://localhost/admin'
-RUN_WEB_SERVER = False
+RUN_WEB_SERVER = True
 
 PNL_GENERAL_THRESHOLD = 0.75
 

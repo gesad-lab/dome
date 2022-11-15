@@ -20,33 +20,33 @@ from dome.interfacecontroller import InterfaceController
 
 class AutonomousController:
     def __init__(self, SE):
-        self.__SE = SE #Security Engine object
-        self.__IC = InterfaceController(self) #Interface Controller object
-        self.__DE = DomainEngine(self) #Domain Engine object
-        self.__AIE = AIEngine(self) #Artificial Intelligence Engine object
- 
+        self.__SE = SE  # Security Engine object
+        self.__IC = InterfaceController(self)  # Interface Controller object
+        self.__DE = DomainEngine(self)  # Domain Engine object
+        self.__AIE = AIEngine(self)  # Artificial Intelligence Engine object
+
     def __monitor(self):
         pass
 
     def __analyze(self):
         pass
-    
+
     def plan(self, opr, data):
-        #in this version, all tasks are going to be executed immediately
-        return self.__execute(opr, data) 
-    
+        # in this version, all tasks are going to be executed immediately
+        return self.__execute(opr, data)
+
     def __execute(self, opr, data):
-        #TODO: manager the type of task
-        #...
+        # TODO: manager the type of task
+        # ...
         if opr == OPR_APP_HOME_WEB:
             self.__IC.updateAppWeb()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_APP_HOME_CMD:
             self.__IC.getApp_cmd(self.app_chatbot_responseProcess)
-            return True #TODO: to analyse return type/value
+            return True  # TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
             return self.__DE.saveEntity(data['name'])
-            #return True #TODO: #3 analysing return type
+            # return True #TODO: #3 analysing return type
         elif opr == OPR_ATTRIBUTE_ADD:
             self.__DE.addAttribute(data['entity'], data['name']
                                    , data['type'], data['notnull'])
@@ -55,14 +55,14 @@ class AutonomousController:
         elif opr == OPR_APP_TELEGRAM_START:
             self.__IC.updateAppWeb()
             self.__IC.startApp_telegram(self.app_chatbot_msgHandle)
-            return True #TODO: to analyse return type/value
-        #else
+            return True  # TODO: to analyse return type/value
+        # else
         return None
-        
+
     def __knowledge(self):
         pass
-    
-    #util methods
+
+    # util methods
     def getEntities(self) -> list:
         return self.__DE.getEntities()
 
@@ -73,147 +73,146 @@ class AutonomousController:
         response += '\nÉ uma despedida? ' + str(self.__AIE.msgIsGoodbye(msg))
         print(response)
         return response
-    
+
     def __clear_opr(self, user_data):
-        user_data['pending_intent'] = None 
+        user_data['pending_intent'] = None
         user_data['pending_class'] = None
         user_data['pending_atts'] = {}
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msgHandle(self, msg, context):
-        
+
         user_data = self.__SE.getUser().chatbot_data
 
-        if ('chat_id' not in user_data 
-            or user_data['chat_id'] is None 
-            or user_data['chat_id'] != context._chat_id_and_data[0]):
-            #new session
+        if ('chat_id' not in user_data
+                or user_data['chat_id'] is None
+                or user_data['chat_id'] != context._chat_id_and_data[0]):
+            # new session
             user_data['user_id'] = context._user_id_and_data[0]
             user_data['chat_id'] = context._chat_id_and_data[0]
             user_data['debug_mode'] = DEBUG_MODE
             self.__clear_opr(user_data)
-        
+
         if msg == 'debug_mode:on':
             user_data['debug_mode'] = True
             return 'debug_mode is on!'
         if msg == 'debug_mode:off':
             user_data['debug_mode'] = False
             return 'debug_mode is off!'
-        
+
         response = self.app_chatbot_msgProcess(msg, user_data=user_data)
-        
+
         return response['response_msg']
-    
+
     def app_chatbot_msgProcess(self, msg, user_data=None):
-        
+
         return_dict = {'user_msg': msg}
-        
-        if ('session_expiration_time' not in user_data 
-            or  user_data['session_expiration_time'] < dth.datetime.now()):
+
+        if ('session_expiration_time' not in user_data
+                or user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
-            
+
         parser = self.__AIE.getMsgParser(msg)
-        msgReturnList = MISUNDERSTANDING #default
+        msg_return_list = MISUNDERSTANDING  # default
 
         if parser.intent == Intent.CONFIRMATION:
             if (user_data['pending_intent'] is not None
-                and user_data['pending_class'] is not None
-                and ((len(user_data['pending_atts']) > 0) or (user_data['pending_intent']==Intent.READ))
-                ):
-                if user_data['pending_intent'] == Intent.SAVE: #TODO: #17 refactoring to change code to DomainEngine
-                    #including the entity
+                    and user_data['pending_class'] is not None
+                    and ((len(user_data['pending_atts']) > 0) or (user_data['pending_intent'] == Intent.READ))):
+                if user_data['pending_intent'] == Intent.SAVE:  # TODO: #17 refactoring to change code to DomainEngine
+                    # including the entity
                     domain_entity = self.__DE.saveEntity(user_data['pending_class'])
                     for att_name in user_data['pending_atts'].keys():
-                        self.__DE.addAttribute(domain_entity, att_name, 'str') #TODO: #18 to manage the type 
-                    self.__IC.updateAppWeb() 
-                    #save the data
+                        self.__DE.addAttribute(domain_entity, att_name, 'str')  # TODO: #18 to manage the type
+                    self.__IC.updateAppWeb()
+                    # save the data
                     self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
-                    msgReturnList = SAVE_SUCCESS
-                elif user_data['pending_intent'] == Intent.DELETE: 
+                    msg_return_list = SAVE_SUCCESS
+                elif user_data['pending_intent'] == Intent.DELETE:
                     query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_atts'])
                     if query_result.rowcount == 0:
-                        msgReturnList = DELETE_FAILURE
+                        msg_return_list = DELETE_FAILURE
                     else:
-                        msgReturnList = DELETE_SUCCESS(query_result.rowcount)
-                elif user_data['pending_intent'] == Intent.READ: 
+                        msg_return_list = DELETE_SUCCESS(query_result.rowcount)
+                elif user_data['pending_intent'] == Intent.READ:
                     query_result = self.__DE.read(user_data['pending_class'], user_data['pending_atts'])
                     if query_result is None:
-                        msgReturnList = NO_REGISTERS
+                        msg_return_list = NO_REGISTERS
                     else:
-                        msgReturnList = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
+                        msg_return_list = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.__clear_opr(user_data)
         elif parser.intent == Intent.CANCELATION:
             if user_data['pending_intent'] is not None:
                 self.__clear_opr(user_data)
-                msgReturnList = CANCEL
+                msg_return_list = CANCEL
         elif parser.intent == Intent.GREETING:
             self.__clear_opr(user_data)
-            msgReturnList = GREETINGS
-        elif parser.intent == Intent.GOODBYE: 
+            msg_return_list = GREETINGS
+        elif parser.intent == Intent.GOODBYE:
             self.__clear_opr(user_data)
-            msgReturnList = BYE
-        elif parser.intent == Intent.HELP: 
+            msg_return_list = BYE
+        elif parser.intent == Intent.HELP:
             self.__clear_opr(user_data)
-            msgReturnList = HELP
+            msg_return_list = HELP
         else:
-            if parser.intent==Intent.UNKNOWN:
-                if user_data['pending_intent'] is not None: #there is a previous pending operation
+            if parser.intent == Intent.UNKNOWN:
+                if user_data['pending_intent'] is not None:  # there is a previous pending operation
                     msg_considered = str(user_data['pending_intent']) + ' '
 
                     if user_data['pending_class'] is not None:
                         msg_considered += str(user_data['pending_class']) + ' '
 
                     msg_considered += msg
-                    
-                    #recursive call with the modified msg
-                    return  self.app_chatbot_msgProcess(msg_considered, user_data=user_data)
-            else:#parse.getIntent() is not None
+
+                    # recursive call with the modified msg
+                    return self.app_chatbot_msgProcess(msg_considered, user_data=user_data)
+            else:  # parse.getIntent() is not None
                 user_data['pending_intent'] = parser.intent
-                if parser.entity_class is None: 
+                if parser.entity_class is None:
                     # use case no indicate class
-                    msgReturnList = MISSING_CLASS
-                else: #all rigth. one class use case
+                    msg_return_list = MISSING_CLASS
+                else:  # all rigth. one class use case
                     user_data['pending_class'] = parser.entity_class
-                    #if is DELETE or READ use case, test if the class is in the domain
+                    # if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))
-                        and ((user_data['pending_intent']==Intent.DELETE) 
-                             or (user_data['pending_intent']==Intent.READ))):
-                        msgReturnList = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
-                    else: #class exists
-                        #processing the attributes
-                        if ( ((user_data['pending_intent']!=Intent.READ) and (len(parser.attributes)==0))
-                            or (len(parser.attributes) % 2 == 1)): #it's odd
+                            and ((user_data['pending_intent'] == Intent.DELETE)
+                                 or (user_data['pending_intent'] == Intent.READ))):
+                        msg_return_list = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
+                    else:  # class exists
+                        # processing the attributes
+                        if (((user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0))
+                                or (len(parser.attributes) % 2 == 1)):  # it's odd
                             if user_data['pending_atts_first_attempt']:
-                                msgReturnList = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']), 
+                                msg_return_list = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']),
                                                                                user_data['pending_class'])
                             else:
-                                msgReturnList = ATTRIBUTE_FORMAT
-                        else: #all ok! even number!
-                            user_data['pending_atts_first_attempt'] = False                        
-                            #adding new attributes
-                            for i in range(0, len(parser.attributes)-1, 2):
-                                user_data['pending_atts'][parser.attributes[i]] = parser.attributes[i+1]
-                            #if is READ use case, call recursively to show results
+                                msg_return_list = ATTRIBUTE_FORMAT
+                        else:  # all ok! even number!
+                            user_data['pending_atts_first_attempt'] = False
+                            # adding new attributes
+                            for i in range(0, len(parser.attributes) - 1, 2):
+                                user_data['pending_atts'][parser.attributes[i]] = parser.attributes[i + 1]
+                            # if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msgProcess('ok', user_data=user_data)
-                            #else
-                            msgReturnList = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
-    
+                            # else
+                            msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
+
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
-        
-        #updating return_dict
-        return_dict['response_msg'] = random.choice(msgReturnList)
+
+        # updating return_dict
+        return_dict['response_msg'] = random.choice(msg_return_list)
         return_dict['user_data'] = user_data
         return_dict['parser'] = parser
-        return_dict['debug_info'] = '---debug info:\n[' + msg +']'
-        
+        return_dict['debug_info'] = '---debug info:\n[' + msg + ']'
+
         return return_dict
 
     def getTransactionDB_path(self):
         return self.__IC.getTransactionDB_path()
-    
+
     def getWebApp_path(self):
-        return self.__IC.getWebApp_path()    
-    
+        return self.__IC.getWebApp_path()
+
     def getEntitiesMap(self):
         return self.__DE.getEntitiesMap()
