@@ -54,6 +54,8 @@ class AIEngine:
                         break
             else:
                 # there is no verb in the message
+                # lower case for considered_msg
+                considered_msg = considered_msg.lower()
                 # removing some candidate labels
                 candidate_labels.remove(str(Intent.SAVE))
                 candidate_labels.remove(str(Intent.DELETE))
@@ -90,7 +92,7 @@ class AIEngine:
             return intent_return
 
         def __getEntityClassFromMsg(self) -> str:
-            question_answerer = self.__AIE.getPipeline('question-answering')
+            question_answerer = self.__AIE.get_question_answer_pipeline()
             response = question_answerer(question="What is the entity class that the user command refers to?",
                                          context=self.__getEntityClassContext())
             if response['answer'] in self.__AIE.similarityCache.keys():
@@ -150,7 +152,7 @@ class AIEngine:
                     break
 
             if entity_class_token_idx > -1:  # if the entity class token was found
-                question_answerer = self.__AIE.getPipeline('question-answering')
+                question_answerer = self.__AIE.get_question_answer_pipeline()
                 # iterate over the tokens and find the attribute names and values
                 j = entity_class_token_idx + 1
                 while j < len(self.tokens):
@@ -269,6 +271,8 @@ class AIEngine:
             # else
         return False
 
+    def get_question_answer_pipeline(self):
+        return self.getPipeline(pipeline_name='question-answering', model='distilbert-base-cased-distilled-squad')
     def get_zero_shooter_pipeline(self):
         return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
     def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None):
