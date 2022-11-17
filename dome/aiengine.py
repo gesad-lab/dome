@@ -74,17 +74,17 @@ class AIEngine:
             if not intent_return:
                 # no direct command found
                 # trying to eliminate some possible candidates
-                zero_shotter = self.__AIE.getPipeline("zero-shot-classification")
+                zero_shooter = self.__AIE.get_zero_shooter_pipeline()
                 for label in candidate_labels.copy():
                     if label != str(Intent.UNKNOWN):
                         alternatives = str(Intent(label).getSynonyms())[1:-1]
-                        response = zero_shotter("The message '" + considered_msg + "' is one type of: " +
+                        response = zero_shooter("The message '" + considered_msg + "' is one type of: " +
                                                 alternatives + " ?", ['yes', 'no'])
                         if response['labels'][0] == 'no':
                             candidate_labels.remove(label)
 
                 # find the intent
-                intent_class_result = zero_shotter(considered_msg, candidate_labels=candidate_labels)
+                intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
                 intent_return = Intent(intent_class_result['labels'][0].upper())
 
             return intent_return
@@ -269,6 +269,8 @@ class AIEngine:
             # else
         return False
 
+    def get_zero_shooter_pipeline(self):
+        return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
     def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None):
         if pipeline_name not in self.__pipelines:
             self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config,
