@@ -1,6 +1,8 @@
 import os
 import sqlite3
 
+import json
+
 from dome.autonomouscontroller import AutonomousController
 from dome.integrationengine import IntegrationEngine
 
@@ -69,3 +71,9 @@ class SecurityEngine:
             self.__execute_query("INSERT INTO users(chat_id) VALUES (?)", (chat_id,))
             query_result = self.get_user_by_chat_id(chat_id)
         return query_result
+
+    def save_msg_handle_log(self, msg, user_id, response_obj):
+        # transform the response_obj in a json string
+        response_obj_json = json.dumps(response_obj, default=str)
+        self.__execute_query("INSERT INTO msg_handle_log(msg, user_id, response) VALUES (?, ?, ?)",
+                             (msg, user_id, response_obj_json))
