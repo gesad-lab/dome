@@ -3,17 +3,18 @@ import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import NetworkError
 
+
 class TelegramHandle:
-    def __init__(self, msgHandle) -> None:
+    def __init__(self, msg_handle) -> None:
         self.__TOKEN = os.getenv('DOME_TELEGRAM_TOKEN')
-        #Enable logging
+        # Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                            level=logging.INFO)
         self.__logger = logging.getLogger(__name__)
         self.__PORT = int(os.environ.get('PORT', '8443'))
-        self.__MSG_HANDLE = msgHandle
+        self.__MSG_HANDLE = msg_handle
         self.__tryagain = True
-        
+
         """Start the bot."""
         # Create the Updater and pass it your bot's token.
         # Make sure to set use_context=True to use the new context based callbacks
@@ -45,25 +46,21 @@ class TelegramHandle:
         """Send a message when the command /start is issued."""
         update.message.reply_text(self.__MSG_HANDLE('Hi!', context))
 
-
     def help(self, update, context):
         """Send a message when the command /help is issued."""
         update.message.reply_text(self.__MSG_HANDLE('Help!', context))
 
-
     def echo(self, update, context):
         """Echo the user message."""
         update.message.reply_text(self.__MSG_HANDLE(update.message.text, context))
-        self.__tryagain = True #msg processed, then the control variable is set to True
-
+        self.__tryagain = True  # msg processed, then the control variable is set to True
 
     def error(self, update, context):
-        if (self.__tryagain #only if the msg was not processed and only once
-            and not(context.error is None)#type(context.error)==NetworkError #only for ConnectionResetError
-            ): 
-            self.__tryagain = False #to forces only one execution of the code
-            self.echo(update, context) #trying resend message to avoid the error to be lost
+        if (self.__tryagain  # only if the msg was not processed and only once
+                and not (context.error is None)  # type(context.error)==NetworkError #only for ConnectionResetError
+        ):
+            self.__tryagain = False  # to forces only one execution of the code
+            self.echo(update, context)  # trying resend message to avoid the error to be lost
         else:
             """Log Errors caused by Updates."""
             self.__logger.warning('[DOME] Update "%s" caused error "%s"', update, context.error)
-            

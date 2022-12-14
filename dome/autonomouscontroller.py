@@ -54,7 +54,7 @@ class AutonomousController:
             return True
         elif opr == OPR_APP_TELEGRAM_START:
             self.__IC.updateAppWeb(True)
-            self.__IC.startApp_telegram(self.app_chatbot_msgHandle)
+            self.__IC.startApp_telegram(self.app_chatbot_msg_handle)
             return True  # TODO: to analyse return type/value
         # else
         return None
@@ -80,7 +80,7 @@ class AutonomousController:
         user_data['pending_atts'] = {}
         user_data['pending_atts_first_attempt'] = True
 
-    def app_chatbot_msgHandle(self, msg, context):
+    def app_chatbot_msg_handle(self, msg, context):
 
         user_data = self.__SE.getUser().chatbot_data
 
@@ -100,11 +100,11 @@ class AutonomousController:
             user_data['debug_mode'] = False
             return 'debug_mode is off!'
 
-        response = self.app_chatbot_msgProcess(msg, user_data=user_data)
+        response = self.app_chatbot_msg_process(msg, user_data=user_data)
 
         return response['response_msg']
 
-    def app_chatbot_msgProcess(self, msg, user_data=None):
+    def app_chatbot_msg_process(self, msg, user_data=None):
 
         return_dict = {'user_msg': msg}
 
@@ -165,7 +165,7 @@ class AutonomousController:
                     msg_considered += msg
 
                     # recursive call with the modified msg
-                    return self.app_chatbot_msgProcess(msg_considered, user_data=user_data)
+                    return self.app_chatbot_msg_process(msg_considered, user_data=user_data)
             else:  # parse.getIntent() is not None
                 user_data['pending_intent'] = parser.intent
                 if parser.entity_class is None:
@@ -194,7 +194,7 @@ class AutonomousController:
                                 user_data['pending_atts'][parser.attributes[i]] = parser.attributes[i + 1]
                             # if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
-                                return self.app_chatbot_msgProcess('ok', user_data=user_data)
+                                return self.app_chatbot_msg_process('ok', user_data=user_data)
                             # else
                             msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
 

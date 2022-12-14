@@ -4,4 +4,4 @@ from dome import user as user
 # deleting the old gen files
 # delutil.deleteOldManagedFiles()
 
-user.User.getRandomNewUser().MUP.runApp_telegram()
+user.User.get_random_new_user().MUP.runApp_telegram()

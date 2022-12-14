@@ -8,7 +8,7 @@ class TestT2S(unittest.TestCase):
     #initializing some variables
     @classmethod
     def setUpClass(cls):
-        cls.USER = user_lib.User.getRandomNewUser()
+        cls.USER = user_lib.User.get_random_new_user()
         cls.MUP = cls.USER.MUP
         cls.SE = cls.MUP.getSE()
         cls.AC = cls.SE.getAC()
@@ -21,7 +21,7 @@ class TestT2S(unittest.TestCase):
         self.assertTrue(self.__talk(msg)['response_msg'] in response_list)
 
     def __talk(self, msg):
-        return self.AC.app_chatbot_msgProcess(msg, self.user_data)
+        return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
     def __check(self, cmd_str, intent, entity_name=None, attList=None, response_list=None):
         response = self.__talk(cmd_str)

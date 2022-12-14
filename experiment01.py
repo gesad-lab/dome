@@ -11,7 +11,7 @@ def boot():
     #4tests
     global userTest 
     global currentEntity
-    userTest = User.getRandomNewUser()
+    userTest = User.get_random_new_user()
     currentEntity = userTest.MUP.addEntity('student') #only one entity in this version
 
 #deleting the old gen files
