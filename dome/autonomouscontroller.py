@@ -99,6 +99,8 @@ class AutonomousController:
             return 'debug_mode is off!'
 
         response = self.app_chatbot_msg_process(msg, user_data=user_data)
+
+        # logging the message handled
         self.__SE.save_msg_handle_log(msg, user_data['id'], response)
 
         return response['response_msg']
