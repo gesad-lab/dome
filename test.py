@@ -10,7 +10,7 @@ class TestT2S(unittest.TestCase):
     def setUpClass(cls):
         cls.USER = user_lib.User.get_random_new_user()
         cls.MUP = cls.USER.MUP
-        cls.SE = cls.MUP.getSE()
+        cls.SE = cls.MUP.get_SE()
         cls.AC = cls.SE.getAC()
         #simulating a user connection
         cls.user_data = {}

@@ -82,16 +82,14 @@ class AutonomousController:
 
     def app_chatbot_msg_handle(self, msg, context):
 
-        user_data = self.__SE.getUser().chatbot_data
-
-        if ('chat_id' not in user_data
-                or user_data['chat_id'] is None
-                or user_data['chat_id'] != context._chat_id_and_data[0]):
+        if 'id' not in context.user_data:
             # new session
-            user_data['user_id'] = context._user_id_and_data[0]
-            user_data['chat_id'] = context._chat_id_and_data[0]
+            user_data = self.__SE.create_or_get_user(context._user_id_and_data[0])
             user_data['debug_mode'] = DEBUG_MODE
             self.__clear_opr(user_data)
+            context.user_data.update(user_data)
+
+        user_data = context.user_data
 
         if msg == 'debug_mode:on':
             user_data['debug_mode'] = True
@@ -139,7 +137,8 @@ class AutonomousController:
                     if query_result is None:
                         msg_return_list = NO_REGISTERS
                     else:
-                        msg_return_list = [str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
+                        msg_return_list = [
+                            str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.__clear_opr(user_data)
         elif parser.intent == Intent.CANCELATION:
             if user_data['pending_intent'] is not None:
@@ -184,7 +183,7 @@ class AutonomousController:
                                 or (len(parser.attributes) % 2 == 1)):  # it's odd
                             if user_data['pending_atts_first_attempt']:
                                 msg_return_list = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']),
-                                                                               user_data['pending_class'])
+                                                                                 user_data['pending_class'])
                             else:
                                 msg_return_list = ATTRIBUTE_FORMAT
                         else:  # all ok! even number!
