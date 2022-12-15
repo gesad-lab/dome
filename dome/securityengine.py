@@ -77,3 +77,6 @@ class SecurityEngine:
         response_obj_json = json.dumps(response_obj, default=str)
         self.__execute_query("INSERT INTO msg_handle_log(msg, user_id, response) VALUES (?, ?, ?)",
                              (msg, user_id, response_obj_json))
+
+    def getAC(self):
+        return self.__AC
