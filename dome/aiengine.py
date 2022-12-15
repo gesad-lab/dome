@@ -75,19 +75,24 @@ class AIEngine:
 
             if not intent_return:
                 # no direct command found
-                # trying to eliminate some possible candidates
-                zero_shooter = self.__AIE.get_zero_shooter_pipeline()
-                for label in candidate_labels.copy():
-                    if label != str(Intent.UNKNOWN):
-                        alternatives = str(Intent(label).getSynonyms())[1:-1]
-                        response = zero_shooter("The message '" + considered_msg + "' is one type of: " +
-                                                alternatives + " ?", ['yes', 'no'])
-                        if response['labels'][0] == 'no':
-                            candidate_labels.remove(label)
+                # check if message is with some sense
+                if self.getTokensByType('NOUN') or self.getTokensByType('VERB'):
+                    # trying to eliminate some possible candidates
+                    zero_shooter = self.__AIE.get_zero_shooter_pipeline()
+                    for label in candidate_labels.copy():
+                        if label != str(Intent.UNKNOWN):
+                            alternatives = str(Intent(label).getSynonyms())[1:-1]
+                            response = zero_shooter("The message '" + considered_msg + "' is one type of: " +
+                                                    alternatives + " ?", ['yes', 'no'])
+                            if response['labels'][0] == 'no':
+                                candidate_labels.remove(label)
 
-                # find the intent
-                intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
-                intent_return = Intent(intent_class_result['labels'][0].upper())
+                    # find the intent
+                    intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
+                    intent_return = Intent(intent_class_result['labels'][0].upper())
+                else:
+                    # no sense in the message
+                    intent_return = Intent.UNKNOWN
 
             return intent_return
 
