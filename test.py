@@ -115,7 +115,8 @@ class TestT2S(unittest.TestCase):
 
     def test_cancel_2(self):
         self.__check_corner_case("bla bla bla")
-        self.__check_cancel('please, cancel')
+        self.__check(cmd_str='please, cancel', intent=Intent.CANCELATION,
+                     response_list=MISUNDERSTANDING)  # because the user is not in the middle of a operation
 
     def __check_help(self, msg='help'):
         self.__check(msg, Intent.HELP, None, None, HELP)
