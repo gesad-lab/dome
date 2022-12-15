@@ -101,7 +101,6 @@ class TestT2S(unittest.TestCase):
         self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever"])
 
     def test_add_5(self):
-        # TODO: solve the "'" problem
         self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever!"],
                           cmd_str="add subject with name=Math, description='The best subject ever!'")
 

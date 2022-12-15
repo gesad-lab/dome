@@ -42,7 +42,7 @@ class AIEngine:
             if first_verb:
                 # there is at least one verb in the message
                 # then the intent is on of CRUD operations (SAVE, DELETE, READ)
-                # testing simmilarity for CRUD operations
+                # testing similarity for CRUD operations
                 def setIntentIfSimilar(intent) -> bool:
                     if first_verb['word'] == intent:
                         return intent
@@ -140,7 +140,7 @@ class AIEngine:
             return context
 
         def __getAttributesFromMsg(self) -> list:
-            attList = []
+            att_list = []
             synonyms = self.__AIE.getSynonyms(self.entity_class)
 
             # finding the index after the entity class name in the message
@@ -156,7 +156,8 @@ class AIEngine:
                 # iterate over the tokens and find the attribute names and values
                 j = entity_class_token_idx + 1
                 while j < len(self.tokens):
-                    # advance foward until the token of the type "NOUN" is found (i.e. the first noun it is an attribute name)
+                    # advance forward until the token of the type "NOUN" is found (i.e. the first noun it is an
+                    # attribute name)
                     token_j = None
                     while j < len(self.tokens) and token_j is None:
                         if self.tokens[j]['entity'] == 'NOUN':
@@ -172,7 +173,12 @@ class AIEngine:
                                                               ' of the ' + self.entity_class + '?',
                                                      context=self.user_msg)
                         # save the pair of attribute name and attribute value in the result list
-                        attList.extend([attribute_name, response['answer']])
+                        attribute_value = response['answer']
+
+                        if attribute_value[-1] in ["'", '"']:  # see test.test_add_5()
+                            attribute_value = attribute_value[:-1]
+
+                        att_list.extend([attribute_name, attribute_value])
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
                         att_value_idx_end = self.user_msg.find(response['answer'])
@@ -184,7 +190,7 @@ class AIEngine:
                         # no noun found after token_j. It is the end of the attribute list
                         break
 
-            return attList
+            return att_list
 
         def getFirstTokenByType(self, entityType):
             tokens = self.getTokensByType(entityType)
@@ -273,8 +279,10 @@ class AIEngine:
 
     def get_question_answer_pipeline(self):
         return self.getPipeline(pipeline_name='question-answering', model='distilbert-base-cased-distilled-squad')
+
     def get_zero_shooter_pipeline(self):
         return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
+
     def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None):
         if pipeline_name not in self.__pipelines:
             self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config,
