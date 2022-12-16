@@ -43,9 +43,9 @@ class AIEngine:
                 # there is at least one verb in the message
                 # then the intent is on of CRUD operations (SAVE, DELETE, READ)
                 # testing similarity for CRUD operations
-                def setIntentIfSimilar(intent) -> bool:
-                    if first_verb['word'] == intent:
-                        return intent
+                def setIntentIfSimilar(_intent) -> bool:
+                    if first_verb['word'] == _intent:
+                        return _intent
                     return None
 
                 for i in Intent:

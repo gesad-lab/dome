@@ -105,7 +105,7 @@ class TestT2S(unittest.TestCase):
                           cmd_str="add subject with name=Math, description='The best subject ever!'")
 
     def __check_cancel(self, msg='cancel'):
-        self.__check(msg, Intent.CANCELATION, None, None, CANCEL)
+        self.__check(msg, Intent.CANCELLATION, None, None, CANCEL)
 
     def test_cancel_1(self):
         self.__check("add student name=Anderson", Intent.SAVE, "student", ['name', 'Anderson'],
@@ -114,7 +114,7 @@ class TestT2S(unittest.TestCase):
 
     def test_cancel_2(self):
         self.__check_corner_case("bla bla bla")
-        self.__check(cmd_str='please, cancel', intent=Intent.CANCELATION,
+        self.__check(cmd_str='please, cancel', intent=Intent.CANCELLATION,
                      response_list=MISUNDERSTANDING)  # because the user is not in the middle of a operation
 
     def __check_help(self, msg='help'):

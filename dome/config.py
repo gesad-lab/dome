@@ -6,7 +6,7 @@ INTENT_MAP = {
     'SAVE': ['save', 'add', 'create', 'update', 'insert'],
     'READ': ['read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view'],
     'DELETE': ['delete', 'remove', 'destroy', 'del', 'erase', 'kill'],
-    'CANCELATION': ['cancelation', 'cancel', 'stop', 'quit', 'exit'],
+    'CANCELLATION': ['cancellation', 'cancel', 'stop', 'quit', 'exit'],
     'CONFIRMATION': ['confirmation', 'confirm', 'ok', 'yes'],
     'HELP': ['help'],
     'GOODBYE': ['bye', 'goodbye'],

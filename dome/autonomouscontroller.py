@@ -143,7 +143,7 @@ class AutonomousController:
                         msg_return_list = [
                             str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.__clear_opr(user_data)
-        elif parser.intent == Intent.CANCELATION:
+        elif parser.intent == Intent.CANCELLATION:
             if user_data['pending_intent'] is not None:
                 self.__clear_opr(user_data)
                 msg_return_list = CANCEL
