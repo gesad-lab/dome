@@ -97,7 +97,10 @@ class AIEngine:
                         while len(candidate_labels) > 1:
                             # applying the zero-shot classification for the current candidate labels list
                             intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
-                            # removing the label with the lowest score
+                            # test if the first result accuracy is greater than the threshold
+                            if float(intent_class_result['scores'][0]) > PNL_GENERAL_THRESHOLD:
+                                return Intent(intent_class_result['labels'][0].upper())
+                            # else: to remove the label with the lowest score
                             candidate_labels.remove(intent_class_result['labels'][-1].upper())
                         # get the last one
                         intent_return = Intent(candidate_labels.pop())
