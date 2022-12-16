@@ -255,7 +255,7 @@ class AIEngine:
         # adding specialized pipelines/models
         self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
 
-        # initializing the simmilarity cache
+        # initializing the similarity cache
         # key: alternative name of the entity (class or attribute)
         # value: string representation of the entity
         self.similarityCache = {}
