@@ -99,12 +99,24 @@ class AIEngine:
                         intent_return = Intent.MEANINGLESS  # default
                         if candidate_labels:
                             # there are some candidates
-                            # try the zero_shooter classifier and update intent_return if the score is high enough
-                            intent_class_result = zero_shooter(considered_msg, candidate_labels=list(candidate_labels))
-                            first_intent = Intent(intent_class_result['labels'][0].upper())
-                            first_score = float(intent_class_result['scores'][0])
-                            if first_score > PNL_GENERAL_THRESHOLD:
-                                intent_return = first_intent
+                            # filtering the type of the tokens and changing the considered_msg
+                            considered_tokens_types = set(['VERB', 'INTJ'])
+                            considered_msg = ''
+
+                            for token in self.tokens:
+                                if token['entity'] in considered_tokens_types:
+                                    considered_msg += token['word'] + ' '
+
+                            considered_msg = considered_msg.strip().replace(' ##', '')
+
+                            if considered_msg:
+                                # try the zero_shooter classifier and update intent_return if the score is high enough
+                                intent_class_result = zero_shooter(considered_msg,
+                                                                   candidate_labels=list(candidate_labels))
+                                first_intent = Intent(intent_class_result['labels'][0].upper())
+                                first_score = float(intent_class_result['scores'][0])
+                                if first_score > PNL_GENERAL_THRESHOLD:
+                                    intent_return = first_intent
                 else:
                     # no sense in the message
                     intent_return = Intent.MEANINGLESS
