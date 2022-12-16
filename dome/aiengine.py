@@ -100,7 +100,7 @@ class AIEngine:
                         if candidate_labels:
                             # there are some candidates
                             # filtering the type of the tokens and changing the considered_msg
-                            considered_tokens_types = set(['VERB', 'INTJ'])
+                            considered_tokens_types = set(['PRON', 'PART', 'NOUN','VERB', 'INTJ', 'ADV', 'DET'])
                             considered_msg = ''
 
                             for token in self.tokens:
