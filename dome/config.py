@@ -2,15 +2,15 @@
 # >>>>> !!! DON'T CHANGE THE KEYS OF THE INTENT_MAP !!! <<<<<
 # >>>>> !!! KEEP ALL ELEMENTS OF THE VALUE LISTS IN LOWER CASE !!! <<<<<
 INTENT_MAP = {
-    'GREETING': ['greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'],
-    'SAVE': ['save', 'add', 'create', 'update', 'insert'],
-    'READ': ['read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view'],
-    'DELETE': ['delete', 'remove', 'destroy', 'del', 'erase', 'kill'],
-    'CANCELLATION': ['cancellation', 'cancel', 'stop', 'quit', 'exit'],
-    'CONFIRMATION': ['confirmation', 'confirm', 'ok', 'yes'],
-    'HELP': ['help'],
-    'GOODBYE': ['bye', 'goodbye'],
-    'MEANINGLESS': ['unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable']
+    'GREETING': {'greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'},
+    'SAVE': {'save', 'add', 'create', 'update', 'insert'},
+    'READ': {'read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view'},
+    'DELETE': {'delete', 'remove', 'destroy', 'del', 'erase', 'kill'},
+    'CANCELLATION': {'cancellation', 'cancel', 'stop', 'quit', 'exit'},
+    'CONFIRMATION': {'confirmation', 'confirm', 'ok', 'yes'},
+    'HELP': {'help'},
+    'GOODBYE': {'bye', 'goodbye'},
+    'MEANINGLESS': {'unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable'}
 }
 
 # bot msgs
