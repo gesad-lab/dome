@@ -1,5 +1,5 @@
 from dome.aiengine import AIEngine
-from dome.config import RUN_WEB_SERVER, SUFIX_CONFIG, SUFIX_ENV, SUFIX_WEB
+from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB
 from dome.analyticsengine import AnalyticsEngine
 from dome.businessprocessengine import BusinessProcessEngine
 import os
@@ -24,7 +24,7 @@ class InterfaceController:
 
         # starting the python virtual env
         # https://docs.python.org/3/tutorial/venv.html
-        self.__venv_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_ENV)
+        self.__venv_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFFIX_ENV)
 
         if not os.path.exists(self.__venv_path):
             print('Creating the python virtual environment...')
@@ -45,14 +45,14 @@ class InterfaceController:
         self.__runSyncCmd('Scripts\\pip.exe install django3-livesync==1')
 
         print('creating django config dir...')
-        self.__config_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFIX_CONFIG)
+        self.__config_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFFIX_CONFIG)
         self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
         if not os.path.exists(self.__config_path):
             print('starting django project...')
             self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path)  # synchronous
             print('starting django project (finished)...')
 
-        self.__webapp_path = MANAGED_SYSTEM_NAME + SUFIX_WEB
+        self.__webapp_path = MANAGED_SYSTEM_NAME + SUFFIX_WEB
 
         if not os.path.exists(self.__webapp_path):
             print('updating manage.py file...')
