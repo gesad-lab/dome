@@ -8,10 +8,12 @@ INTENT_MAP = {
     'DELETE': {'delete', 'remove', 'destroy', 'del', 'erase', 'kill'},
     'CANCELLATION': {'cancellation', 'cancel', 'stop', 'quit', 'exit'},
     'CONFIRMATION': {'confirmation', 'confirm', 'ok', 'yes'},
-    'HELP': {'help'},
+    'HELP': {'help', 'know'},
     'GOODBYE': {'bye', 'goodbye'},
     'MEANINGLESS': {'unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable'}
 }
+
+USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY = ['please', 'i want to', 'i want', 'could you', 'can you']
 
 # bot msgs
 MISUNDERSTANDING = [

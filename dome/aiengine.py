@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
 from dome.auxiliary.enums.intent import Intent
 
-from dome.config import (PNL_GENERAL_THRESHOLD)
+from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY)
 
 
 class AIEngine:
@@ -35,9 +35,17 @@ class AIEngine:
                     self.attributes = self.__getAttributesFromMsg()
 
         def __getIntentFromMsg(self) -> Intent:
-            considered_msg = self.user_msg
+            considered_msg = self.user_msg.lower()
+            # clear some problematic or useless expressions from user_msg for discovery the intent
+            for useless_expression in USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY:
+                considered_msg = considered_msg.replace(useless_expression, "")
+
             candidate_labels = {str(e) for e in Intent}  # it's a set
-            first_verb = self.getFirstTokenByType('VERB')
+            first_verb = None
+            for token in self.__AIE.posTagMsg(considered_msg):
+                if token['entity'] == 'VERB':
+                    first_verb = token
+                    break
             intent_return = None
             if first_verb:
                 # there is at least one verb in the message
@@ -258,11 +266,11 @@ class AIEngine:
         # return True if positive or False if negative
         return response[0]['label'] == 'POSITIVE'
 
-    def posTagMsg(self, msg):
+    def posTagMsg(self, msg, model="vblagoje/bert-english-uncased-finetuned-pos", aggregation_strategy=None):
         # configure the pipeline
-        token_classifier = self.getPipeline("token-classification",
-                                            model="vblagoje/bert-english-uncased-finetuned-pos",
-                                            aggregation_strategy=None)
+        token_classifier = self.getPipeline(pipeline_name="token-classification",
+                                            pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
+                                            model=model, aggregation_strategy=aggregation_strategy)
 
         considered_msg = msg.lower().replace('delete', 'to delete')  # TODO: to solve bug about delete
 
@@ -315,11 +323,12 @@ class AIEngine:
     def get_zero_shooter_pipeline(self):
         return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
 
-    def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None):
+    def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None, pipeline_key=None):
         if pipeline_name not in self.__pipelines:
             self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config,
-                                                         aggregation_strategy=aggregation_strategy))
-        return self.__pipelines[pipeline_name]
+                                                         aggregation_strategy=aggregation_strategy),
+                                 pipeline_key=pipeline_key)
+        return self.__pipelines[pipeline_key if pipeline_key else pipeline_name]
 
-    def __addToPipeline(self, pipeline_name, pipeline_object):
-        self.__pipelines[pipeline_name] = pipeline_object
+    def __addToPipeline(self, pipeline_name, pipeline_object, pipeline_key=None):
+        self.__pipelines[pipeline_key if pipeline_key else pipeline_name] = pipeline_object
