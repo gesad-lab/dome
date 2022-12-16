@@ -24,7 +24,7 @@ class TestT2S(unittest.TestCase):
     def __check(self, cmd_str, intent, entity_name=None, attList=None, response_list=None):
         response = self.__talk(cmd_str)
         response_parser = response['parser']
-        self.assertEqual(response_parser.intent, intent,
+        self.assertEqual(intent, response_parser.intent,
                          'intent not correct. response[intent]=' + str(response_parser.intent))
         self.assertEqual(response_parser.entity_class, entity_name,
                          'entity class not correct.\nresponse[entity_class_name]=' +
@@ -115,7 +115,7 @@ class TestT2S(unittest.TestCase):
     def test_cancel_2(self):
         self.__check_corner_case("bla bla bla")
         self.__check(cmd_str='please, cancel', intent=Intent.CANCELLATION,
-                     response_list=MISUNDERSTANDING)  # because the user is not in the middle of a operation
+                     response_list=MISUNDERSTANDING)  # because the user is not in the middle of an operation
 
     def __check_help(self, msg='help'):
         self.__check(msg, Intent.HELP, None, None, HELP)
