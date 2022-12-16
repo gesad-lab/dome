@@ -36,7 +36,7 @@ class AIEngine:
 
         def __getIntentFromMsg(self) -> Intent:
             considered_msg = self.user_msg
-            candidate_labels = [str(e) for e in Intent]
+            candidate_labels = {str(e) for e in Intent}  # it's a set
             first_verb = self.getFirstTokenByType('VERB')
             intent_return = None
             if first_verb:
@@ -64,7 +64,7 @@ class AIEngine:
                 considered_tokens_count = len(self.tokens)
                 considered_tokens_count -= len(self.getTokensByType('PUNCT'))
                 if considered_tokens_count <= 2:  # Intent.MAX_NUMBER_OF_TOKENS:
-                    # only one or two meaniful token in the message
+                    # only one or two meaningful token in the message
                     # finding in msg a direct command
                     for label in candidate_labels:
                         intent = Intent(label)
@@ -80,7 +80,7 @@ class AIEngine:
                     # trying to eliminate some possible candidates
                     zero_shooter = self.__AIE.get_zero_shooter_pipeline()
                     for label in candidate_labels.copy():
-                        if label != str(Intent.UNKNOWN):
+                        if label != str(Intent.MEANINGLESS):
                             alternatives = str(Intent(label).getSynonyms())[1:-1]
                             response = zero_shooter("The message '" + considered_msg + "' is one type of: " +
                                                     alternatives + " ?", ['yes', 'no'])
@@ -88,11 +88,22 @@ class AIEngine:
                                 candidate_labels.remove(label)
 
                     # find the intent
-                    intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
-                    intent_return = Intent(intent_class_result['labels'][0].upper())
+                    if len(candidate_labels) == 0:
+                        intent_return = Intent.MEANINGLESS
+                    elif len(candidate_labels) == 1:
+                        intent_return = Intent(candidate_labels.pop())
+                    else:
+                        candidate_labels = list(candidate_labels)
+                        while len(candidate_labels) > 1:
+                            # applying the zero-shot classification for the current candidate labels list
+                            intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
+                            # removing the label with the lowest score
+                            candidate_labels.remove(intent_class_result['labels'][-1].upper())
+                        # get the last one
+                        intent_return = Intent(candidate_labels.pop())
                 else:
                     # no sense in the message
-                    intent_return = Intent.UNKNOWN
+                    intent_return = Intent.MEANINGLESS
 
             return intent_return
 

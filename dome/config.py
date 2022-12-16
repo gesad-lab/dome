@@ -10,7 +10,7 @@ INTENT_MAP = {
     'CONFIRMATION': ['confirmation', 'confirm', 'ok', 'yes'],
     'HELP': ['help'],
     'GOODBYE': ['bye', 'goodbye'],
-    'UNKNOWN': ['unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable']
+    'MEANINGLESS': ['unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable']
 }
 
 # bot msgs

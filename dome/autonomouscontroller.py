@@ -157,7 +157,7 @@ class AutonomousController:
             self.__clear_opr(user_data)
             msg_return_list = HELP
         else:
-            if parser.intent == Intent.UNKNOWN:
+            if parser.intent == Intent.MEANINGLESS:
                 if user_data['pending_intent'] is not None:  # there is a previous pending operation
                     msg_considered = str(user_data['pending_intent']) + ' '
 

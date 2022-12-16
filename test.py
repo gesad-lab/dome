@@ -152,7 +152,7 @@ class TestT2S(unittest.TestCase):
         self.__check_read("fetch the students")
 
     def __check_corner_case(self, msg):
-        self.__check(msg, Intent.UNKNOWN, None, None, MISUNDERSTANDING)
+        self.__check(msg, Intent.MEANINGLESS, None, None, MISUNDERSTANDING)
 
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
