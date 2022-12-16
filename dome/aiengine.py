@@ -104,6 +104,9 @@ class AIEngine:
                         candidate_labels.discard(str(Intent.CONFIRMATION))
                         candidate_labels.discard(str(Intent.CANCELLATION))
                         candidate_labels.discard(str(Intent.MEANINGLESS))
+                        if not first_verb:
+                            candidate_labels.discard(str(Intent.HELP))
+
                         intent_return = Intent.MEANINGLESS  # default
                         if candidate_labels:
                             # there are some candidates
