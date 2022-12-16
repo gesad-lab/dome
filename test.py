@@ -25,7 +25,8 @@ class TestT2S(unittest.TestCase):
         response = self.__talk(cmd_str)
         response_parser = response['parser']
         self.assertEqual(intent, response_parser.intent,
-                         'intent not correct. response[intent]=' + str(response_parser.intent))
+                         'intent not correct. response[intent]=' + str(response_parser.intent) +
+                         '\nuser_msg: ' + cmd_str)
         self.assertEqual(response_parser.entity_class, entity_name,
                          'entity class not correct.\nresponse[entity_class_name]=' +
                          str(response_parser.entity_class) + '\nentity_name=' + str(entity_name))

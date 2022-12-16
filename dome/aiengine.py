@@ -93,17 +93,18 @@ class AIEngine:
                     elif len(candidate_labels) == 1:
                         intent_return = Intent(candidate_labels.pop())
                     else:
-                        candidate_labels = list(candidate_labels)
-                        while len(candidate_labels) > 1:
-                            # applying the zero-shot classification for the current candidate labels list
-                            intent_class_result = zero_shooter(considered_msg, candidate_labels=candidate_labels)
-                            # test if the first result accuracy is greater than the threshold
-                            if float(intent_class_result['scores'][0]) > PNL_GENERAL_THRESHOLD:
-                                return Intent(intent_class_result['labels'][0].upper())
-                            # else: to remove the label with the lowest score
-                            candidate_labels.remove(intent_class_result['labels'][-1].upper())
-                        # get the last one
-                        intent_return = Intent(candidate_labels.pop())
+                        candidate_labels.discard(str(Intent.CONFIRMATION))
+                        candidate_labels.discard(str(Intent.CANCELLATION))
+                        candidate_labels.discard(str(Intent.MEANINGLESS))
+                        intent_return = Intent.MEANINGLESS  # default
+                        if candidate_labels:
+                            # there are some candidates
+                            # try the zero_shooter classifier and update intent_return if the score is high enough
+                            intent_class_result = zero_shooter(considered_msg, candidate_labels=list(candidate_labels))
+                            first_intent = Intent(intent_class_result['labels'][0].upper())
+                            first_score = float(intent_class_result['scores'][0])
+                            if first_score > PNL_GENERAL_THRESHOLD:
+                                intent_return = first_intent
                 else:
                     # no sense in the message
                     intent_return = Intent.MEANINGLESS
