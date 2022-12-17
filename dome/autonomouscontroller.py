@@ -173,7 +173,7 @@ class AutonomousController:
                 if parser.entity_class is None:
                     # use case no indicate class
                     msg_return_list = MISSING_CLASS
-                else:  # all rigth. one class use case
+                else:  # all right. one class use case
                     user_data['pending_class'] = parser.entity_class
                     # if is DELETE or READ use case, test if the class is in the domain
                     if ((not self.__DE.entityExists(user_data['pending_class']))

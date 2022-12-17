@@ -11,6 +11,102 @@ class AIEngine(DAO):
     def get_db_file_name(self) -> str:
         return "kdb.sqlite"
 
+    def __init__(self, AC):
+        super().__init__()
+        self.__AC = AC  # Autonomous Controller Object
+        self.__pipelines = {}
+
+        # adding specialized pipelines/models
+        self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
+
+    # sentiment analysis
+    def msgIsPositive(self, msg) -> bool:
+        response = self.getPipeline('sentiment-analysis')(msg)
+        # return True if positive or False if negative
+        return response[0]['label'] == 'POSITIVE'
+
+    def posTagMsg(self, msg, model="vblagoje/bert-english-uncased-finetuned-pos", aggregation_strategy=None):
+        # configure the pipeline
+        token_classifier = self.getPipeline(pipeline_name="token-classification",
+                                            pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
+                                            model=model, aggregation_strategy=aggregation_strategy)
+
+        considered_msg = msg.lower().replace('delete', 'to delete')  # TODO: to solve bug about delete
+
+        tokens = token_classifier(considered_msg)
+
+        return tokens
+
+    def get_entities_map(self) -> dict:
+        return self.__AC.get_entities_map()
+
+    def get_all_attributes(self) -> list:
+        att_list = []
+        for class_key in self.__AC.get_entities_map().keys():
+            for att_on_model in self.__AC.get_entities_map()[class_key].getAttributes():
+                att_list.append(att_on_model.name)
+        return att_list
+
+    def add_alternative_entity_name(self, entity_name, alternative):
+        self._execute_query("INSERT OR IGNORE INTO synonymous(entity_name, alternative) VALUES (?,?)",
+                            (entity_name, alternative,))
+
+    # get entity_name by alternative name from database
+    def get_entity_name_by_alternative(self, alternative) -> str:
+        query_result = self._execute_query_fetchone("SELECT entity_name FROM synonymous WHERE alternative = ?",
+                                                    (alternative,))
+        if query_result is None:
+            return None
+        # else
+        return query_result['entity_name']
+
+    def entitiesAreSimilar(self, entity_name, alternative, threshold=PNL_GENERAL_THRESHOLD) -> bool:
+        # if the texts are equal, return True
+        if entity_name == alternative:
+            return True
+        cached_entity_name = self.get_entity_name_by_alternative(alternative)
+        if entity_name == cached_entity_name:
+            return True
+        if cached_entity_name is not None:
+            return False
+        # else test similarity
+        model = self.getPipeline("text-similarity")
+        # Compute embedding for both texts
+        embedding_1 = model.encode(entity_name, convert_to_tensor=True)
+        embedding_2 = model.encode(alternative, convert_to_tensor=True)
+        result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
+        if result > threshold:
+            self.add_alternative_entity_name(entity_name, alternative)
+            return True
+            # else
+        return False
+
+    def get_question_answer_pipeline(self):
+        return self.getPipeline(pipeline_name='question-answering', model='distilbert-base-cased-distilled-squad')
+
+    def get_zero_shooter_pipeline(self):
+        return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
+
+    def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None, pipeline_key=None):
+        if pipeline_name not in self.__pipelines:
+            self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config,
+                                                         aggregation_strategy=aggregation_strategy),
+                                 pipeline_key=pipeline_key)
+        return self.__pipelines[pipeline_key if pipeline_key else pipeline_name]
+
+    def __addToPipeline(self, pipeline_name, pipeline_object, pipeline_key=None):
+        self.__pipelines[pipeline_key if pipeline_key else pipeline_name] = pipeline_object
+
+    def add_parser_cache(self, user_msg, intent, entity_class):
+        # in this version, the Parser Cache only stores the intent and the entity class, considering
+        # an exact match with the user message
+        self._execute_query("INSERT or IGNORE INTO parser_cache(user_msg, user_msg_len, processed_intent, "
+                            "processed_class) VALUES (?,?,?,?)",
+                            (user_msg.lower(), len(user_msg), str(intent), entity_class))
+
+    def get_parser_cache(self, user_msg):
+        return self._execute_query_fetchone("SELECT * FROM parser_cache WHERE user_msg = ?", (user_msg.lower(),))
+
     # Wrapper class for encapsulate parsing services
     class __MsgParser:
         def __init__(self, user_msg, aie_obj) -> None:
@@ -21,23 +117,34 @@ class AIEngine(DAO):
             self.attributes = None
 
             # pos-tagging the user_msg
-            self.tokens = self.__AIE.posTagMsg(user_msg)
+            self.tokens = self.__AIE.posTagMsg(user_msg)  # before cache check because the attributes discovery needs it
 
-            # build a tokens type map
-            self.tokens_by_type_map = {}
-            for token in self.tokens:
-                if not (token['entity'] in self.tokens_by_type_map):
-                    self.tokens_by_type_map[token['entity']] = []
-                self.tokens_by_type_map[token['entity']].append(token)
+            # verifying if there is cache for the user_msg in database
+            cached_parser = self.__AIE.get_parser_cache(self.user_msg)
+            if cached_parser:
+                self.intent = Intent(cached_parser['processed_intent'])
+                self.entity_class = cached_parser['processed_class']
+            else:
+                # build a tokens type map
+                self.tokens_by_type_map = {}
+                for token in self.tokens:
+                    if not (token['entity'] in self.tokens_by_type_map):
+                        self.tokens_by_type_map[token['entity']] = []
+                    self.tokens_by_type_map[token['entity']].append(token)
 
-            # set the intent
-            self.intent = self.__getIntentFromMsg()
-            # set the entity class
-            if self.intent in (Intent.DELETE, Intent.SAVE, Intent.READ):
-                self.entity_class = self.__getEntityClassFromMsg()
-                # set the attributes
-                if self.entity_class:
-                    self.attributes = self.__get_attributes_from_msg()
+                # discovering of the intent
+                self.intent = self.__getIntentFromMsg()
+                # discovering of the entity class
+                if self.intent in (Intent.DELETE, Intent.SAVE, Intent.READ):
+                    self.entity_class = self.__getEntityClassFromMsg()
+
+            # discovering of the attributes
+            if self.entity_class:
+                self.attributes = self.__get_attributes_from_msg()
+
+            # saving the cache in database
+            if not cached_parser:
+                self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class)
 
         def __getIntentFromMsg(self) -> Intent:
             considered_msg = self.user_msg.lower()
@@ -243,104 +350,11 @@ class AIEngine(DAO):
 
             return att_list
 
-        def getFirstTokenByType(self, entityType):
-            tokens = self.getTokensByType(entityType)
-            if len(tokens) > 0:
-                return tokens[0]
-            # else
-            return None
-
         def getTokensByType(self, entityType) -> list:
             if entityType in self.tokens_by_type_map:
                 return self.tokens_by_type_map[entityType]
             # else
             return []
 
-    def __init__(self, AC):
-        super().__init__()
-        self.__AC = AC  # Autonomous Controller Object
-        self.__pipelines = {}
-
-        # adding specialized pipelines/models
-        self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
-
     def getMsgParser(self, msg) -> __MsgParser:
         return self.__MsgParser(msg, self)
-
-    # sentiment analysis
-    def msgIsPositive(self, msg) -> bool:
-        response = self.getPipeline('sentiment-analysis')(msg)
-        # return True if positive or False if negative
-        return response[0]['label'] == 'POSITIVE'
-
-    def posTagMsg(self, msg, model="vblagoje/bert-english-uncased-finetuned-pos", aggregation_strategy=None):
-        # configure the pipeline
-        token_classifier = self.getPipeline(pipeline_name="token-classification",
-                                            pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
-                                            model=model, aggregation_strategy=aggregation_strategy)
-
-        considered_msg = msg.lower().replace('delete', 'to delete')  # TODO: to solve bug about delete
-
-        tokens = token_classifier(considered_msg)
-
-        return tokens
-
-    def get_entities_map(self) -> dict:
-        return self.__AC.get_entities_map()
-
-    def get_all_attributes(self) -> list:
-        att_list = []
-        for class_key in self.__AC.get_entities_map().keys():
-            for att_on_model in self.__AC.get_entities_map()[class_key].getAttributes():
-                att_list.append(att_on_model.name)
-        return att_list
-
-    def add_alternative_entity_name(self, entity_name, alternative):
-        self._execute_query("INSERT OR IGNORE INTO synonymous(entity_name, alternative) VALUES (?,?)",
-                            (entity_name, alternative,))
-
-    # get entity_name by alternative name from database
-    def get_entity_name_by_alternative(self, alternative) -> str:
-        query_result = self._execute_query_fetchone("SELECT entity_name FROM synonymous WHERE alternative = ?",
-                                                    (alternative,))
-        if query_result is None:
-            return None
-        # else
-        return query_result['entity_name']
-
-    def entitiesAreSimilar(self, entity_name, alternative, threshold=PNL_GENERAL_THRESHOLD) -> bool:
-        # if the texts are equal, return True
-        if entity_name == alternative:
-            return True
-        cached_entity_name = self.get_entity_name_by_alternative(alternative)
-        if entity_name == cached_entity_name:
-            return True
-        if cached_entity_name is not None:
-            return False
-        # else test similarity
-        model = self.getPipeline("text-similarity")
-        # Compute embedding for both texts
-        embedding_1 = model.encode(entity_name, convert_to_tensor=True)
-        embedding_2 = model.encode(alternative, convert_to_tensor=True)
-        result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
-        if result > threshold:
-            self.add_alternative_entity_name(entity_name, alternative)
-            return True
-            # else
-        return False
-
-    def get_question_answer_pipeline(self):
-        return self.getPipeline(pipeline_name='question-answering', model='distilbert-base-cased-distilled-squad')
-
-    def get_zero_shooter_pipeline(self):
-        return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
-
-    def getPipeline(self, pipeline_name, model=None, config=None, aggregation_strategy=None, pipeline_key=None):
-        if pipeline_name not in self.__pipelines:
-            self.__addToPipeline(pipeline_name, pipeline(pipeline_name, model=model, config=config,
-                                                         aggregation_strategy=aggregation_strategy),
-                                 pipeline_key=pipeline_key)
-        return self.__pipelines[pipeline_key if pipeline_key else pipeline_name]
-
-    def __addToPipeline(self, pipeline_name, pipeline_object, pipeline_key=None):
-        self.__pipelines[pipeline_key if pipeline_key else pipeline_name] = pipeline_object
