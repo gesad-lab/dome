@@ -4,14 +4,14 @@ from abc import abstractmethod
 
 
 class DAO:
-    # static variable that keep database connection
-    __DB_CONNECTION = None
-    # get database file path
+    # get databases dir path
     __DB_PATH_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'databases/')
 
     def __init__(self):
+        # variable that keep database connection
+        self._DB_CONNECTION = None
         # execute pragma foreign_keys = 1 to enable foreign keys
-        self.__execute_query("PRAGMA foreign_keys = 1")
+        self._execute_query("PRAGMA foreign_keys = 1")
 
     # abstract method to get database file name
     @abstractmethod
@@ -20,11 +20,12 @@ class DAO:
 
     # initialize database connection with sqlite file "database/sdb.sqlite"
     def __get_db_connection(self):
-        if DAO.__DB_CONNECTION is None:
-            DAO.__DB_CONNECTION = sqlite3.connect(DAO.__DB_PATH_DIR + self.get_db_file_name())
-            DAO.__DB_CONNECTION.row_factory = sqlite3.Row
+        if self._DB_CONNECTION is None:
+            # https://docs.python.org/3.9/library/sqlite3.html
+            self._DB_CONNECTION = sqlite3.connect(DAO.__DB_PATH_DIR + self.get_db_file_name(), check_same_thread=False)
+            self._DB_CONNECTION.row_factory = sqlite3.Row
         # else: already initialized
-        return DAO.__DB_CONNECTION
+        return self._DB_CONNECTION
 
     # static method to execute a query using the database connection
     def _execute_query(self, query, args=()):
@@ -34,5 +35,13 @@ class DAO:
         conn.commit()
         return cursor
 
+    def _execute_query_fetchone(self, query, args=()) -> dict:
+        query_result = self._execute_query(query, args).fetchone()
+        if query_result is None:
+            return None
+        # else
+        return dict(query_result)
+
     def __del__(self):
-        self.__DB_CONNECTION.close()
+        if self._DB_CONNECTION:
+            self._DB_CONNECTION.close()

@@ -216,5 +216,5 @@ class AutonomousController:
     def getWebApp_path(self):
         return self.__IC.getWebApp_path()
 
-    def getEntitiesMap(self):
-        return self.__DE.getEntitiesMap()
+    def get_entities_map(self):
+        return self.__DE.get_entities_map()

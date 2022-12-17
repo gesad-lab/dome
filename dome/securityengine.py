@@ -1,6 +1,3 @@
-import os
-import sqlite3
-
 import json
 
 from dome.autonomouscontroller import AutonomousController
@@ -11,6 +8,7 @@ from dome.integrationengine import IntegrationEngine
 class SecurityEngine(DAO):
 
     def __init__(self, MUP, IE=None):
+        super().__init__()
         self.__MUP = MUP  # Multichannel App
 
         if IE is None:
@@ -39,12 +37,8 @@ class SecurityEngine(DAO):
         # call Autonomous Controller
         return self.__AC.plan(opr, data)
 
-    def get_user_by_chat_id(self, chat_id):
-        query_result = self._execute_query("SELECT * FROM users WHERE chat_id = ?", (chat_id,)).fetchone()
-        if query_result is None:
-            return None
-        # else
-        return dict(query_result)
+    def get_user_by_chat_id(self, chat_id) -> dict:
+        return self._execute_query_fetchone("SELECT * FROM users WHERE chat_id = ?", (chat_id,))
 
     # method to create or get a user from database by its chat_id
     def create_or_get_user(self, chat_id):

@@ -1,11 +1,16 @@
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
+
+from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY)
 
 
-class AIEngine:
+class AIEngine(DAO):
+    def get_db_file_name(self) -> str:
+        return "kdb.sqlite"
+
     # Wrapper class for encapsulate parsing services
     class __MsgParser:
         def __init__(self, user_msg, aie_obj) -> None:
@@ -19,11 +24,11 @@ class AIEngine:
             self.tokens = self.__AIE.posTagMsg(user_msg)
 
             # build a tokens type map
-            self.tokens_bytype_map = {}
+            self.tokens_by_type_map = {}
             for token in self.tokens:
-                if not (token['entity'] in self.tokens_bytype_map):
-                    self.tokens_bytype_map[token['entity']] = []
-                self.tokens_bytype_map[token['entity']].append(token)
+                if not (token['entity'] in self.tokens_by_type_map):
+                    self.tokens_by_type_map[token['entity']] = []
+                self.tokens_by_type_map[token['entity']].append(token)
 
             # set the intent
             self.intent = self.__getIntentFromMsg()
@@ -32,7 +37,7 @@ class AIEngine:
                 self.entity_class = self.__getEntityClassFromMsg()
                 # set the attributes
                 if self.entity_class:
-                    self.attributes = self.__getAttributesFromMsg()
+                    self.attributes = self.__get_attributes_from_msg()
 
         def __getIntentFromMsg(self) -> Intent:
             considered_msg = self.user_msg.lower()
@@ -111,7 +116,7 @@ class AIEngine:
                         if candidate_labels:
                             # there are some candidates
                             # filtering the type of the tokens and changing the considered_msg
-                            considered_tokens_types = set(['PRON', 'PART', 'NOUN','VERB', 'INTJ', 'ADV', 'DET'])
+                            considered_tokens_types = set(['PRON', 'PART', 'NOUN', 'VERB', 'INTJ', 'ADV', 'DET'])
                             considered_msg = ''
 
                             for token in self.tokens:
@@ -138,20 +143,24 @@ class AIEngine:
             question_answerer = self.__AIE.get_question_answer_pipeline()
             response = question_answerer(question="What is the entity class that the user command refers to?",
                                          context=self.__getEntityClassContext())
-            if response['answer'] in self.__AIE.similarityCache.keys():
-                return self.__AIE.similarityCache[response['answer']]
-            # else
-            if response['answer'] == self.intent:
+            entity_class_candidate = response['answer']
+            if entity_class_candidate == self.intent:
                 return None  # it's an error. Probably the user did not inform the entity class in the right way.
             # else
-            return response['answer']
+            cached_entity_class = self.__AIE.get_entity_name_by_alternative(entity_class_candidate)
+            if cached_entity_class:
+                return cached_entity_class
+            # else
+            # add the entity class to the cache
+            self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate)
+            return entity_class_candidate
 
         def __getEntityClassContext(self) -> str:
             context = "This is the user command: " + self.user_msg + ". "
             context += "\nThe intent of the user command is " + str(self.intent) + ". "
             # adding the candidates
             candidates = []
-            attributes = self.__AIE.getAllAttributes()
+            attributes = self.__AIE.get_all_attributes()
 
             # get end index of the first VERB token in the message
             verb_intent_idx = -1
@@ -171,9 +180,9 @@ class AIEngine:
 
             # adding current classes
             break_loop = False
-            for class_key in self.__AIE.getEntitiesMap().keys():
+            for class_key in self.__AIE.get_entities_map():
                 for candidate in candidates:
-                    if self.__AIE.textsAreSimilar(class_key, candidate):
+                    if self.__AIE.entitiesAreSimilar(class_key, candidate):
                         context = "The entity class is definitely this: " + class_key
                         break_loop = True
                         break
@@ -182,15 +191,14 @@ class AIEngine:
 
             return context
 
-        def __getAttributesFromMsg(self) -> list:
+        def __get_attributes_from_msg(self) -> list:
             att_list = []
-            synonyms = self.__AIE.getSynonyms(self.entity_class)
 
             # finding the index after the entity class name in the message
             entity_class_token_idx = -1
             for i, token_i in enumerate(self.tokens):
                 # advance forward until the token of the entity class is found
-                if token_i['word'] in synonyms:
+                if self.__AIE.get_entity_name_by_alternative(token_i['word']) == self.entity_class:
                     entity_class_token_idx = i
                     break
 
@@ -243,22 +251,18 @@ class AIEngine:
             return None
 
         def getTokensByType(self, entityType) -> list:
-            if entityType in self.tokens_bytype_map:
-                return self.tokens_bytype_map[entityType]
+            if entityType in self.tokens_by_type_map:
+                return self.tokens_by_type_map[entityType]
             # else
             return []
 
     def __init__(self, AC):
+        super().__init__()
         self.__AC = AC  # Autonomous Controller Object
         self.__pipelines = {}
 
         # adding specialized pipelines/models
         self.__addToPipeline('text-similarity', SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'))
-
-        # initializing the similarity cache
-        # key: alternative name of the entity (class or attribute)
-        # value: string representation of the entity
-        self.similarityCache = {}
 
     def getMsgParser(self, msg) -> __MsgParser:
         return self.__MsgParser(msg, self)
@@ -281,41 +285,46 @@ class AIEngine:
 
         return tokens
 
-    def getEntitiesMap(self) -> dict:
-        return self.__AC.getEntitiesMap()
+    def get_entities_map(self) -> dict:
+        return self.__AC.get_entities_map()
 
-    def getAllAttributes(self) -> list:
-        attList = []
-        for class_key in self.__AC.getEntitiesMap().keys():
-            for att_on_model in self.__AC.getEntitiesMap()[class_key].getAttributes():
-                attList.append(att_on_model.name)
-        return attList
+    def get_all_attributes(self) -> list:
+        att_list = []
+        for class_key in self.__AC.get_entities_map().keys():
+            for att_on_model in self.__AC.get_entities_map()[class_key].getAttributes():
+                att_list.append(att_on_model.name)
+        return att_list
 
-    def addCustomSynonyms(self, key, word_list):
-        for w in word_list:
-            self.similarityCache[w] = key
+    def add_alternative_entity_name(self, entity_name, alternative):
+        self._execute_query("INSERT OR IGNORE INTO synonymous(entity_name, alternative) VALUES (?,?)",
+                            (entity_name, alternative,))
 
-    def getSynonyms(self, entity_name) -> list:
-        synonyms = [entity_name]
-        for alternative, original_name in self.similarityCache.items():
-            if entity_name == original_name:
-                synonyms.append(alternative)
-        return synonyms
+    # get entity_name by alternative name from database
+    def get_entity_name_by_alternative(self, alternative) -> str:
+        query_result = self._execute_query_fetchone("SELECT entity_name FROM synonymous WHERE alternative = ?",
+                                                    (alternative,))
+        if query_result is None:
+            return None
+        # else
+        return query_result['entity_name']
 
-    def textsAreSimilar(self, str1, str2, threshold=PNL_GENERAL_THRESHOLD) -> bool:
+    def entitiesAreSimilar(self, entity_name, alternative, threshold=PNL_GENERAL_THRESHOLD) -> bool:
         # if the texts are equal, return True
-        if str1 == str2:
+        if entity_name == alternative:
             return True
-        if str2 in self.getSynonyms(str1) or str1 in self.getSynonyms(str2):
+        cached_entity_name = self.get_entity_name_by_alternative(alternative)
+        if entity_name == cached_entity_name:
             return True
+        if cached_entity_name is not None:
+            return False
         # else test similarity
         model = self.getPipeline("text-similarity")
         # Compute embedding for both texts
-        embedding_1 = model.encode(str1, convert_to_tensor=True)
-        embedding_2 = model.encode(str2, convert_to_tensor=True)
+        embedding_1 = model.encode(entity_name, convert_to_tensor=True)
+        embedding_2 = model.encode(alternative, convert_to_tensor=True)
         result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
         if result > threshold:
-            self.similarityCache[str2] = str1
+            self.add_alternative_entity_name(entity_name, alternative)
             return True
             # else
         return False

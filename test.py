@@ -173,6 +173,9 @@ class TestT2S(unittest.TestCase):
                           attList=['value', '900', 'date', 'today', 'description', 'adjusting the numbers'],
                           cmd_str=msg)
 
+# new corner cases:
+# -
+
 
 if __name__ == '__main__':
     unittest.main()
