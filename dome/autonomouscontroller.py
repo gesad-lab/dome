@@ -74,10 +74,20 @@ class AutonomousController:
         print(response)
         return response
 
-    def __clear_opr(self, user_data):
+    @staticmethod
+    def __clear_opr(user_data):
+        user_data['previous_intent'] = None
+        if 'pending_intent' in user_data:
+            user_data['previous_intent'] = user_data['pending_intent']  # saving the previous intent for the tests
         user_data['pending_intent'] = None
+
+        user_data['previous_class'] = None
+        if 'pending_class' in user_data:
+            user_data['previous_class'] = user_data['pending_class'] # saving the previous class for the tests
         user_data['pending_class'] = None
+
         user_data['pending_atts'] = {}
+
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msg_handle(self, msg, context):
@@ -113,7 +123,7 @@ class AutonomousController:
                 or user_data['session_expiration_time'] < dth.datetime.now()):
             self.__clear_opr(user_data)
 
-        parser = self.__AIE.getMsgParser(msg)
+        parser = self.__AIE.get_msg_parser(msg)
         msg_return_list = MISUNDERSTANDING  # default
 
         if parser.intent == Intent.CONFIRMATION:
@@ -218,3 +228,6 @@ class AutonomousController:
 
     def get_entities_map(self):
         return self.__DE.get_entities_map()
+
+    def get_AIE(self):
+        return self.__AIE

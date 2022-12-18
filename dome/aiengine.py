@@ -105,7 +105,8 @@ class AIEngine(DAO):
                             (user_msg.lower(), len(user_msg), str(intent), entity_class))
 
     def get_parser_cache(self, user_msg):
-        return self._execute_query_fetchone("SELECT * FROM parser_cache WHERE user_msg = ?", (user_msg.lower(),))
+        return self._execute_query_fetchone("SELECT * FROM vw_considered_parser_cache WHERE user_msg = ?",
+                                            (user_msg.lower(),))
 
     # Wrapper class for encapsulate parsing services
     class __MsgParser:
@@ -122,8 +123,8 @@ class AIEngine(DAO):
             # verifying if there is cache for the user_msg in database
             cached_parser = self.__AIE.get_parser_cache(self.user_msg)
             if cached_parser:
-                self.intent = Intent(cached_parser['processed_intent'])
-                self.entity_class = cached_parser['processed_class']
+                self.intent = Intent(cached_parser['considered_intent'])
+                self.entity_class = cached_parser['considered_class']
             else:
                 # build a tokens type map
                 self.tokens_by_type_map = {}
@@ -182,7 +183,7 @@ class AIEngine(DAO):
                 candidate_labels.remove(str(Intent.READ))
                 # seeking for direct commands without verb
                 considered_tokens_count = len(self.tokens)
-                considered_tokens_count -= len(self.getTokensByType('PUNCT'))
+                considered_tokens_count -= len(self.get_tokens_by_type('PUNCT'))
                 if considered_tokens_count <= 2:  # Intent.MAX_NUMBER_OF_TOKENS:
                     # only one or two meaningful token in the message
                     # finding in msg a direct command
@@ -196,7 +197,7 @@ class AIEngine(DAO):
             if not intent_return:
                 # no direct command found
                 # check if message is with some sense
-                if self.getTokensByType('NOUN') or self.getTokensByType('VERB') or self.getTokensByType('INTJ'):
+                if self.get_tokens_by_type('NOUN') or self.get_tokens_by_type('VERB') or self.get_tokens_by_type('INTJ'):
                     # trying to eliminate some possible candidates
                     zero_shooter = self.__AIE.get_zero_shooter_pipeline()
                     for label in candidate_labels.copy():
@@ -350,11 +351,15 @@ class AIEngine(DAO):
 
             return att_list
 
-        def getTokensByType(self, entityType) -> list:
+        def get_tokens_by_type(self, entityType) -> list:
             if entityType in self.tokens_by_type_map:
                 return self.tokens_by_type_map[entityType]
             # else
             return []
 
-    def getMsgParser(self, msg) -> __MsgParser:
+    def get_msg_parser(self, msg) -> __MsgParser:
         return self.__MsgParser(msg, self)
+
+    # get all valid parser cache registers from database
+    def get_all_considered_parser_cache(self) -> list:
+        return self._execute_query("SELECT * FROM vw_considered_parser_cache")

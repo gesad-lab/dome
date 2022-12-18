@@ -10,8 +10,9 @@ class TestT2S(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.MUP = MultiChannelApp(run_telegram=False)
-        cls.SE = cls.MUP.getSE()
-        cls.AC = cls.SE.getAC()
+        cls.SE = cls.MUP.get_SE()
+        cls.AC = cls.SE.get_AC()
+        cls.AIE = cls.AC.get_AIE()
         # simulating a user connection
         cls.user_data = {'chat_id': '12345', 'debug_mode': False}
 
@@ -21,15 +22,30 @@ class TestT2S(unittest.TestCase):
     def __talk(self, msg):
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
-    def __check(self, cmd_str, intent, entity_name=None, attList=None, response_list=None):
+    def __check(self, cmd_str, expected_intent, expected_class=None, attList=None, response_list=None,
+                test_only_intent_and_entity=False):
         response = self.__talk(cmd_str)
         response_parser = response['parser']
-        self.assertEqual(intent, response_parser.intent,
-                         'intent not correct. response[intent]=' + str(response_parser.intent) +
+        processed_intent = response_parser.intent
+        processed_class = response_parser.entity_class
+        if expected_intent == Intent.READ:
+            # update processed_intent because the READ intent is automatically converted to CONFIRMATION
+            processed_intent = response['user_data']['previous_intent']
+            processed_class = response['user_data']['previous_class']
+
+        self.assertEqual(expected_intent, processed_intent,
+                         'intent not correct.\nprocessed_intent = ' + str(processed_intent) +
+                         '\nexpected_intent = ' + str(expected_intent) +
                          '\nuser_msg: ' + cmd_str)
-        self.assertEqual(response_parser.entity_class, entity_name,
-                         'entity class not correct.\nresponse[entity_class_name]=' +
-                         str(response_parser.entity_class) + '\nentity_name=' + str(entity_name))
+        self.assertEqual(expected_class, processed_class,
+                         'entity class not correct.\nprocessed_class=' +
+                         str(processed_class) + '\nexpected_class=' + str(expected_class) +
+                         '\nuser_msg: ' + cmd_str)
+
+        if test_only_intent_and_entity:
+            return
+        # else: test attributes
+
         if response_parser.attributes and len(response_parser.attributes) == 0:
             response_parser.attributes = None
         self.assertEqual(response_parser.attributes, attList, 'attributes not correct.\nresponse[attributes]=' +
@@ -39,20 +55,22 @@ class TestT2S(unittest.TestCase):
                             'response message not correct.\nresponse[response_msg]=' +
                             str(response['response_msg']) + '\nresponse_list=' + str(response_list))
 
-    def __check_SAVE(self, entity_name, attList, cmd_str=None):
+    def __check_SAVE(self, entity_name, att_list=None, cmd_str=None):
         if not cmd_str:
             cmd_str = 'add ' + entity_name
-            if len(attList) > 0:
+            if att_list:
                 cmd_str += ' with'
-            for i in range(0, len(attList), 2):
-                cmd_str += ' ' + attList[i]
-                cmd_str += '=' + attList[i + 1] + ","
+                for i in range(0, len(att_list), 2):
+                    cmd_str += ' ' + att_list[i]
+                    cmd_str += '=' + att_list[i + 1] + ","
 
         # TODO: lower case bug
-        attList = [x.lower() for x in attList]
+        if att_list:
+            att_list = [x.lower() for x in att_list]
         cmd_str = cmd_str.lower()
 
-        self.__check(cmd_str, Intent.SAVE, entity_name, attList, ATTRIBUTE_OK(str(Intent.SAVE), entity_name))
+        self.__check(cmd_str, Intent.SAVE, entity_name, att_list, ATTRIBUTE_OK(str(Intent.SAVE), entity_name),
+                     test_only_intent_and_entity=att_list is None)
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     # testing the creation of the arquitecture elements
@@ -60,6 +78,7 @@ class TestT2S(unittest.TestCase):
         self.assertIsNotNone(self.MUP)
         self.assertIsNotNone(self.SE)
         self.assertIsNotNone(self.AC)
+        self.assertIsNotNone(self.AIE)
 
     # testing the 'hi' msg
     def __check_greetings(self, msg):
@@ -115,7 +134,7 @@ class TestT2S(unittest.TestCase):
 
     def test_cancel_2(self):
         self.__check_corner_case("bla bla bla")
-        self.__check(cmd_str='please, cancel', intent=Intent.CANCELLATION,
+        self.__check(cmd_str='please, cancel', expected_intent=Intent.CANCELLATION,
                      response_list=MISUNDERSTANDING)  # because the user is not in the middle of an operation
 
     def __check_help(self, msg='help'):
@@ -130,7 +149,7 @@ class TestT2S(unittest.TestCase):
     def test_help_3(self):
         self.__check_help('Please, help me!')
 
-    def __check_delete(self, entity_name, delete_msg, att_list):
+    def __check_delete(self, entity_name, delete_msg, att_list=None):
         self.__check_SAVE(entity_name, att_list)
         self.__check(delete_msg, Intent.DELETE, entity_name, att_list,
                      ATTRIBUTE_OK(str(Intent.DELETE), entity_name))
@@ -152,6 +171,9 @@ class TestT2S(unittest.TestCase):
     def test_read_3(self):
         self.__check_read("fetch the students")
 
+    def test_read_4(self):
+        self.__check_read("get the students")
+
     def __check_corner_case(self, msg):
         self.__check(msg, Intent.MEANINGLESS, None, None, MISUNDERSTANDING)
 
@@ -170,11 +192,18 @@ class TestT2S(unittest.TestCase):
     def test_corner_case_5(self):
         msg = 'Include outcome value 900, date is today, and description is "adjusting the numbers"'
         self.__check_SAVE(entity_name='outcome',
-                          attList=['value', '900', 'date', 'today', 'description', 'adjusting the numbers'],
+                          att_list=['value', '900', 'date', 'today', 'description', 'adjusting the numbers'],
                           cmd_str=msg)
 
-# new corner cases:
-# -
+    def test_all_parser_cache(self):
+        print('*** testing all parser cache')
+        for row in self.AIE.get_all_considered_parser_cache():
+            print('id: ', row['id'], '| intent: ', row['considered_intent'],
+                  '| class: ', row['considered_class'], '| ', row['user_msg'], )
+            self.__check(cmd_str=row['user_msg'],
+                         expected_intent=Intent(row['considered_intent']),
+                         expected_class=row['considered_class'],
+                         test_only_intent_and_entity=True)
 
 
 if __name__ == '__main__':

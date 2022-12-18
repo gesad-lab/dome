@@ -54,5 +54,5 @@ class SecurityEngine(DAO):
         self._execute_query("INSERT INTO msg_handle_log(msg, user_id, response) VALUES (?, ?, ?)",
                              (msg, user_id, response_obj_json))
 
-    def getAC(self):
+    def get_AC(self):
         return self.__AC

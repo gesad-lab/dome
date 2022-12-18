@@ -16,5 +16,5 @@ class MultiChannelApp:
     def run_telegram(self):
         return self.__SE.execute(OPR_APP_TELEGRAM_START)
 
-    def getSE(self):
+    def get_SE(self):
         return self.__SE
