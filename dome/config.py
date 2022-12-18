@@ -84,6 +84,10 @@ MISSING_CLASS = [
     "Would you please inform me of the information type that you want to operate? For instance, if you are trying to "
     "save data about a student, say 'student'.\n(If you wish to cancel this operation, say 'cancel'.)"]
 MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
+
+GENERAL_FAILURE = '[ERROR] Sorry, but I could not complete the operation because of an internal error. Please, ' \
+                  'try again using other words. '
+
 # config variables
 MANAGED_SYSTEM_NAME = 'managedsys'
 SUFFIX_ENV = '_env'

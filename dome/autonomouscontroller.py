@@ -13,7 +13,7 @@ from dome.config import (ATTRIBUTE_FORMAT,
                          BYE, CANCEL, CLASS_NOT_IN_DOMAIN, DEBUG_MODE,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
-                         NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL)
+                         NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -83,7 +83,7 @@ class AutonomousController:
 
         user_data['previous_class'] = None
         if 'pending_class' in user_data:
-            user_data['previous_class'] = user_data['pending_class'] # saving the previous class for the tests
+            user_data['previous_class'] = user_data['pending_class']  # saving the previous class for the tests
         user_data['pending_class'] = None
 
         user_data['pending_atts'] = {}
@@ -91,7 +91,6 @@ class AutonomousController:
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msg_handle(self, msg, context):
-
         if 'id' not in context.user_data:
             # new session
             user_data = self.__SE.create_or_get_user(context._user_id_and_data[0])
@@ -108,9 +107,14 @@ class AutonomousController:
             user_data['debug_mode'] = False
             return 'debug_mode is off!'
 
-        response = self.app_chatbot_msg_process(msg, user_data=user_data)
+        try:
+            response = self.app_chatbot_msg_process(msg, user_data=user_data)
+        except BaseException as e:
+            print('GENERAL_FAILURE', e)
+            response = {'user_msg': msg, 'response_msg': GENERAL_FAILURE, 'user_data': user_data, 'error': e}
+            self.__clear_opr(user_data)
 
-        # logging the message handled
+    # logging the message handled
         self.__SE.save_msg_handle_log(msg, user_data['id'], response)
 
         return response['response_msg']
