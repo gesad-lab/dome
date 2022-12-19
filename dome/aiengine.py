@@ -1,10 +1,13 @@
+import threading
+
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
 
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 
-from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY)
+from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER)
+import multiprocessing
 
 
 class AIEngine(DAO):
@@ -197,7 +200,8 @@ class AIEngine(DAO):
             if not intent_return:
                 # no direct command found
                 # check if message is with some sense
-                if self.get_tokens_by_type('NOUN') or self.get_tokens_by_type('VERB') or self.get_tokens_by_type('INTJ'):
+                if self.get_tokens_by_type('NOUN') or self.get_tokens_by_type('VERB') or self.get_tokens_by_type(
+                        'INTJ'):
                     # trying to eliminate some possible candidates
                     zero_shooter = self.__AIE.get_zero_shooter_pipeline()
                     for label in candidate_labels.copy():
@@ -358,7 +362,22 @@ class AIEngine(DAO):
             return []
 
     def get_msg_parser(self, msg) -> __MsgParser:
-        return self.__MsgParser(msg, self)
+        # Start the parser as a process
+        msg_parser = None
+
+        def set_parser():
+            nonlocal msg_parser
+            msg_parser = self.__MsgParser(msg, self)
+
+        thread = threading.Thread(target=set_parser, name="MsgParser", daemon=True)
+        # starting the thread and join with 1s timeout to avoid deadlocks
+        thread.start()
+        thread.join(TIMEOUT_MSG_PARSER)
+
+        if thread.is_alive():
+            raise Exception("Timeout in MsgParser")
+
+        return msg_parser
 
     # get all valid parser cache registers from database
     def get_all_considered_parser_cache(self) -> list:
