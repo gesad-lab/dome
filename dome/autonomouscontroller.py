@@ -75,7 +75,7 @@ class AutonomousController:
         return response
 
     @staticmethod
-    def __clear_opr(user_data):
+    def clear_opr(user_data):
         user_data['previous_intent'] = None
         if 'pending_intent' in user_data:
             user_data['previous_intent'] = user_data['pending_intent']  # saving the previous intent for the tests
@@ -94,29 +94,24 @@ class AutonomousController:
         if 'id' not in context.user_data:
             # new session
             user_data = self.__SE.create_or_get_user(context._user_id_and_data[0])
-            user_data['debug_mode'] = DEBUG_MODE
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
             context.user_data.update(user_data)
 
         user_data = context.user_data
-
-        if msg == 'debug_mode:on':
-            user_data['debug_mode'] = True
-            return 'debug_mode is on!'
-        if msg == 'debug_mode:off':
-            user_data['debug_mode'] = False
-            return 'debug_mode is off!'
 
         try:
             response = self.app_chatbot_msg_process(msg, user_data=user_data)
         except BaseException as e:
             print('GENERAL_FAILURE', e)
             response = {'user_msg': msg, 'response_msg': GENERAL_FAILURE, 'user_data': user_data, 'error': e}
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
 
     # logging the message handled
         self.__SE.save_msg_handle_log(msg, user_data['id'], response)
 
+        if DEBUG_MODE:
+            return "[DEBUG_MODE_ON] " + response['response_msg']
+        # else:
         return response['response_msg']
 
     def app_chatbot_msg_process(self, msg, user_data=None):
@@ -125,7 +120,7 @@ class AutonomousController:
 
         if ('session_expiration_time' not in user_data
                 or user_data['session_expiration_time'] < dth.datetime.now()):
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
 
         parser = self.__AIE.get_msg_parser(msg)
         msg_return_list = MISUNDERSTANDING  # default
@@ -156,19 +151,19 @@ class AutonomousController:
                     else:
                         msg_return_list = [
                             str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
-                self.__clear_opr(user_data)
+                self.clear_opr(user_data)
         elif parser.intent == Intent.CANCELLATION:
             if user_data['pending_intent'] is not None:
-                self.__clear_opr(user_data)
+                self.clear_opr(user_data)
                 msg_return_list = CANCEL
         elif parser.intent == Intent.GREETING:
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
             msg_return_list = GREETINGS
         elif parser.intent == Intent.GOODBYE:
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
             msg_return_list = BYE
         elif parser.intent == Intent.HELP:
-            self.__clear_opr(user_data)
+            self.clear_opr(user_data)
             msg_return_list = HELP
         else:
             if parser.intent == Intent.MEANINGLESS:

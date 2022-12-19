@@ -29,7 +29,7 @@ class TelegramHandle:
         dp.add_handler(CommandHandler("start", self.start))
         dp.add_handler(CommandHandler("help", self.help))
 
-        # on noncommand i.e message - echo the message on Telegram
+        # on command i.e. message - echo the message on Telegram
         dp.add_handler(MessageHandler(Filters.text, self.echo))
 
         # log all errors

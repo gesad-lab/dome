@@ -22,13 +22,13 @@ class TestT2S(unittest.TestCase):
     def __talk(self, msg):
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
-    def __check(self, cmd_str, expected_intent, expected_class=None, attList=None, response_list=None,
+    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
                 test_only_intent_and_entity=False):
         response = self.__talk(cmd_str)
         response_parser = response['parser']
         processed_intent = response_parser.intent
         processed_class = response_parser.entity_class
-        if expected_intent == Intent.READ:
+        if expected_intent == Intent.READ and processed_intent == Intent.CONFIRMATION:
             # update processed_intent because the READ intent is automatically converted to CONFIRMATION
             processed_intent = response['user_data']['previous_intent']
             processed_class = response['user_data']['previous_class']
@@ -45,11 +45,14 @@ class TestT2S(unittest.TestCase):
         if test_only_intent_and_entity:
             return
         # else: test attributes
+        processed_attributes = response_parser.attributes
+        if not processed_attributes:  # if processed_attributes is None or empty
+            processed_attributes = None
 
-        if response_parser.attributes and len(response_parser.attributes) == 0:
-            response_parser.attributes = None
-        self.assertEqual(response_parser.attributes, attList, 'attributes not correct.\nresponse[attributes]=' +
-                         str(response_parser.attributes) + '\natt_list=' + str(attList))
+        self.assertEqual(expected_attributes, processed_attributes, 'attributes not correct.' +
+                         '\nprocessed_attributes=' + str(processed_attributes) +
+                         '\nexpected_attributes=' + str(expected_attributes) +
+                         '\nuser_msg: ' + cmd_str)
         if response_list:
             self.assertTrue(response['response_msg'] in response_list,
                             'response message not correct.\nresponse[response_msg]=' +
@@ -195,6 +198,16 @@ class TestT2S(unittest.TestCase):
                           att_list=['value', '900', 'date', 'today', 'description', 'adjusting the numbers'],
                           cmd_str=msg)
 
+    def test_corner_case_6(self):
+        self.__check(cmd_str='show teachers',
+                     expected_intent=Intent.READ,
+                     expected_class='teacher')
+
+    def test_corner_case_7(self):
+        self.__check(cmd_str='get invoices',
+                     expected_intent=Intent.READ,
+                     expected_class='invoice')
+
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():
@@ -204,6 +217,7 @@ class TestT2S(unittest.TestCase):
                          expected_intent=Intent(row['considered_intent']),
                          expected_class=row['considered_class'],
                          test_only_intent_and_entity=True)
+            self.AC.clear_opr(self.user_data)
 
 
 if __name__ == '__main__':

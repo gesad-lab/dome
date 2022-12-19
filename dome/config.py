@@ -98,9 +98,12 @@ RUN_WEB_SERVER = True
 
 PNL_GENERAL_THRESHOLD = 0.75
 
-TIMEOUT_MSG_PARSER = 10  # seconds
+TIMEOUT_MSG_PARSER = 30  # seconds
 
 DEBUG_MODE = True  # 23 DEBUG = False #TODO: put in an env variable
+
+if DEBUG_MODE:
+    TIMEOUT_MSG_PARSER = 999999
 
 # django default user
 DJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'
