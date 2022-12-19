@@ -19,12 +19,15 @@ class TestT2S(unittest.TestCase):
     def __assertInDefaultResponseList(self, msg, response_list):
         self.assertTrue(self.__talk(msg)['response_msg'] in response_list)
 
-    def __talk(self, msg):
+    def __talk(self, msg, clear_user_data=True):
+        if clear_user_data:
+            self.AC.clear_opr(self.user_data)
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
     def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
                 test_only_intent_and_entity=False):
-        response = self.__talk(cmd_str)
+        clear_user_data = expected_intent != Intent.CONFIRMATION and expected_intent != Intent.CANCELLATION
+        response = self.__talk(cmd_str, clear_user_data=clear_user_data)
         response_parser = response['parser']
         processed_intent = response_parser.intent
         processed_class = response_parser.entity_class
@@ -208,6 +211,12 @@ class TestT2S(unittest.TestCase):
                      expected_intent=Intent.READ,
                      expected_class='invoice')
 
+    def test_corner_case_8(self):
+        self.__check(cmd_str='Add a test with scope=Module X, date=01/01/2022, timeout = 100, limit = 10',
+                     expected_intent=Intent.SAVE,
+                     expected_class='test',
+                     expected_attributes=['scope', 'Module X', 'date', '01/01/2022', 'timeout', '100', 'limit', '10'])
+
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():
@@ -217,7 +226,6 @@ class TestT2S(unittest.TestCase):
                          expected_intent=Intent(row['considered_intent']),
                          expected_class=row['considered_class'],
                          test_only_intent_and_entity=True)
-            self.AC.clear_opr(self.user_data)
 
 
 if __name__ == '__main__':

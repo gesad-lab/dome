@@ -34,9 +34,19 @@ class AIEngine(DAO):
                                             pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
                                             model=model, aggregation_strategy=aggregation_strategy)
 
-        considered_msg = msg.lower().replace('delete', 'to delete')  # TODO: to solve bug about delete
+        # to solve bug about delete expression that the model recognizes as PROPN
+        considered_msg = msg.lower().replace('delete', 'to delete')
 
         tokens = token_classifier(considered_msg)
+        
+        if aggregation_strategy is None:
+            # merge the token that word starts with ## (e.g. ##ing) with the previous token
+            for i in range(len(tokens) - 1, 0, -1):
+                if tokens[i]['word'].startswith('##'):
+                    tokens[i - 1]['word'] += tokens[i]['word'][2:]
+                    tokens[i - 1]['end'] += len(tokens[i]['word']) - 2
+                    tokens[i]['entity'] = None
+                    tokens[i]['word'] = None
 
         return tokens
 
@@ -344,9 +354,8 @@ class AIEngine(DAO):
                         att_list.extend([attribute_name, attribute_value])
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
-                        att_value_idx_end = self.user_msg.find(response['answer'])
+                        att_value_idx_end = response['end']
                         if att_value_idx_end > -1:
-                            att_value_idx_end = att_value_idx_end + len(response['answer'])
                             while j < len(self.tokens) and self.tokens[j]['start'] < att_value_idx_end:
                                 j += 1
                     else:
