@@ -23,7 +23,7 @@ class Intent(AutoName):
     def __str__(self):
         return self.name
 
-    def getSynonyms(self) -> list:
+    def getSynonyms(self) -> set:
         return INTENT_MAP[str(self)]
 
     def __eq__(self, another_intent: object) -> bool:

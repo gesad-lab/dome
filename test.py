@@ -217,6 +217,13 @@ class TestT2S(unittest.TestCase):
                      expected_class='test',
                      expected_attributes=['scope', 'Module X', 'date', '01/01/2022', 'timeout', '100', 'limit', '10'])
 
+    def test_corner_case_9(self):
+        # attributes names with spaces
+        self.__check(cmd_str='Add a test with scope=Module Y and number of errors = 8',
+                     expected_intent=Intent.SAVE,
+                     expected_class='test',
+                     expected_attributes=['scope', 'Module Y', 'number of errors', '8'])
+
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():

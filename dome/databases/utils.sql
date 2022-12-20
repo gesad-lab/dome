@@ -1,3 +1,4 @@
+delete from parser_cache
 /*
 DROP TABLE IF EXISTS parser_cache;
 CREATE TABLE "parser_cache" (

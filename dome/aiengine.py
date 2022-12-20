@@ -5,9 +5,8 @@ from transformers import pipeline
 
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
-
-from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER)
-import multiprocessing
+from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
+                         DEBUG_MODE)
 
 
 class AIEngine(DAO):
@@ -135,7 +134,7 @@ class AIEngine(DAO):
 
             # verifying if there is cache for the user_msg in database
             cached_parser = self.__AIE.get_parser_cache(self.user_msg)
-            if cached_parser:
+            if cached_parser and not DEBUG_MODE:
                 self.intent = Intent(cached_parser['considered_intent'])
                 self.entity_class = cached_parser['considered_class']
             else:
@@ -244,8 +243,6 @@ class AIEngine(DAO):
                             for token in self.tokens:
                                 if token['entity'] in considered_tokens_types:
                                     considered_msg += token['word'] + ' '
-
-                            considered_msg = considered_msg.strip().replace(' ##', '')
 
                             if considered_msg:
                                 # try the zero_shooter classifier and update intent_return if the score is high enough
