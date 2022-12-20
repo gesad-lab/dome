@@ -6,7 +6,7 @@ from transformers import pipeline
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
-                         DEBUG_MODE)
+                         DEBUG_MODE, USE_PARSER_CACHE)
 
 
 class AIEngine(DAO):
@@ -134,7 +134,7 @@ class AIEngine(DAO):
 
             # verifying if there is cache for the user_msg in database
             cached_parser = self.__AIE.get_parser_cache(self.user_msg)
-            if cached_parser and not DEBUG_MODE:
+            if cached_parser and USE_PARSER_CACHE:
                 self.intent = Intent(cached_parser['considered_intent'])
                 self.entity_class = cached_parser['considered_class']
             else:

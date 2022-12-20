@@ -102,6 +102,8 @@ TIMEOUT_MSG_PARSER = 30  # seconds
 
 DEBUG_MODE = False  # 23 DEBUG = False #TODO: put in an env variable
 
+USE_PARSER_CACHE = True
+
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
 

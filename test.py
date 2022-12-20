@@ -224,6 +224,32 @@ class TestT2S(unittest.TestCase):
                      expected_class='test',
                      expected_attributes=['scope', 'Module Y', 'number of errors', '8'])
 
+    # get students with name anderson
+    def test_corner_case_10(self):
+        # attributes names with spaces
+        self.__check(cmd_str='get students with name anderson',
+                     expected_intent=Intent.READ,
+                     expected_class='student',
+                     expected_attributes=['name', 'anderson'])
+
+    def test_corner_case_11(self):
+        # attributes names with spaces
+        self.__check(cmd_str='show me the teachers',
+                     expected_intent=Intent.READ,
+                     expected_class='teacher', )
+
+    def test_corner_case_12(self):
+        # attributes names with spaces
+        self.__check(cmd_str='show teachers',
+                     expected_intent=Intent.READ,
+                     expected_class='teacher', )
+
+    def test_corner_case_13(self):
+        # attributes names with spaces
+        self.__check(cmd_str='show teacher',
+                     expected_intent=Intent.READ,
+                     expected_class='teacher', )
+
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():
