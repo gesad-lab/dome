@@ -94,7 +94,12 @@ class AIEngine(DAO):
             # else
         return False
 
-    def get_question_answer_pipeline(self, model='distilbert-base-cased-distilled-squad'):
+    def question_answerer(self, question, context, main_model='deepset/roberta-base-squad2'):
+        # deepset/roberta-base-squad2
+        # distilbert-base-cased-distilled-squad
+        return self.__get_question_answer_pipeline(main_model)(question, context)
+
+    def __get_question_answer_pipeline(self, model):
         return self.getPipeline(pipeline_name='question-answering', model=model,
                                 pipeline_key='question-answering-m_' + model)
 
@@ -269,9 +274,9 @@ class AIEngine(DAO):
             return intent_return
 
         def __getEntityClassFromMsg(self) -> str:
-            question_answerer = self.__AIE.get_question_answer_pipeline()
-            response = question_answerer(question="What is the entity class that the user command refers to?",
-                                         context=self.__getEntityClassContext())
+            response = self.__AIE.question_answerer(
+                question="What is the entity class that the user command refers to?",
+                context=self.__getEntityClassContext())
             entity_class_candidate = response['answer']
             if entity_class_candidate == self.intent:
                 return None  # it's an error. Probably the user did not inform the entity class in the right way.
@@ -349,7 +354,6 @@ class AIEngine(DAO):
                     break
 
             if entity_class_token_idx > -1:  # if the entity class token was found
-                question_answerer = self.__AIE.get_question_answer_pipeline(model="deepset/roberta-base-squad2")
                 # iterate over the tokens and find the attribute names and values
                 j = entity_class_token_idx + 1
                 while j < len(self.tokens):
@@ -370,9 +374,9 @@ class AIEngine(DAO):
                             # the attribute name is already in the attributes list. It's an error.
                             break
                         # ask by the attribute value using question-answering pipeline
-                        response = question_answerer(question='What is the ' + attribute_name +
-                                                              ' of the ' + self.entity_class + '?',
-                                                     context=__get_attributes_context(attribute_name))
+                        response = self.__AIE.question_answerer(question='What is the ' + attribute_name +
+                                                                         ' of the ' + self.entity_class + '?',
+                                                                context=__get_attributes_context(attribute_name))
 
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
