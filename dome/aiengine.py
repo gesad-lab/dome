@@ -342,18 +342,26 @@ class AIEngine(DAO):
                         response = question_answerer(question='What is the ' + attribute_name +
                                                               ' of the ' + self.entity_class + '?',
                                                      context=self.user_msg)
-                        # save the pair of attribute name and attribute value in the result list
-                        attribute_value = response['answer']
 
-                        if attribute_value[-1] in ["'", '"']:  # see test.test_add_5()
-                            attribute_value = attribute_value[:-1]
-
-                        att_list.extend([attribute_name, attribute_value])
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
                         att_value_idx_end = response['end']
+
+                        if att_value_idx_end <= token_j['end']:
+                            # inconsistency in the answer (see test.test_corner_case_10)
+                            break
+                        # else: all right
+                        # save the pair of attribute name and attribute value in the result list
+                        attribute_value = response['answer']
+                        # clean the attribute value
+                        if attribute_value[-1] in ["'", '"']:  # see test.test_add_5()
+                            attribute_value = attribute_value[:-1]
+                        # add the attribute pair to the list
+                        att_list.extend([attribute_name, attribute_value])
+
                         if att_value_idx_end > -1:
-                            while j < len(self.tokens) and self.tokens[j]['start'] < att_value_idx_end:
+                            # advance for the next token
+                            while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
                                 j += 1
                     else:
                         # no noun found after token_j. It is the end of the attribute list
@@ -376,7 +384,7 @@ class AIEngine(DAO):
             msg_parser = self.__MsgParser(msg, self)
 
         thread = threading.Thread(target=set_parser, name="MsgParser", daemon=True)
-        # starting the thread and join with 1s timeout to avoid deadlocks
+        # starting the thread and join with timeout to avoid deadlocks
         thread.start()
         thread.join(TIMEOUT_MSG_PARSER)
 

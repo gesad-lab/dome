@@ -100,9 +100,9 @@ PNL_GENERAL_THRESHOLD = 0.75
 
 TIMEOUT_MSG_PARSER = 30  # seconds
 
-DEBUG_MODE = False  # 23 DEBUG = False #TODO: put in an env variable
+DEBUG_MODE = True  # 23 DEBUG = False #TODO: put in an env variable
 
-USE_PARSER_CACHE = True
+USE_PARSER_CACHE = False
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
