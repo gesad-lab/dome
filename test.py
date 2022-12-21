@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from dome.auxiliary.enums.intent import Intent
@@ -24,17 +25,20 @@ class TestT2S(unittest.TestCase):
             self.AC.clear_opr(self.user_data)
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
-    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
-                test_only_intent_and_entity=False):
+    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None):
         clear_user_data = expected_intent != Intent.CONFIRMATION and expected_intent != Intent.CANCELLATION
         response = self.__talk(cmd_str, clear_user_data=clear_user_data)
         response_parser = response['parser']
         processed_intent = response_parser.intent
         processed_class = response_parser.entity_class
+        processed_attributes = response_parser.attributes
         if expected_intent == Intent.READ and processed_intent == Intent.CONFIRMATION:
             # update processed_intent because the READ intent is automatically converted to CONFIRMATION
             processed_intent = response['user_data']['previous_intent']
             processed_class = response['user_data']['previous_class']
+            processed_attributes = response['user_data']['previous_attributes']
+        if not processed_attributes:  # if processed_attributes is None or empty
+            processed_attributes = None
 
         self.assertEqual(expected_intent, processed_intent,
                          'intent not correct.\nprocessed_intent = ' + str(processed_intent) +
@@ -45,13 +49,6 @@ class TestT2S(unittest.TestCase):
                          str(processed_class) + '\nexpected_class=' + str(expected_class) +
                          '\nuser_msg: ' + cmd_str)
 
-        if test_only_intent_and_entity:
-            return
-        # else: test attributes
-        processed_attributes = response_parser.attributes
-        if not processed_attributes:  # if processed_attributes is None or empty
-            processed_attributes = None
-
         self.assertEqual(expected_attributes, processed_attributes, 'attributes not correct.' +
                          '\nprocessed_attributes=' + str(processed_attributes) +
                          '\nexpected_attributes=' + str(expected_attributes) +
@@ -61,22 +58,17 @@ class TestT2S(unittest.TestCase):
                             'response message not correct.\nresponse[response_msg]=' +
                             str(response['response_msg']) + '\nresponse_list=' + str(response_list))
 
-    def __check_SAVE(self, entity_name, att_list=None, cmd_str=None):
+    def __check_SAVE(self, entity_name, attributes=None, cmd_str=None):
         if not cmd_str:
             cmd_str = 'add ' + entity_name
-            if att_list:
+            if attributes:
                 cmd_str += ' with'
-                for i in range(0, len(att_list), 2):
-                    cmd_str += ' ' + att_list[i]
-                    cmd_str += '=' + att_list[i + 1] + ","
+                for attribute_name, attribute_value in attributes.items():
+                    cmd_str += ' ' + attribute_name
+                    cmd_str += '=' + attribute_value + ","
+                cmd_str = cmd_str[:-1]  # remove the last comma
 
-        # TODO: lower case bug
-        if att_list:
-            att_list = [x.lower() for x in att_list]
-        cmd_str = cmd_str.lower()
-
-        self.__check(cmd_str, Intent.SAVE, entity_name, att_list, ATTRIBUTE_OK(str(Intent.SAVE), entity_name),
-                     test_only_intent_and_entity=att_list is None)
+        self.__check(cmd_str, Intent.SAVE, entity_name, attributes, ATTRIBUTE_OK(str(Intent.SAVE), entity_name))
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     # testing the creation of the arquitecture elements
@@ -114,27 +106,27 @@ class TestT2S(unittest.TestCase):
 
     # testing the 'add' intent
     def test_add_1(self):
-        self.__check_SAVE('student', ['name', 'Anderson Martins Gomes', 'age', '20'])
+        self.__check_SAVE('student', {'name': 'Anderson Martins Gomes', 'age': '20'})
 
     def test_add_2(self):
-        self.__check_SAVE('subject', ['name', 'Brazilian History', 'description', 'The history of Brazil'])
+        self.__check_SAVE('subject', {'name': 'Brazilian History', 'description': 'The history of Brazil'})
 
     def test_add_3(self):
-        self.__check_SAVE('teacher', ['name', 'Paulo Henrique', 'age', '65', 'email', 'ph@uece.br'])
+        self.__check_SAVE('teacher', {'name': 'Paulo Henrique', 'age': '65', 'email': 'ph@uece.br'})
 
     def test_add_4(self):
         # save a subject name=Math, and description is 'The best subject ever!'
-        self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever"])
+        self.__check_SAVE('subject', {'name': 'Math', 'description': "The best subject ever"})
 
     def test_add_5(self):
-        self.__check_SAVE('subject', ['name', 'Math', 'description', "The best subject ever!"],
+        self.__check_SAVE('subject', {'name': 'Math', 'description': "The best subject ever!"},
                           cmd_str="add subject with name=Math, description='The best subject ever!'")
 
     def __check_cancel(self, msg='cancel'):
         self.__check(msg, Intent.CANCELLATION, None, None, CANCEL)
 
     def test_cancel_1(self):
-        self.__check("add student name=Anderson", Intent.SAVE, "student", ['name', 'Anderson'],
+        self.__check("add student name=Anderson", Intent.SAVE, "student", {'name': 'Anderson'},
                      ATTRIBUTE_OK(str(Intent.SAVE), "student"))
         self.__check_cancel('cancel')
 
@@ -155,15 +147,15 @@ class TestT2S(unittest.TestCase):
     def test_help_3(self):
         self.__check_help('Please, help me!')
 
-    def __check_delete(self, entity_name, delete_msg, att_list=None):
-        self.__check_SAVE(entity_name, att_list)
-        self.__check(delete_msg, Intent.DELETE, entity_name, att_list,
+    def __check_delete(self, entity_name, delete_msg, attributes=None):
+        self.__check_SAVE(entity_name, attributes)
+        self.__check(delete_msg, Intent.DELETE, entity_name, attributes,
                      ATTRIBUTE_OK(str(Intent.DELETE), entity_name))
         self.__check('ok', Intent.CONFIRMATION, None, None, DELETE_SUCCESS(1))
 
     def test_delete_1(self):
         self.__check_delete('student', 'delete student name is Anderson, and age is 199',
-                            ['name', 'Anderson', 'age', '199'])
+                            {'name': 'Anderson', 'age': '199'})
 
     def __check_read(self, msg):
         self.__check(msg, Intent.CONFIRMATION)
@@ -198,7 +190,7 @@ class TestT2S(unittest.TestCase):
     def test_corner_case_5(self):
         msg = 'Include outcome value 900, date is today, and description is "adjusting the numbers"'
         self.__check_SAVE(entity_name='outcome',
-                          att_list=['value', '900', 'date', 'today', 'description', 'adjusting the numbers'],
+                          attributes={'value': '900', 'date': 'today', 'description': 'adjusting the numbers'},
                           cmd_str=msg)
 
     def test_corner_case_6(self):
@@ -215,14 +207,15 @@ class TestT2S(unittest.TestCase):
         self.__check(cmd_str='Add a test with scope=Module X, date=01/01/2022, timeout = 100, limit = 10',
                      expected_intent=Intent.SAVE,
                      expected_class='test',
-                     expected_attributes=['scope', 'Module X', 'date', '01/01/2022', 'timeout', '100', 'limit', '10'])
+                     expected_attributes={'scope': 'Module X', 'date': '01/01/2022', 'timeout': '100', 'limit': '10'})
 
     def test_corner_case_9(self):
         # attributes names with spaces
         self.__check(cmd_str='Add a test with scope=Module Y and number of errors = 8',
                      expected_intent=Intent.SAVE,
                      expected_class='test',
-                     expected_attributes=['scope', 'Module Y', 'number of errors', '8'])
+                     # project specific rule. The attribute must have only one word.
+                     expected_attributes={'scope': 'Module Y', 'number': '8'})
 
     # get students with name anderson
     def test_corner_case_10(self):
@@ -230,7 +223,7 @@ class TestT2S(unittest.TestCase):
         self.__check(cmd_str='get students with name anderson',
                      expected_intent=Intent.READ,
                      expected_class='student',
-                     expected_attributes=['name', 'anderson'])
+                     expected_attributes={'name': 'anderson'})
 
     def test_corner_case_11(self):
         # attributes names with spaces
@@ -254,11 +247,16 @@ class TestT2S(unittest.TestCase):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():
             print('id: ', row['id'], '| intent: ', row['considered_intent'],
-                  '| class: ', row['considered_class'], '| ', row['user_msg'], )
+                  '| class: ', row['considered_class'], '| ', row['considered_attributes'], '| ', row['user_msg'])
+            # set self.attributes as a dict from the string loaded from cached_parser['considered_attributes'] json
+            expected_attributes = None
+            if row['considered_attributes']:
+                expected_attributes = json.loads(row['considered_attributes'])
+
             self.__check(cmd_str=row['user_msg'],
                          expected_intent=Intent(row['considered_intent']),
                          expected_class=row['considered_class'],
-                         test_only_intent_and_entity=True)
+                         expected_attributes=expected_attributes)
 
 
 if __name__ == '__main__':

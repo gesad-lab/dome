@@ -86,7 +86,12 @@ class AutonomousController:
             user_data['previous_class'] = user_data['pending_class']  # saving the previous class for the tests
         user_data['pending_class'] = None
 
-        user_data['pending_atts'] = {}
+        user_data['previous_attributes'] = None
+        if 'pending_attributes' in user_data:
+            # saving the previous class for the tests
+            user_data['previous_attributes'] = user_data['pending_attributes']
+
+        user_data['pending_attributes'] = {}
 
         user_data['pending_atts_first_attempt'] = True
 
@@ -128,24 +133,24 @@ class AutonomousController:
         if parser.intent == Intent.CONFIRMATION:
             if (user_data['pending_intent'] is not None
                     and user_data['pending_class'] is not None
-                    and ((len(user_data['pending_atts']) > 0) or (user_data['pending_intent'] == Intent.READ))):
+                    and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
                 if user_data['pending_intent'] == Intent.SAVE:  # TODO: #17 refactoring to change code to DomainEngine
                     # including the entity
                     domain_entity = self.__DE.saveEntity(user_data['pending_class'])
-                    for att_name in user_data['pending_atts'].keys():
+                    for att_name in user_data['pending_attributes'].keys():
                         self.__DE.addAttribute(domain_entity, att_name, 'str')  # TODO: #18 to manage the type
                     self.__IC.updateAppWeb()
                     # save the data
-                    self.__DE.save(user_data['pending_class'], user_data['pending_atts'])
+                    self.__DE.save(user_data['pending_class'], user_data['pending_attributes'])
                     msg_return_list = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.DELETE:
-                    query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_atts'])
+                    query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_attributes'])
                     if query_result.rowcount == 0:
                         msg_return_list = DELETE_FAILURE
                     else:
                         msg_return_list = DELETE_SUCCESS(query_result.rowcount)
                 elif user_data['pending_intent'] == Intent.READ:
-                    query_result = self.__DE.read(user_data['pending_class'], user_data['pending_atts'])
+                    query_result = self.__DE.read(user_data['pending_class'], user_data['pending_attributes'])
                     if query_result is None:
                         msg_return_list = NO_REGISTERS
                     else:
@@ -191,18 +196,17 @@ class AutonomousController:
                         msg_return_list = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
                     else:  # class exists
                         # processing the attributes
-                        if (((user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0))
-                                or (len(parser.attributes) % 2 == 1)):  # it's odd
+                        if not parser.attributes:
+                            parser.attributes = {}
+                        if (user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0):
                             if user_data['pending_atts_first_attempt']:
                                 msg_return_list = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']),
                                                                                  user_data['pending_class'])
                             else:
                                 msg_return_list = ATTRIBUTE_FORMAT
-                        else:  # all ok! even number!
+                        else:  # all ok!
                             user_data['pending_atts_first_attempt'] = False
-                            # adding new attributes
-                            for i in range(0, len(parser.attributes) - 1, 2):
-                                user_data['pending_atts'][parser.attributes[i]] = parser.attributes[i + 1]
+                            user_data['pending_attributes'] = parser.attributes
                             # if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msg_process('ok', user_data=user_data)

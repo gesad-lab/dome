@@ -1,5 +1,14 @@
-delete from parser_cache
+--delete from parser_cache;
 /*
+DROP VIEW IF EXISTS vw_considered_parser_cache;
+CREATE VIEW 'vw_considered_parser_cache' AS
+	SELECT id, user_msg, 
+	ifnull(expected_intent, processed_intent) as 'considered_intent', 
+	ifnull(expected_class, processed_class) as 'considered_class',
+	ifnull(expected_attributes, processed_attributes) as 'considered_attributes'
+	from parser_cache 
+*/
+
 DROP TABLE IF EXISTS parser_cache;
 CREATE TABLE "parser_cache" (
 	"id"	INTEGER NOT NULL UNIQUE,
@@ -8,16 +17,16 @@ CREATE TABLE "parser_cache" (
 	"user_msg_len"	INTEGER NOT NULL,
 	"processed_intent"	TEXT NOT NULL,
 	"processed_class"	TEXT,
+	"processed_attributes"	TEXT,
 	"expected_intent"	TEXT,
 	"expected_class"	TEXT,
-	"similar_msg_id"	INTEGER,
-	PRIMARY KEY("id" AUTOINCREMENT),
-	FOREIGN KEY("similar_msg_id") REFERENCES "parser_cache"("id")
+	"expected_attributes"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
 CREATE UNIQUE INDEX "parser_cache_user_msg_idx" ON "parser_cache" (
 	"user_msg"	ASC
 );
-*/
+
 -- "dt_created"	INTEGER NOT NULL DEFAULT (datetime('now', 'localtime'))
 
 -- views

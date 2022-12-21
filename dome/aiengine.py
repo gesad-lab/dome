@@ -1,3 +1,4 @@
+import json
 import threading
 
 from sentence_transformers import SentenceTransformer, util
@@ -37,7 +38,7 @@ class AIEngine(DAO):
         considered_msg = msg.lower().replace('delete', 'to delete')
 
         tokens = token_classifier(considered_msg)
-        
+
         if aggregation_strategy is None:
             # merge the token that word starts with ## (e.g. ##ing) with the previous token
             for i in range(len(tokens) - 1, 0, -1):
@@ -93,8 +94,9 @@ class AIEngine(DAO):
             # else
         return False
 
-    def get_question_answer_pipeline(self):
-        return self.getPipeline(pipeline_name='question-answering', model='distilbert-base-cased-distilled-squad')
+    def get_question_answer_pipeline(self, model='distilbert-base-cased-distilled-squad'):
+        return self.getPipeline(pipeline_name='question-answering', model=model,
+                                pipeline_key='question-answering-m_' + model)
 
     def get_zero_shooter_pipeline(self):
         return self.getPipeline(pipeline_name="zero-shot-classification", model="facebook/bart-large-mnli")
@@ -109,12 +111,13 @@ class AIEngine(DAO):
     def __addToPipeline(self, pipeline_name, pipeline_object, pipeline_key=None):
         self.__pipelines[pipeline_key if pipeline_key else pipeline_name] = pipeline_object
 
-    def add_parser_cache(self, user_msg, intent, entity_class):
-        # in this version, the Parser Cache only stores the intent and the entity class, considering
-        # an exact match with the user message
+    def add_parser_cache(self, user_msg, intent, entity_class, attributes):
+        # the Parser Cache stores the intent, the entity class, and the attributes map
+        # considering an exact match with the user message
         self._execute_query("INSERT or IGNORE INTO parser_cache(user_msg, user_msg_len, processed_intent, "
-                            "processed_class) VALUES (?,?,?,?)",
-                            (user_msg.lower(), len(user_msg), str(intent), entity_class))
+                            "processed_class, processed_attributes) VALUES (?,?,?,?,?)",
+                            (user_msg.lower(), len(user_msg), str(intent), entity_class,
+                             json.dumps(attributes, default=str) if attributes else None))
 
     def get_parser_cache(self, user_msg):
         return self._execute_query_fetchone("SELECT * FROM vw_considered_parser_cache WHERE user_msg = ?",
@@ -129,15 +132,21 @@ class AIEngine(DAO):
             self.entity_class = None
             self.attributes = None
 
-            # pos-tagging the user_msg
-            self.tokens = self.__AIE.posTagMsg(user_msg)  # before cache check because the attributes discovery needs it
-
             # verifying if there is cache for the user_msg in database
-            cached_parser = self.__AIE.get_parser_cache(self.user_msg)
-            if cached_parser and USE_PARSER_CACHE:
+            cached_parser = None
+            if USE_PARSER_CACHE:
+                cached_parser = self.__AIE.get_parser_cache(self.user_msg)
+
+            if cached_parser:
                 self.intent = Intent(cached_parser['considered_intent'])
                 self.entity_class = cached_parser['considered_class']
+                # set self.attributes as a dict from the string loaded from cached_parser['considered_attributes'] json
+                self.attributes = None
+                if cached_parser['considered_attributes']:
+                    self.attributes = json.loads(cached_parser['considered_attributes'])
             else:
+                # pos-tagging the user_msg
+                self.tokens = self.__AIE.posTagMsg(user_msg)
                 # build a tokens type map
                 self.tokens_by_type_map = {}
                 for token in self.tokens:
@@ -147,17 +156,18 @@ class AIEngine(DAO):
 
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
+
                 # discovering of the entity class
                 if self.intent in (Intent.DELETE, Intent.SAVE, Intent.READ):
                     self.entity_class = self.__getEntityClassFromMsg()
 
-            # discovering of the attributes
-            if self.entity_class:
-                self.attributes = self.__get_attributes_from_msg()
+                # discovering of the attributes
+                if self.entity_class:
+                    self.attributes = self.__get_attributes_from_msg()
 
             # saving the cache in database
             if not cached_parser:
-                self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class)
+                self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class, self.attributes)
 
         def __getIntentFromMsg(self) -> Intent:
             considered_msg = self.user_msg.lower()
@@ -310,8 +320,25 @@ class AIEngine(DAO):
 
             return context
 
-        def __get_attributes_from_msg(self) -> list:
-            att_list = []
+        def __get_attributes_from_msg(self) -> dict:
+            """
+            def __get_attributes_context(attribute_name_idx) -> str:
+                # the ";" is to avoid the error of the test.test_add_3
+                # (when the message ends with an email address)
+                return self.user_msg + ";"
+                # return self.user_msg[attribute_name_idx:] + ";"
+            """
+            processed_attributes = {}
+            CONTEXT_PREFIX = "This is the user command: '"
+
+            def __get_attributes_context(attribute_target) -> str:
+                context = CONTEXT_PREFIX + self.user_msg + "'. "
+                context += "\nThe intent of the user command is '" + str(self.intent) + "'. "
+                context += "\nThe entity class is '" + str(self.entity_class) + "'. "
+                for att_name, att_value in processed_attributes.items():
+                    context += "\nThe attribute '" + att_name + "' has the value '" + att_value + "'. "
+                    context += " So, '" + attribute_target + "' is not '" + att_value + "'! "
+                return context
 
             # finding the index after the entity class name in the message
             entity_class_token_idx = -1
@@ -322,7 +349,7 @@ class AIEngine(DAO):
                     break
 
             if entity_class_token_idx > -1:  # if the entity class token was found
-                question_answerer = self.__AIE.get_question_answer_pipeline()
+                question_answerer = self.__AIE.get_question_answer_pipeline(model="deepset/roberta-base-squad2")
                 # iterate over the tokens and find the attribute names and values
                 j = entity_class_token_idx + 1
                 while j < len(self.tokens):
@@ -338,14 +365,18 @@ class AIEngine(DAO):
                     if token_j:
                         # found the first noun after token_j. It is the attribute name
                         attribute_name = token_j['word']
+                        # check if the attribute name is in the attributes set
+                        if attribute_name in processed_attributes:
+                            # the attribute name is already in the attributes list. It's an error.
+                            break
                         # ask by the attribute value using question-answering pipeline
                         response = question_answerer(question='What is the ' + attribute_name +
                                                               ' of the ' + self.entity_class + '?',
-                                                     context=self.user_msg)
+                                                     context=__get_attributes_context(attribute_name))
 
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
-                        att_value_idx_end = response['end']
+                        att_value_idx_end = response['end'] - len(CONTEXT_PREFIX)
 
                         if att_value_idx_end <= token_j['end']:
                             # inconsistency in the answer (see test.test_corner_case_10)
@@ -356,8 +387,9 @@ class AIEngine(DAO):
                         # clean the attribute value
                         if attribute_value[-1] in ["'", '"']:  # see test.test_add_5()
                             attribute_value = attribute_value[:-1]
-                        # add the attribute pair to the list
-                        att_list.extend([attribute_name, attribute_value])
+
+                        # add the attribute pair to the map
+                        processed_attributes[attribute_name] = attribute_value
 
                         if att_value_idx_end > -1:
                             # advance for the next token
@@ -367,7 +399,7 @@ class AIEngine(DAO):
                         # no noun found after token_j. It is the end of the attribute list
                         break
 
-            return att_list
+            return processed_attributes
 
         def get_tokens_by_type(self, entityType) -> list:
             if entityType in self.tokens_by_type_map:
