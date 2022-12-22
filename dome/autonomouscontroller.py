@@ -1,5 +1,6 @@
 import datetime as dth
 import random
+import time
 
 from tabulate import tabulate
 
@@ -96,6 +97,7 @@ class AutonomousController:
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msg_handle(self, msg, context):
+        t0 = time.perf_counter()
         if 'id' not in context.user_data:
             # new session
             user_data = self.__SE.create_or_get_user(context._user_id_and_data[0])
@@ -111,8 +113,8 @@ class AutonomousController:
             response = {'user_msg': msg, 'response_msg': GENERAL_FAILURE, 'user_data': user_data, 'error': e}
             self.clear_opr(user_data)
 
-    # logging the message handled
-        self.__SE.save_msg_handle_log(msg, user_data['id'], response)
+        # logging the message handled
+        self.__SE.save_msg_handle_log(msg, user_data['id'], response, time.perf_counter() - t0)
 
         if DEBUG_MODE:
             return "[DEBUG_MODE_ON] " + response['response_msg']

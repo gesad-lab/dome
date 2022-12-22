@@ -48,11 +48,11 @@ class SecurityEngine(DAO):
             query_result = self.get_user_by_chat_id(chat_id)
         return query_result
 
-    def save_msg_handle_log(self, msg, user_id, response_obj):
+    def save_msg_handle_log(self, msg, user_id, response_obj, process_time):
         # transform the response_obj in a json string
         response_obj_json = json.dumps(response_obj, default=str)
-        self._execute_query("INSERT INTO msg_handle_log(msg, user_id, response) VALUES (?, ?, ?)",
-                             (msg, user_id, response_obj_json))
+        self._execute_query("INSERT INTO msg_handle_log(msg, user_id, process_time, response) VALUES (?, ?, ?, ?)",
+                            (msg, user_id, process_time, response_obj_json))
 
     def get_AC(self):
         return self.__AC

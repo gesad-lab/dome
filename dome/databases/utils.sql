@@ -8,7 +8,7 @@ CREATE VIEW 'vw_considered_parser_cache' AS
 	ifnull(expected_attributes, processed_attributes) as 'considered_attributes'
 	from parser_cache 
 */
-
+/*
 DROP TABLE IF EXISTS parser_cache;
 CREATE TABLE "parser_cache" (
 	"id"	INTEGER NOT NULL UNIQUE,
@@ -26,7 +26,7 @@ CREATE TABLE "parser_cache" (
 CREATE UNIQUE INDEX "parser_cache_user_msg_idx" ON "parser_cache" (
 	"user_msg"	ASC
 );
-
+*/
 -- "dt_created"	INTEGER NOT NULL DEFAULT (datetime('now', 'localtime'))
 
 -- views
