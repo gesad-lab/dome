@@ -94,10 +94,25 @@ class AIEngine(DAO):
             # else
         return False
 
-    def question_answerer(self, question, context, main_model='deepset/roberta-base-squad2'):
-        # deepset/roberta-base-squad2
-        # distilbert-base-cased-distilled-squad
-        return self.__get_question_answer_pipeline(main_model)(question, context)
+    def question_answerer(self, question, context):
+        models = ['deepset/roberta-base-squad2',
+                  'distilbert-base-cased-distilled-squad',
+                  'deepset/minilm-uncased-squad2']
+
+        # iterate over models to find the best answer (the one with the highest score)
+        best_answer = None
+        best_score = 0
+        for model in models:
+            answer = self.__get_question_answer_pipeline(model)(question, context)
+            if answer['score'] > PNL_GENERAL_THRESHOLD:
+                # return immediately if the answer is good enough
+                return answer
+            # else
+            if answer['score'] > best_score:
+                best_answer = answer
+                best_score = answer['score']
+
+        return best_answer
 
     def __get_question_answer_pipeline(self, model):
         return self.getPipeline(pipeline_name='question-answering', model=model,
