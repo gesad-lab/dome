@@ -1,18 +1,34 @@
 import json
 import threading
 
+import requests
 from sentence_transformers import SentenceTransformer, util
-from transformers import pipeline
+from transformers import pipeline, T5Tokenizer, T5ForConditionalGeneration
 
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
-                         DEBUG_MODE, USE_PARSER_CACHE)
+                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN)
 
 
 class AIEngine(DAO):
     def get_db_file_name(self) -> str:
         return "kdb.sqlite"
+
+    GENERAL_BOT_CONTEXT = "The context here is around a chatbot that updates the data model of its system " \
+                          "using the messages received from the end user in Natural Language.\nSo the " \
+                          "user can send messages to the chatbot with the following intents categories:\n- " \
+                          "GREETING: when the user starts an interaction with the chatbot (v.g.: 'hello'; " \
+                          "'good morning'; 'hi'; etc.)\n- GOODBYE: when the user ends interaction with the " \
+                          "chatbot (v.g.: 'bye bye'; 'thank you'; 'goodbye'; etc.)\n- HELP: when the user is " \
+                          "asking for help to understand how must interact with the chatbot (v.g.: 'help me'; " \
+                          "'please, help'; 'I need some help.'; etc.)\n- CONFIRMATION: when the user is " \
+                          "confirming some operation. (v.g: 'ok') \n- CANCELLATION: when the user intends to " \
+                          "cancel some operation. (v.g: 'cancel').\n- CRUD: when the user is asking for a " \
+                          "CRUD type operation. CRUD operations refers to the four basic operations a " \
+                          "software application should be able to perform: Create, Read, Update, and Delete. " \
+                          "(v.g.: 'add a student with name=Anderson'; 'for the student with name=Anderson, " \
+                          "update the age for 43'; 'get the teachers with name Paulo Henrique.'; etc.)"
 
     def __init__(self, AC):
         super().__init__()
@@ -53,12 +69,12 @@ class AIEngine(DAO):
     def get_entities_map(self) -> dict:
         return self.__AC.get_entities_map()
 
-    def get_all_attributes(self) -> list:
-        att_list = []
+    def get_all_attributes(self) -> set:
+        attributes = set()
         for class_key in self.__AC.get_entities_map().keys():
             for att_on_model in self.__AC.get_entities_map()[class_key].getAttributes():
-                att_list.append(att_on_model.name)
-        return att_list
+                attributes.add(att_on_model.name)
+        return attributes
 
     def add_alternative_entity_name(self, entity_name, alternative):
         self._execute_query("INSERT OR IGNORE INTO synonymous(entity_name, alternative) VALUES (?,?)",
@@ -93,6 +109,31 @@ class AIEngine(DAO):
             return True
             # else
         return False
+
+    def question_answerer_new(self, question, context, options=None):
+        API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
+        headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
+
+        def generate(input_text):
+            payload = {"inputs": input_text, "options": {"use_cache": True, "wait_for_model": True}}
+            __response = requests.post(API_URL, headers=headers, json=payload)
+            return __response.json()
+
+        def prompt(__question, __context, __options=None, log=False):
+            # input_text = '-QUESTION: %s-CONTEXT: %s-OPTIONS: %s' % (__question + '\n', fact + '\n', options)
+            input_text = '-QUESTION: %s-CONTEXT: %s' % (__question + '\n', __context)
+            if __options:
+                input_text += '\n-OPTIONS: %s' % __options
+            if log:
+                print('PROMPT -------------------')
+                print(input_text)
+                print('--------------------------')
+            return generate(input_text)
+
+        prompt_answer = prompt(question, context, options)
+        response_str = prompt_answer[0]['generated_text']
+        response = {"answer": response_str, "end": context.find(response_str) + len(response_str)}
+        return response
 
     def question_answerer(self, question, context):
         models = ['deepset/roberta-base-squad2',
@@ -145,6 +186,10 @@ class AIEngine(DAO):
 
     # Wrapper class for encapsulate parsing services
     class __MsgParser:
+        @staticmethod
+        def get_bot_context():
+            return AIEngine.GENERAL_BOT_CONTEXT
+
         def __init__(self, user_msg, aie_obj) -> None:
             self.user_msg = user_msg
             self.__AIE = aie_obj
@@ -174,6 +219,8 @@ class AIEngine(DAO):
                         self.tokens_by_type_map[token['entity']] = []
                     self.tokens_by_type_map[token['entity']].append(token)
 
+                self.question_answerer = self.__AIE.question_answerer_new
+
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
 
@@ -190,108 +237,136 @@ class AIEngine(DAO):
                 self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class, self.attributes)
 
         def __getIntentFromMsg(self) -> Intent:
+            # get the intent from the user_msg
+            # the intent is the most likely class of the zero-shot-classification pipeline
+            # considering the user_msg as a text to classify
+            # and the intents as the possible classes
+            # the intent is the class with the highest probability
+
+            # finding if the user's message intention in a "one-word" way
             considered_msg = self.user_msg.lower()
             # clear some problematic or useless expressions from user_msg for discovery the intent
             for useless_expression in USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY:
                 considered_msg = considered_msg.replace(useless_expression, "")
+            # seeking for direct commands
+            if self.tokens[0]['entity'] == 'VERB':
+                first_verb = self.tokens[0]['word']
+                # finding in msg a direct command
+                candidate_intent = Intent.fromString(first_verb)
+                if candidate_intent:
+                    return candidate_intent
+            # else:
+            candidate_intent = Intent.fromString(considered_msg)
+            if candidate_intent:
+                return candidate_intent
+            # else: the one-word way is not enough to discover the intent
 
-            candidate_labels = {str(e) for e in Intent}  # it's a set
-            first_verb = None
-            for token in self.__AIE.posTagMsg(considered_msg):
-                if token['entity'] == 'VERB':
-                    first_verb = token
-                    break
-            intent_return = None
-            if first_verb:
-                # there is at least one verb in the message
-                # then the intent is on of CRUD operations (SAVE, DELETE, READ)
-                # testing similarity for CRUD operations
-                def setIntentIfSimilar(_intent) -> bool:
-                    if first_verb['word'] == _intent:
-                        return _intent
-                    return None
+            # test if the user_msg make some sense
+            question = "Does the user message make any sense?"
+            context = self.get_bot_context() + "\nSo, the first step is to discover if the user's current message " \
+                                               "makes some sense considering this context.\nThe user's current " \
+                                               "message is: '" + self.user_msg + "'"
+            options = "Yes, No"
+            question_answer = self.question_answerer(question, context, options)
+            if question_answer['answer'] == 'No':
+                return Intent.MEANINGLESS
+            # else: the user_msg makes some sense
 
-                for i in Intent:
-                    intent_return = setIntentIfSimilar(i)
-                    if intent_return:
-                        break
-            else:
-                # there is no verb in the message
-                # lower case for considered_msg
-                considered_msg = considered_msg.lower()
-                # removing some candidate labels
-                candidate_labels.remove(str(Intent.SAVE))
-                candidate_labels.remove(str(Intent.DELETE))
-                candidate_labels.remove(str(Intent.READ))
-                # seeking for direct commands without verb
-                considered_tokens_count = len(self.tokens)
-                considered_tokens_count -= len(self.get_tokens_by_type('PUNCT'))
-                if considered_tokens_count <= 2:  # Intent.MAX_NUMBER_OF_TOKENS:
-                    # only one or two meaningful token in the message
-                    # finding in msg a direct command
-                    for label in candidate_labels:
-                        intent = Intent(label)
-                        for key_term in intent.getSynonyms():
-                            if key_term in considered_msg:
-                                intent_return = intent
-                                break
-
-            if not intent_return:
-                # no direct command found
-                # check if message is with some sense
-                if self.get_tokens_by_type('NOUN') or self.get_tokens_by_type('VERB') or self.get_tokens_by_type(
-                        'INTJ'):
-                    # trying to eliminate some possible candidates
-                    zero_shooter = self.__AIE.get_zero_shooter_pipeline()
-                    for label in candidate_labels.copy():
-                        if label != str(Intent.MEANINGLESS):
-                            alternatives = str(Intent(label).getSynonyms())[1:-1]
-                            response = zero_shooter("The message '" + considered_msg + "' is one type of: " +
-                                                    alternatives + " ?", ['yes', 'no'])
-                            if response['labels'][0] == 'no':
-                                candidate_labels.remove(label)
-
-                    # find the intent
-                    if len(candidate_labels) == 0:
-                        intent_return = Intent.MEANINGLESS
-                    elif len(candidate_labels) == 1:
-                        intent_return = Intent(candidate_labels.pop())
-                    else:
-                        candidate_labels.discard(str(Intent.CONFIRMATION))
-                        candidate_labels.discard(str(Intent.CANCELLATION))
-                        candidate_labels.discard(str(Intent.MEANINGLESS))
-                        if not first_verb:
-                            candidate_labels.discard(str(Intent.HELP))
-
-                        intent_return = Intent.MEANINGLESS  # default
-                        if candidate_labels:
-                            # there are some candidates
-                            # filtering the type of the tokens and changing the considered_msg
-                            considered_tokens_types = set(['PRON', 'PART', 'NOUN', 'VERB', 'INTJ', 'ADV', 'DET'])
-                            considered_msg = ''
-
-                            for token in self.tokens:
-                                if token['entity'] in considered_tokens_types:
-                                    considered_msg += token['word'] + ' '
-
-                            if considered_msg:
-                                # try the zero_shooter classifier and update intent_return if the score is high enough
-                                intent_class_result = zero_shooter(considered_msg,
-                                                                   candidate_labels=list(candidate_labels))
-                                first_intent = Intent(intent_class_result['labels'][0].upper())
-                                first_score = float(intent_class_result['scores'][0])
-                                if first_score > PNL_GENERAL_THRESHOLD:
-                                    intent_return = first_intent
+            # finding if the user's message intention refers to a CRUD operation or not
+            question = "What is the type of CRUD operation the user's current message refers to?"
+            context = self.get_bot_context() + "\nSo, answer me what is the type of CRUD operation " \
+                                               "the user's current message refers to. \nThe user's " \
+                                               "current message is: '" + self.user_msg + "'"
+            options = "CREATE, READ, UPDATE, DELETE"
+            question_answer = self.question_answerer(question, context, options)
+            if question_answer['answer'] == 'CREATE':
+                return Intent.SAVE
+            elif question_answer['answer'] == 'READ':
+                return Intent.READ
+            elif question_answer['answer'] == 'UPDATE':
+                return Intent.SAVE
+            elif question_answer['answer'] == 'DELETE':
+                return Intent.DELETE
+            else:  # the user's message intention does not refer to a CRUD operation
+                question = "Is the user's message intention refers to a greeting?"
+                context = self.get_bot_context() + "\nSo, answer me if the user's current message refers to a " \
+                                                   "greeting. \nFollow some examples of greetings:\n- 'hello'; 'good " \
+                                                   "morning'; 'hi';\nThe user's current message is: '" + \
+                          self.user_msg + "'"
+                options = "Yes, No"
+                question_answer = self.question_answerer(question, context, options)
+                if question_answer['answer'] == 'Yes':
+                    return Intent.GREETING
                 else:
-                    # no sense in the message
-                    intent_return = Intent.MEANINGLESS
-
-            return intent_return
+                    question = "Is the user's message intention refers to a goodbye?"
+                    context = self.get_bot_context() + "\nSo, answer me if the user's current message refers to a " \
+                                                       "goodbye. \nFollow some examples of goodbye:\n- 'bye bye'; " \
+                                                       "goodbye. \nThe user's current message is: '" + self.user_msg + \
+                              "'"
+                    question_answer = self.question_answerer(question, context, options)
+                    if question_answer['answer'] == 'Yes':
+                        return Intent.GOODBYE
+                    else:
+                        question = "Is the user's message intention refers to a help?"
+                        context = self.get_bot_context() + "\nSo, answer me if the user's current message refers to a " \
+                                                           "help. \nFollow some examples of help:\n- 'help me'; help. " \
+                                                           "\nThe user's current message is: '" + self.user_msg + "'"
+                        question_answer = self.question_answerer(question, context, options)
+                        if question_answer['answer'] == 'Yes':
+                            return Intent.HELP
+                        else:
+                            question = "Is the user's message intention refers to a confirmation?"
+                            context = self.get_bot_context() + "\nSo, answer me if the user's current message refers " \
+                                                               "to a confirmation. \nFollow some examples of " \
+                                                               "confirmation:\n- 'ok'; 'yes'; 'yep'. \nThe user's " \
+                                                               "current message is: '" + self.user_msg + "'"
+                            question_answer = self.question_answerer(question, context, options)
+                            if question_answer['answer'] == 'Yes':
+                                return Intent.CONFIRMATION
+                            else:
+                                question = "Is the user's message intention refers to a cancellation?"
+                                context = self.get_bot_context() + "\nSo, answer me if the user's current message " \
+                                                                   "refers to a cancellation. \nFollow some examples " \
+                                                                   "of cancellation:\n- 'cancel'; 'no'; 'nope'. \n" \
+                                                                   "The user's current message is: '" + self.user_msg + \
+                                          "'"
+                                question_answer = self.question_answerer(question, context, options)
+                                if question_answer['answer'] == 'Yes':
+                                    return Intent.CANCELLATION
+            # else
+            return Intent.MEANINGLESS
 
         def __getEntityClassFromMsg(self) -> str:
-            response = self.__AIE.question_answerer(
-                question="What is the entity class that the user command refers to?",
-                context=self.__getEntityClassContext())
+            question = "What is the entity class that the user's message refers to?"
+            context = self.get_bot_context() + "\nThe user's message intent is '" + self.intent.name + "'."
+            context += ".\nNow, the chatbot need discover the entity class that the user's message refers to, " \
+                       "considering this context."
+            options = ''
+
+            # adding the candidates
+            candidates = []
+            attributes = self.__AIE.get_all_attributes()
+
+            # iterate over the tags after the verb token (intent)
+            for token in self.tokens:
+                if (token['entity'] == 'NOUN' and  # only nouns
+                        not (token['word'] in attributes)):  # not a known attribute
+                    candidates.append(token['word'])
+                    context += "\nPerhaps the entity class may be this: " + token['word'] + ". "
+
+            # adding current classes
+            for class_key in self.__AIE.get_entities_map():
+                for candidate in candidates:
+                    if self.__AIE.entitiesAreSimilar(class_key, candidate):
+                        # context += "\nThe entity class is definitely this: " + class_key
+                        return class_key
+
+            context += "\nSo, answer me what is the entity class that the user's current message refers to." \
+                       "\nThe user's current message is: '" + self.user_msg + "'."
+
+            options = ",".join(candidates)
+
+            response = self.__AIE.question_answerer_new(question, context, options)
             entity_class_candidate = response['answer']
             if entity_class_candidate == self.intent:
                 return None  # it's an error. Probably the user did not inform the entity class in the right way.
@@ -303,42 +378,6 @@ class AIEngine(DAO):
             # add the entity class to the cache
             self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate)
             return entity_class_candidate
-
-        def __getEntityClassContext(self) -> str:
-            context = "This is the user command: " + self.user_msg + ". "
-            context += "\nThe intent of the user command is " + str(self.intent) + ". "
-            # adding the candidates
-            candidates = []
-            attributes = self.__AIE.get_all_attributes()
-
-            # get end index of the first VERB token in the message
-            verb_intent_idx = -1
-            # iterate over the tokens and find the first verb token
-            for token in self.tokens:
-                verb_intent_idx += 1
-                if token['entity'] == 'VERB':
-                    break
-
-            # iterate over the tags after the verb token (intent)
-            for word in self.tokens[verb_intent_idx + 1:]:
-                if (word['entity'] == 'NOUN' and  # only nouns
-                        not (word['word'] in attributes)):  # not a known attribute
-                    candidates.append(word['word'])
-                    context += "\nPerhaps the entity class may be this: " + word['word'] + ". "
-                    break
-
-            # adding current classes
-            break_loop = False
-            for class_key in self.__AIE.get_entities_map():
-                for candidate in candidates:
-                    if self.__AIE.entitiesAreSimilar(class_key, candidate):
-                        context = "The entity class is definitely this: " + class_key
-                        break_loop = True
-                        break
-                if break_loop:
-                    break
-
-            return context
 
         def __get_attributes_from_msg(self) -> dict:
             """

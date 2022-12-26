@@ -26,6 +26,14 @@ class Intent(AutoName):
     def getSynonyms(self) -> set:
         return INTENT_MAP[str(self)]
 
+    @staticmethod
+    def fromString(intent_str: str):
+        for intent in Intent:
+            if intent == intent_str:
+                return intent
+        # else
+        return None
+
     def __eq__(self, another_intent: object) -> bool:
         return ((self.name == str(another_intent).upper()) or
                 (str(another_intent).lower() in self.getSynonyms()))

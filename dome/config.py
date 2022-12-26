@@ -1,6 +1,8 @@
 # intent mapping
 # >>>>> !!! DON'T CHANGE THE KEYS OF THE INTENT_MAP !!! <<<<<
 # >>>>> !!! KEEP ALL ELEMENTS OF THE VALUE LISTS IN LOWER CASE !!! <<<<<
+import os
+
 INTENT_MAP = {
     'GREETING': {'greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'},
     'SAVE': {'save', 'add', 'create', 'update', 'insert', 'include', 'put', 'set', 'define', 'register', 'record'},
@@ -102,7 +104,7 @@ TIMEOUT_MSG_PARSER = 30  # seconds
 
 DEBUG_MODE = True
 
-USE_PARSER_CACHE = True
+USE_PARSER_CACHE = False
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
@@ -111,3 +113,6 @@ if DEBUG_MODE:
 DJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'
 DJANGO_SUPERUSER_DEFAULT_PASSWORD = 'admin'
 DJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'
+
+# Hugging Face token
+HUGGINGFACE_TOKEN = os.environ['HUGGINGFACE_TOKEN']
