@@ -5,7 +5,8 @@ import os
 
 INTENT_MAP = {
     'GREETING': {'greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'},
-    'SAVE': {'save', 'add', 'create', 'update', 'insert', 'include', 'put', 'set', 'define', 'register', 'record'},
+    'ADD': {'add', 'create', 'insert', 'include', 'put', 'define', 'register', 'record'},
+    'UPDATE': {'update', 'change', 'modify', 'alter', 'edit', 'correct', 'revise', 'replace', 'renew', 'redefine'},
     'READ': {'read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view', 'give', 'display'},
     'DELETE': {'delete', 'remove', 'destroy', 'del', 'erase', 'kill'},
     'CANCELLATION': {'cancellation', 'cancel', 'stop', 'quit', 'exit'},

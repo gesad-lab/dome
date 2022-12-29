@@ -132,7 +132,9 @@ class AIEngine(DAO):
 
         prompt_answer = prompt(question, context, options)
         response_str = prompt_answer[0]['generated_text']
-        response = {"answer": response_str, "end": context.find(response_str) + len(response_str)}
+        response = {"answer": response_str,
+                    "start": context.find(response_str),
+                    "end": context.find(response_str) + len(response_str)}
         return response
 
     def question_answerer(self, question, context):
@@ -196,6 +198,7 @@ class AIEngine(DAO):
             self.intent = None
             self.entity_class = None
             self.attributes = None
+            self.where_clause_attributes = None
 
             # verifying if there is cache for the user_msg in database
             cached_parser = None
@@ -225,12 +228,12 @@ class AIEngine(DAO):
                 self.intent = self.__getIntentFromMsg()
 
                 # discovering of the entity class
-                if self.intent in (Intent.DELETE, Intent.SAVE, Intent.READ):
+                if self.intent in (Intent.DELETE, Intent.ADD, Intent.READ, Intent.UPDATE):
                     self.entity_class = self.__getEntityClassFromMsg()
 
                 # discovering of the attributes
                 if self.entity_class:
-                    self.attributes = self.__get_attributes_from_msg()
+                    self.attributes, self.where_clause_attributes = self.__get_attributes_from_msg()
 
             # saving the cache in database
             if not cached_parser:
@@ -280,11 +283,11 @@ class AIEngine(DAO):
             options = "CREATE, READ, UPDATE, DELETE"
             question_answer = self.question_answerer(question, context, options)
             if question_answer['answer'] == 'CREATE':
-                return Intent.SAVE
+                return Intent.ADD
             elif question_answer['answer'] == 'READ':
                 return Intent.READ
             elif question_answer['answer'] == 'UPDATE':
-                return Intent.SAVE
+                return Intent.UPDATE
             elif question_answer['answer'] == 'DELETE':
                 return Intent.DELETE
             else:  # the user's message intention does not refer to a CRUD operation
@@ -379,16 +382,14 @@ class AIEngine(DAO):
             self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate)
             return entity_class_candidate
 
-        def __get_attributes_from_msg(self) -> dict:
-            """
-            def __get_attributes_context(attribute_name_idx) -> str:
-                # the ";" is to avoid the error of the test.test_add_3
-                # (when the message ends with an email address)
-                return self.user_msg + ";"
-                # return self.user_msg[attribute_name_idx:] + ";"
-            """
+        def __get_attributes_from_msg(self) -> tuple:
             processed_attributes = {}
             CONTEXT_PREFIX = "This is the user command: '"
+            where_clause = None
+            where_clause_attributes = {}
+            if self.intent == Intent.UPDATE:
+                question = "What type of " + self.entity_class + " must be updated?"
+                where_clause = self.question_answerer(question, self.user_msg)
 
             def __get_attributes_context(attribute_target) -> str:
                 context = CONTEXT_PREFIX + self.user_msg + "'. "
@@ -424,7 +425,7 @@ class AIEngine(DAO):
                         # found the first noun after token_j. It is the attribute name
                         attribute_name = token_j['word']
                         # check if the attribute name is in the attributes set
-                        if attribute_name in processed_attributes:
+                        if self.intent != Intent.UPDATE and attribute_name in processed_attributes:
                             # the attribute name is already in the attributes list. It's an error.
                             break
                         # ask by the attribute value using question-answering pipeline
@@ -447,7 +448,11 @@ class AIEngine(DAO):
                             attribute_value = attribute_value[:-1]
 
                         # add the attribute pair to the map
-                        processed_attributes[attribute_name] = attribute_value
+                        if where_clause and where_clause['start'] <= token_j['start'] and \
+                                where_clause['end'] >= att_value_idx_end:
+                            where_clause_attributes[attribute_name] = attribute_value
+                        else:
+                            processed_attributes[attribute_name] = attribute_value
 
                         if att_value_idx_end > -1:
                             # advance for the next token
@@ -457,7 +462,7 @@ class AIEngine(DAO):
                         # no noun found after token_j. It is the end of the attribute list
                         break
 
-            return processed_attributes
+            return processed_attributes, where_clause_attributes
 
         def get_tokens_by_type(self, entityType) -> list:
             if entityType in self.tokens_by_type_map:

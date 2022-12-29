@@ -58,7 +58,7 @@ class TestT2S(unittest.TestCase):
                             'response message not correct.\nresponse[response_msg]=' +
                             str(response['response_msg']) + '\nresponse_list=' + str(response_list))
 
-    def __check_SAVE(self, entity_name, attributes=None, cmd_str=None):
+    def __check_ADD(self, entity_name, attributes=None, cmd_str=None):
         if not cmd_str:
             cmd_str = 'add ' + entity_name
             if attributes:
@@ -68,7 +68,7 @@ class TestT2S(unittest.TestCase):
                     cmd_str += '=' + attribute_value + ","
                 cmd_str = cmd_str[:-1]  # remove the last comma
 
-        self.__check(cmd_str, Intent.SAVE, entity_name, attributes, ATTRIBUTE_OK(str(Intent.SAVE), entity_name))
+        self.__check(cmd_str, Intent.ADD, entity_name, attributes, ATTRIBUTE_OK(str(Intent.ADD), entity_name))
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     # testing the creation of the arquitecture elements
@@ -106,28 +106,28 @@ class TestT2S(unittest.TestCase):
 
     # testing the 'add' intent
     def test_add_1(self):
-        self.__check_SAVE('student', {'name': 'Anderson Martins Gomes', 'age': '20'})
+        self.__check_ADD('student', {'name': 'Anderson Martins Gomes', 'age': '20'})
 
     def test_add_2(self):
-        self.__check_SAVE('subject', {'name': 'Brazilian History', 'description': 'The history of Brazil'})
+        self.__check_ADD('subject', {'name': 'Brazilian History', 'description': 'The history of Brazil'})
 
     def test_add_3(self):
-        self.__check_SAVE('teacher', {'name': 'Paulo Henrique', 'age': '65', 'email': 'ph@uece.br'})
+        self.__check_ADD('teacher', {'name': 'Paulo Henrique', 'age': '65', 'email': 'ph@uece.br'})
 
     def test_add_4(self):
         # save a subject name=Math, and description is 'The best subject ever!'
-        self.__check_SAVE('subject', {'name': 'Math', 'description': "The best subject ever"})
+        self.__check_ADD('subject', {'name': 'Math', 'description': "The best subject ever"})
 
     def test_add_5(self):
-        self.__check_SAVE('subject', {'name': 'Math', 'description': "The best subject ever!"},
-                          cmd_str="add subject with name=Math, description='The best subject ever!'")
+        self.__check_ADD('subject', {'name': 'Math', 'description': "The best subject ever!"},
+                         cmd_str="add subject with name=Math, description='The best subject ever!'")
 
     def __check_cancel(self, msg='cancel'):
         self.__check(msg, Intent.CANCELLATION, None, None, CANCEL)
 
     def test_cancel_1(self):
-        self.__check("add student name=Anderson", Intent.SAVE, "student", {'name': 'Anderson'},
-                     ATTRIBUTE_OK(str(Intent.SAVE), "student"))
+        self.__check("add student name=Anderson", Intent.ADD, "student", {'name': 'Anderson'},
+                     ATTRIBUTE_OK(str(Intent.ADD), "student"))
         self.__check_cancel('cancel')
 
     def test_cancel_2(self):
@@ -148,7 +148,7 @@ class TestT2S(unittest.TestCase):
         self.__check_help('Please, help me!')
 
     def __check_delete(self, entity_name, delete_msg, attributes=None):
-        self.__check_SAVE(entity_name, attributes)
+        self.__check_ADD(entity_name, attributes)
         self.__check(delete_msg, Intent.DELETE, entity_name, attributes,
                      ATTRIBUTE_OK(str(Intent.DELETE), entity_name))
         self.__check('ok', Intent.CONFIRMATION, None, None, DELETE_SUCCESS(1))
@@ -175,6 +175,11 @@ class TestT2S(unittest.TestCase):
     def __check_corner_case(self, msg):
         self.__check(msg, Intent.MEANINGLESS, None, None, MISUNDERSTANDING)
 
+    def test_update_01(self):
+        msg = "For the students with name='Anderson', update the name to 'Anderson Martins.'"
+        self.__check(msg, Intent.ADD, 'student', {'name': 'Anderson Martins'},
+                     ATTRIBUTE_OK(str(Intent.ADD), 'student'))
+
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
 
@@ -189,9 +194,9 @@ class TestT2S(unittest.TestCase):
 
     def test_corner_case_5(self):
         msg = 'Include outcome value 900, date is today, and description is "adjusting the numbers"'
-        self.__check_SAVE(entity_name='outcome',
-                          attributes={'value': '900', 'date': 'today', 'description': 'adjusting the numbers'},
-                          cmd_str=msg)
+        self.__check_ADD(entity_name='outcome',
+                         attributes={'value': '900', 'date': 'today', 'description': 'adjusting the numbers'},
+                         cmd_str=msg)
 
     def test_corner_case_6(self):
         self.__check(cmd_str='show teachers',
@@ -205,14 +210,14 @@ class TestT2S(unittest.TestCase):
 
     def test_corner_case_8(self):
         self.__check(cmd_str='Add a test with scope=Module X, date=01/01/2022, timeout = 100, limit = 10',
-                     expected_intent=Intent.SAVE,
+                     expected_intent=Intent.ADD,
                      expected_class='test',
                      expected_attributes={'scope': 'Module X', 'date': '01/01/2022', 'timeout': '100', 'limit': '10'})
 
     def test_corner_case_9(self):
         # attributes names with spaces
         self.__check(cmd_str='Add a test with scope=Module Y and number of errors = 8',
-                     expected_intent=Intent.SAVE,
+                     expected_intent=Intent.ADD,
                      expected_class='test',
                      # project specific rule. The attribute must have only one word.
                      expected_attributes={'scope': 'Module Y', 'number': '8'})

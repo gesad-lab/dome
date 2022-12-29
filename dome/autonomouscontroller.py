@@ -136,7 +136,7 @@ class AutonomousController:
             if (user_data['pending_intent'] is not None
                     and user_data['pending_class'] is not None
                     and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
-                if user_data['pending_intent'] == Intent.SAVE:  # TODO: #17 refactoring to change code to DomainEngine
+                if user_data['pending_intent'] == Intent.ADD:  # TODO: #17 refactoring to change code to DomainEngine
                     # including the entity
                     domain_entity = self.__DE.saveEntity(user_data['pending_class'])
                     for att_name in user_data['pending_attributes'].keys():

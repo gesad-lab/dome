@@ -10,7 +10,8 @@ class AutoName(Enum):
 
 class Intent(AutoName):
     # "confirmation", "cancellation", "help", "greeting", "save", "delete", "read", "goodbye"
-    SAVE = auto()
+    ADD = auto()
+    UPDATE = auto()
     DELETE = auto()
     GREETING = auto()
     READ = auto()
