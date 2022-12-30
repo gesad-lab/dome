@@ -66,19 +66,19 @@ ATTRIBUTE_FORMAT = [
     "example:\nage = 21"]
 
 ATTRIBUTE_FORMAT_FIRST_ATTEMPT = lambda opr, clas: [
-    f"Ok! We are going to {opr} a {clas}. Please, now inform the data in the following format:\n<<data name>> = "
+    f"Ok! We are going to <b>{opr}</b> a <b>{clas}</b>. Please, now inform the data in the following format:\n<<data name>> = "
     f"<<data value>>\nFor example:\nage = 21"]
 
-ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to {opr} a {clas}.\nSay 'Ok' to confirm\n'Cancel' to "
+ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to <b>{opr}</b> a <b>{clas}</b>.\nSay 'Ok' to confirm\n'Cancel' to "
                                   f"cancel this operation."]
 
 SAVE_SUCCESS = ['Ok! Information saved successfully!',
                 'It done! Information saved. ;)',
                 "Yes! All done. We've saved your data with security."]
 
-DELETE_SUCCESS = lambda n_del: [f"Ok! {n_del} registers deleted.",
-                                f"Done! {n_del} deleted.",
-                                f"{n_del} registers deleted successfully."
+DELETE_SUCCESS = lambda n_del: [f"Ok! <b>{n_del}</b> registers deleted.",
+                                f"Done! <b>{n_del}</b> deleted.",
+                                f"<b>{n_del}</b> registers deleted successfully."
                                 ]
 
 DELETE_FAILURE = ['Nothing to delete. Please, try again.']
@@ -87,10 +87,10 @@ NO_REGISTERS = ['There are no info to show.']
 
 LIMIT_REGISTERS = 10  # limit of registers to show
 
-LIMIT_REGISTERS_MSG = "A maximum of " + str(LIMIT_REGISTERS) + \
-                      "  registers are shown. Apply filters to a more accurate search."
+LIMIT_REGISTERS_MSG = "A maximum of <b>" + str(LIMIT_REGISTERS) + \
+                      "</b>  registers are shown. Apply filters to a more accurate search."
 
-CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."]
+CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about <b>'{clas}'</b> saved. \nPlease, try something else."]
 
 MISSING_CLASS = [
     "Would you please inform me of the information type that you want to operate? For instance, if you are trying to "
@@ -112,9 +112,9 @@ PNL_GENERAL_THRESHOLD = 0.75
 
 TIMEOUT_MSG_PARSER = 30  # seconds
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
-USE_PARSER_CACHE = False
+USE_PARSER_CACHE = True
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
