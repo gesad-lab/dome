@@ -87,6 +87,9 @@ NO_REGISTERS = ['There are no info to show.']
 
 LIMIT_REGISTERS = 10  # limit of registers to show
 
+LIMIT_REGISTERS_MSG = "A maximum of " + str(LIMIT_REGISTERS) + \
+                      "  registers are shown. Apply filters to a more accurate search."
+
 CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."]
 
 MISSING_CLASS = [

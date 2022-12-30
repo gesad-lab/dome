@@ -15,7 +15,7 @@ from dome.config import (ATTRIBUTE_FORMAT,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
                          NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
-                         CONFIRMATION_WITHOUT_PENDING_INTENT)
+                         CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -125,7 +125,7 @@ class AutonomousController:
         self.__SE.save_msg_handle_log(msg, user_data['id'], response, time.perf_counter() - t0)
 
         if DEBUG_MODE:
-            return "[DEBUG_MODE_ON]\n" + response['response_msg']
+            return "<b>[DEBUG_MODE_ON]</b>\n" + response['response_msg']
         # else:
         return response['response_msg']
 
@@ -170,7 +170,8 @@ class AutonomousController:
                         msg_return_list = NO_REGISTERS
                     else:
                         msg_return_list = [
-                            str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
+                            str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True)) +
+                            '\n------\n<i>' + LIMIT_REGISTERS_MSG + '</i>']
                 self.clear_opr(user_data)
             else:  # ok without pending intent
                 msg_return_list = CONFIRMATION_WITHOUT_PENDING_INTENT
