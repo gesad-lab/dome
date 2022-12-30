@@ -14,7 +14,8 @@ from dome.config import (ATTRIBUTE_FORMAT,
                          BYE, CANCEL, CLASS_NOT_IN_DOMAIN, DEBUG_MODE,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
-                         NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT)
+                         NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
+                         CONFIRMATION_WITHOUT_PENDING_INTENT)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -171,6 +172,8 @@ class AutonomousController:
                         msg_return_list = [
                             str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True))]
                 self.clear_opr(user_data)
+            else:  # ok without pending intent
+                msg_return_list = CONFIRMATION_WITHOUT_PENDING_INTENT
         elif parser.intent == Intent.CANCELLATION:
             if user_data['pending_intent']:
                 self.clear_opr(user_data)
