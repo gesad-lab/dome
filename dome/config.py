@@ -53,6 +53,8 @@ name=Self-Adaptive Systems', 'view classes', or 'delete class name=Java'. """,
 
 CANCEL = ['No problem! The operation was canceled successfully.']
 
+CANCEL_WITHOUT_PENDING_INTENT = ['There is no operation to cancel.']
+
 ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel. ;)]',
                "[Any time you can say 'ok' to confirm the operation, or 'cancel' to cancel the current operation]"
                ]
