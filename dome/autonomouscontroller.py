@@ -129,6 +129,15 @@ class AutonomousController:
         # else:
         return response['response_msg']
 
+    def __update_model(self, user_data):
+        domain_entity = self.__DE.saveEntity(user_data['pending_class'])
+        for att_name in user_data['pending_attributes'].keys():
+            self.__DE.addAttribute(domain_entity, att_name, 'str')
+        if 'pending_where_clause' in user_data and user_data['pending_where_clause']:
+            for att_name in user_data['pending_where_clause'].keys():
+                self.__DE.addAttribute(domain_entity, att_name, 'str')
+        self.__IC.updateAppWeb()
+
     def app_chatbot_msg_process(self, msg, user_data=None):
 
         return_dict = {'user_msg': msg}
@@ -145,15 +154,14 @@ class AutonomousController:
                     and user_data['pending_class'] is not None
                     and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
                 if user_data['pending_intent'] == Intent.ADD:
-                    # including the entity
-                    domain_entity = self.__DE.saveEntity(user_data['pending_class'])
-                    for att_name in user_data['pending_attributes'].keys():
-                        self.__DE.addAttribute(domain_entity, att_name, 'str')  # TODO: #18 to manage the type
-                    self.__IC.updateAppWeb()
+                    # updating the model
+                    self.__update_model(user_data)
                     # add the data
                     self.__DE.add(user_data['pending_class'], user_data['pending_attributes'])
                     msg_return_list = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.UPDATE:
+                    # updating the model
+                    self.__update_model(user_data)
                     # updating the data
                     self.__DE.update(user_data['pending_class'], user_data['pending_attributes'],
                                      user_data['pending_where_clause'])
