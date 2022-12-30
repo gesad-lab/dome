@@ -35,17 +35,17 @@ GREETINGS = ["Hi! You can say something like 'Save student with name=Anderson'",
 
 BYE = ["Ok! Thank you. See you next time!",
        "Thank you so much. I stand at your disposal.",
-       "Thank you! If you need save some info, please text me."
+       "Thank you! If you need add some info, please text me."
        ]
 
-HELP = ["""I'm a bot that helps you save your information in an organized, secure, and flexible way. Say what you 
-want to save, update, delete or only get info. \nFor example, say something like 'save a class with 
+HELP = ["""I'm a bot that helps you add your information in an organized, secure, and flexible way. Say what you 
+want to add, update, delete or only get info. \nFor example, say something like 'add a class with 
 name=Self-Adaptive Systems', 'view classes', or 'delete class name=Java'. """,
-        """I'm a bot that allows you to save your information using natural language. Like a traditional system, 
+        """I'm a bot that allows you to add your information using natural language. Like a traditional system, 
     but more accessible and flexible. \nFor instance, to register a student, say 'add student with gender=Female, 
     name=Mary, email=mary@school.com' or 'delete student name=Mary'. """,
         """I'm your bot that securely saves your information. I understand better direct sentences. \nThus let me know 
-    first what you want to do (save, read or delete some data), what type the information you want to operate (a 
+    first what you want to do (add, read or delete some data), what type the information you want to operate (a 
     student, a class, a class registration, etc.), and, finally, the data itself. \nSome examples: 'add class 
     registration with student=Anderson, class=Python', 'delete registration student=Anderson', 'get info about the 
     class=Python'. """
@@ -85,7 +85,7 @@ CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' sav
 
 MISSING_CLASS = [
     "Would you please inform me of the information type that you want to operate? For instance, if you are trying to "
-    "save data about a student, say 'student'.\n(If you wish to cancel this operation, say 'cancel'.)"]
+    "add data about a student, say 'student'.\n(If you wish to cancel this operation, say 'cancel'.)"]
 MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
 
 GENERAL_FAILURE = '[ERROR] Sorry, but I could not complete the operation because of an internal error. Please, ' \

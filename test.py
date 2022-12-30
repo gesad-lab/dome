@@ -115,7 +115,7 @@ class TestT2S(unittest.TestCase):
         self.__check_ADD('teacher', {'name': 'Paulo Henrique', 'age': '65', 'email': 'ph@uece.br'})
 
     def test_add_4(self):
-        # save a subject name=Math, and description is 'The best subject ever!'
+        # add a subject name=Math, and description is 'The best subject ever!'
         self.__check_ADD('subject', {'name': 'Math', 'description': "The best subject ever"})
 
     def test_add_5(self):
@@ -176,9 +176,10 @@ class TestT2S(unittest.TestCase):
         self.__check(msg, Intent.MEANINGLESS, None, None, MISUNDERSTANDING)
 
     def test_update_01(self):
-        msg = "For the students with name='Anderson', update the name to 'Anderson Martins.'"
-        self.__check(msg, Intent.ADD, 'student', {'name': 'Anderson Martins'},
-                     ATTRIBUTE_OK(str(Intent.ADD), 'student'))
+        msg = "For the students with name='Anderson', update the name to 'Anderson Martins'"
+        self.__check(msg, Intent.UPDATE, 'student', {'name': 'Anderson Martins'},
+                     ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
+        self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
@@ -216,7 +217,7 @@ class TestT2S(unittest.TestCase):
 
     def test_corner_case_9(self):
         # attributes names with spaces
-        self.__check(cmd_str='Add a test with scope=Module Y and number of errors = 8',
+        self.__check(cmd_str='Add a test with scope=Module Y and number = 8',
                      expected_intent=Intent.ADD,
                      expected_class='test',
                      # project specific rule. The attribute must have only one word.

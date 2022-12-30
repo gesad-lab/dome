@@ -1,5 +1,5 @@
 --delete from parser_cache;
-
+/*
 DROP TABLE IF EXISTS msg_handle_log;
 CREATE TABLE "msg_handle_log" (
 	"id"	INTEGER NOT NULL UNIQUE,
@@ -11,7 +11,7 @@ CREATE TABLE "msg_handle_log" (
 	PRIMARY KEY("id" AUTOINCREMENT),
 	FOREIGN KEY("user_id") REFERENCES "users"("id")
 );
-
+*/
 /*
 DROP VIEW IF EXISTS vw_considered_parser_cache;
 CREATE VIEW 'vw_considered_parser_cache' AS

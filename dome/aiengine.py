@@ -119,11 +119,11 @@ class AIEngine(DAO):
             __response = requests.post(API_URL, headers=headers, json=payload)
             return __response.json()
 
-        def prompt(__question, __context, __options=None, log=False):
+        def prompt(question_, context_, options_=None, log=DEBUG_MODE):
             # input_text = '-QUESTION: %s-CONTEXT: %s-OPTIONS: %s' % (__question + '\n', fact + '\n', options)
-            input_text = '-QUESTION: %s-CONTEXT: %s' % (__question + '\n', __context)
-            if __options:
-                input_text += '\n-OPTIONS: %s' % __options
+            input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
+            if options_:
+                input_text += '\n-OPTIONS: %s' % options_
             if log:
                 print('PROMPT -------------------')
                 print(input_text)
@@ -132,9 +132,7 @@ class AIEngine(DAO):
 
         prompt_answer = prompt(question, context, options)
         response_str = prompt_answer[0]['generated_text']
-        response = {"answer": response_str,
-                    "start": context.find(response_str),
-                    "end": context.find(response_str) + len(response_str)}
+        response = {"answer": response_str}
         return response
 
     def question_answerer(self, question, context):
@@ -387,18 +385,50 @@ class AIEngine(DAO):
             CONTEXT_PREFIX = "This is the user command: '"
             where_clause = None
             where_clause_attributes = {}
-            if self.intent == Intent.UPDATE:
-                question = "What type of " + self.entity_class + " must be updated?"
-                where_clause = self.question_answerer(question, self.user_msg)
+            where_clause_idx_start = len(self.user_msg)
+            where_clause_idx_end = -1
+            user_msg_without_where_clause = self.user_msg
 
-            def __get_attributes_context(attribute_target) -> str:
-                context = CONTEXT_PREFIX + self.user_msg + "'. "
-                context += "\nThe intent of the user command is '" + str(self.intent) + "'. "
-                context += "\nThe entity class is '" + str(self.entity_class) + "'. "
-                for att_name, att_value in processed_attributes.items():
-                    context += "\nThe attribute '" + att_name + "' has the value '" + att_value + "'. "
-                    context += " So, '" + attribute_target + "' is not '" + att_value + "'! "
-                return context
+            if self.intent == Intent.UPDATE:
+                question = "In the user's message, what type of '" + self.entity_class + \
+                           "' must be updated? Give me the answer as a exact subsentence of the user's message."
+                where_clause = self.question_answerer(question, "user's message=" + self.user_msg)
+                where_clause_idx_start = self.user_msg.find(where_clause['answer'])
+                if where_clause_idx_start > -1:
+                    where_clause_idx_end = where_clause_idx_start + len(where_clause['answer'])
+                    where_clause = where_clause['answer']
+                    user_msg_without_where_clause = self.user_msg.replace(where_clause, '')
+
+            def idx_in_where_clause(idx):
+                return where_clause and (where_clause_idx_start <= idx <= where_clause_idx_end)
+
+            def __get_attributes_context(attribute_target, cur_token) -> str:
+                fragment_long = self.user_msg[cur_token['start']:]
+                fragment_short = self.user_msg[cur_token['end']:]
+                considered_attributes = processed_attributes
+                att_context = CONTEXT_PREFIX + self.user_msg + "'. "
+
+                if where_clause:
+                    att_context = CONTEXT_PREFIX + user_msg_without_where_clause + "'. "
+
+                att_context += "\nThe intent of the user command is '" + str(self.intent) + "'. "
+                att_context += "\nThe entity class is '" + str(self.entity_class) + "'. "
+                if idx_in_where_clause(cur_token['start']):
+                    fragment_long = where_clause
+                    fragment_short = where_clause[where_clause.find(attribute_target) + len(attribute_target):]
+                    considered_attributes = where_clause_attributes
+                    att_context = ''
+
+                att_context += '\nsentence fragment="' + fragment_long + '";\n The answer is a substring of "' + \
+                              fragment_short + '". \n"' + \
+                              attribute_target + '" is the name of a field in database. \nI\'m trying discover ' \
+                                               'the value of the "' + attribute_target + '" in the sentence ' \
+                                                                                       'fragment.'
+                for att_name, att_value in considered_attributes.items():
+                    att_context += "\nThe field '" + att_name + "' has the value '" + att_value + "'. "
+                    att_context += " So, '" + attribute_target + "' is not '" + att_value + "'! "
+
+                return att_context
 
             # finding the index after the entity class name in the message
             entity_class_token_idx = -1
@@ -429,27 +459,32 @@ class AIEngine(DAO):
                             # the attribute name is already in the attributes list. It's an error.
                             break
                         # ask by the attribute value using question-answering pipeline
-                        response = self.__AIE.question_answerer(question='What is the ' + attribute_name +
-                                                                         ' of the ' + self.entity_class + '?',
-                                                                context=__get_attributes_context(attribute_name))
+                        response = self.question_answerer(question="What is the '" + attribute_name +
+                                                                   "' in the sentence fragment?"
+                                                                "\nAnswer me with the exact substring of the sentence fragment." \
+                                                                   "\nAnswer me with only the value of the attribute."
+                                                          , context=__get_attributes_context(attribute_name, token_j))
 
                         # update the j index to the next token after the attribute value
                         # get the end index in the original msg
-                        att_value_idx_end = response['end'] - len(CONTEXT_PREFIX)
+                        att_value_idx_end = self.user_msg.find(response['answer'], token_j['end'])
+                        if att_value_idx_end > -1:
+                            att_value_idx_end += len(response['answer'])
 
                         if att_value_idx_end <= token_j['end']:
                             # inconsistency in the answer (see test.test_corner_case_10)
                             break
                         # else: all right
-                        # save the pair of attribute name and attribute value in the result list
+                        # add the pair of attribute name and attribute value in the result list
                         attribute_value = response['answer']
                         # clean the attribute value
-                        if attribute_value[-1] in ["'", '"']:  # see test.test_add_5()
+                        if not attribute_value[0].isalnum():  # see test.test_add_5()
+                            attribute_value = attribute_value[1:]
+                        if not attribute_value[-1].isalnum():  # see test.test_add_5()
                             attribute_value = attribute_value[:-1]
 
                         # add the attribute pair to the map
-                        if where_clause and where_clause['start'] <= token_j['start'] and \
-                                where_clause['end'] >= att_value_idx_end:
+                        if idx_in_where_clause(att_value_idx_end):
                             where_clause_attributes[attribute_name] = attribute_value
                         else:
                             processed_attributes[attribute_name] = attribute_value

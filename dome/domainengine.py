@@ -28,7 +28,7 @@ class DomainEngine:
         # else
         # create new entity
         e = Entity(entity_name)
-        # save entity in map
+        # add entity in map
         self.__entities_map[entity_name] = e
         # return entity
         return e
@@ -61,7 +61,7 @@ class DomainEngine:
     def __getEntityDBNamePrefix(self):
         return self.__AC.getWebApp_path() + '_'
 
-    def save(self, entity, attributes):
+    def add(self, entity, attributes):
         sql_cmd = "INSERT OR REPLACE INTO " + self.__getEntityDBName(entity) + "("
         for k in attributes.keys():
             sql_cmd += k + ", "
@@ -71,6 +71,20 @@ class DomainEngine:
             sql_cmd += "'" + str(v) + "', "
         sql_cmd = sql_cmd[:-2]  # removing the last comma
         sql_cmd += ")"
+        self.__executeSqlCmd(sql_cmd)
+
+    def update(self, entity, attributes, where_clause):
+        sql_cmd = "UPDATE " + self.__getEntityDBName(entity) + " SET"
+        for attribute_name, attribute_value in attributes.items():
+            sql_cmd += ' ' + attribute_name + "='" + attribute_value + "',"
+        sql_cmd = sql_cmd[:-1]  # removing the last comma
+        # fill-up the where clause
+        if where_clause:
+            sql_cmd += " where "
+            for k in where_clause.keys():
+                sql_cmd += "LOWER(" + k + ") LIKE LOWER('%" + where_clause[k] + "%') AND "
+            sql_cmd = sql_cmd[:-4]  # removing the last AND
+
         self.__executeSqlCmd(sql_cmd)
 
     def read(self, entity, attributes):

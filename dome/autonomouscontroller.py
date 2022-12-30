@@ -94,6 +94,13 @@ class AutonomousController:
 
         user_data['pending_attributes'] = {}
 
+        user_data['previous_where_clause'] = None
+        if 'pending_where_clause' in user_data:
+            # saving the previous previous_where_clause for the tests
+            user_data['previous_where_clause'] = user_data['pending_where_clause']
+
+        user_data['pending_where_clause'] = {}
+
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msg_handle(self, msg, context):
@@ -136,14 +143,19 @@ class AutonomousController:
             if (user_data['pending_intent'] is not None
                     and user_data['pending_class'] is not None
                     and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
-                if user_data['pending_intent'] == Intent.ADD:  # TODO: #17 refactoring to change code to DomainEngine
+                if user_data['pending_intent'] == Intent.ADD:
                     # including the entity
                     domain_entity = self.__DE.saveEntity(user_data['pending_class'])
                     for att_name in user_data['pending_attributes'].keys():
                         self.__DE.addAttribute(domain_entity, att_name, 'str')  # TODO: #18 to manage the type
                     self.__IC.updateAppWeb()
-                    # save the data
-                    self.__DE.save(user_data['pending_class'], user_data['pending_attributes'])
+                    # add the data
+                    self.__DE.add(user_data['pending_class'], user_data['pending_attributes'])
+                    msg_return_list = SAVE_SUCCESS
+                elif user_data['pending_intent'] == Intent.UPDATE:
+                    # updating the data
+                    self.__DE.update(user_data['pending_class'], user_data['pending_attributes'],
+                                     user_data['pending_where_clause'])
                     msg_return_list = SAVE_SUCCESS
                 elif user_data['pending_intent'] == Intent.DELETE:
                     query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_attributes'])
@@ -209,6 +221,7 @@ class AutonomousController:
                         else:  # all ok!
                             user_data['pending_atts_first_attempt'] = False
                             user_data['pending_attributes'] = parser.attributes
+                            user_data['pending_where_clause'] = parser.where_clause_attributes
                             # if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msg_process('ok', user_data=user_data)
