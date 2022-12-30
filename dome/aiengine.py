@@ -50,19 +50,20 @@ class AIEngine(DAO):
                                             pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
                                             model=model, aggregation_strategy=aggregation_strategy)
 
-        # to solve bug about delete expression that the model recognizes as PROPN
-        considered_msg = msg.lower().replace('delete', 'to delete')
-
+        considered_msg = msg.lower()
         tokens = token_classifier(considered_msg)
 
         if aggregation_strategy is None:
             # merge the token that word starts with ## (e.g. ##ing) with the previous token
-            for i in range(len(tokens) - 1, 0, -1):
-                if tokens[i]['word'].startswith('##'):
+            for i in range(len(tokens) - 1, -1, -1):
+                if i > 0 and tokens[i]['word'].startswith('##'):
                     tokens[i - 1]['word'] += tokens[i]['word'][2:]
                     tokens[i - 1]['end'] += len(tokens[i]['word']) - 2
                     tokens[i]['entity'] = None
                     tokens[i]['word'] = None
+                elif tokens[i]['word'] == 'delete' and tokens[i]['entity'] == 'PROPN':
+                    # to solve bug about delete expression that the model recognizes as PROPN
+                    tokens[i]['entity'] = 'VERB'
 
         return tokens
 
