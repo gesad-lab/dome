@@ -119,12 +119,12 @@ class AIEngine(DAO):
             __response = requests.post(API_URL, headers=headers, json=payload)
             return __response.json()
 
-        def prompt(question_, context_, options_=None, log=DEBUG_MODE):
+        def prompt(question_, context_, options_=None):
             # input_text = '-QUESTION: %s-CONTEXT: %s-OPTIONS: %s' % (__question + '\n', fact + '\n', options)
             input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
             if options_:
                 input_text += '\n-OPTIONS: %s' % options_
-            if log:
+            if DEBUG_MODE:
                 print('PROMPT -------------------')
                 print(input_text)
                 print('--------------------------')
@@ -133,6 +133,12 @@ class AIEngine(DAO):
         prompt_answer = prompt(question, context, options)
         response_str = prompt_answer[0]['generated_text']
         response = {"answer": response_str}
+
+        if DEBUG_MODE:
+            print('RESPONSE -----------------')
+            print(response)
+            print('--------------------------')
+
         return response
 
     def question_answerer(self, question, context):

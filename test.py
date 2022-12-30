@@ -210,7 +210,8 @@ class TestT2S(unittest.TestCase):
                      expected_class='invoice')
 
     def test_corner_case_8(self):
-        self.__check(cmd_str='Add a test with scope=Module X, date=01/01/2022, timeout = 100, limit = 10',
+        # 'limit = 10' is a corner case
+        self.__check(cmd_str='Add a test with scope=Module X, date=01/01/2022, timeout = 100, limit=10',
                      expected_intent=Intent.ADD,
                      expected_class='test',
                      expected_attributes={'scope': 'Module X', 'date': '01/01/2022', 'timeout': '100', 'limit': '10'})
