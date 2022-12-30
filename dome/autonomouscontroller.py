@@ -125,7 +125,7 @@ class AutonomousController:
         self.__SE.save_msg_handle_log(msg, user_data['id'], response, time.perf_counter() - t0)
 
         if DEBUG_MODE:
-            return "[DEBUG_MODE_ON] " + response['response_msg']
+            return "[DEBUG_MODE_ON]\n" + response['response_msg']
         # else:
         return response['response_msg']
 

@@ -85,6 +85,8 @@ DELETE_FAILURE = ['Nothing to delete. Please, try again.']
 
 NO_REGISTERS = ['There are no info to show.']
 
+LIMIT_REGISTERS = 10  # limit of registers to show
+
 CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about '{clas}' saved. \nPlease, try something else."]
 
 MISSING_CLASS = [

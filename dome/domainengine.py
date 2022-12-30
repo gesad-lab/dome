@@ -2,6 +2,8 @@ from dome.auxiliary.entity import Entity
 import sqlite3
 import pandas as pd
 
+from dome.config import LIMIT_REGISTERS
+
 
 class DomainEngine:
     def __init__(self, AC):
@@ -91,6 +93,9 @@ class DomainEngine:
         sql_cmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where (1=1)"
         for k in attributes.keys():
             sql_cmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
+
+        # put limit to LIMIT_REGISTERS
+        sql_cmd += " LIMIT " + str(LIMIT_REGISTERS)
 
         query = self.__executeSqlCmd(sql_cmd)
         cols = [column[0] for column in query.description]
