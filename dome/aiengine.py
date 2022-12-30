@@ -480,7 +480,7 @@ class AIEngine(DAO):
                         # clean the attribute value
                         if not attribute_value[0].isalnum():  # see test.test_add_5()
                             attribute_value = attribute_value[1:]
-                        if not attribute_value[-1].isalnum():  # see test.test_add_5()
+                        if attribute_value[-1] in ['"', "'"]:
                             attribute_value = attribute_value[:-1]
 
                         # add the attribute pair to the map
