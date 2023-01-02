@@ -2,7 +2,8 @@ import json
 import unittest
 
 from dome.auxiliary.enums.intent import Intent
-from dome.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS
+from dome.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS, \
+    CANCEL_WITHOUT_PENDING_INTENT
 from dome.multichannelapp import MultiChannelApp
 
 
@@ -133,7 +134,7 @@ class TestT2S(unittest.TestCase):
     def test_cancel_2(self):
         self.__check_corner_case("bla bla bla")
         self.__check(cmd_str='please, cancel', expected_intent=Intent.CANCELLATION,
-                     response_list=MISUNDERSTANDING)  # because the user is not in the middle of an operation
+                     response_list=CANCEL_WITHOUT_PENDING_INTENT)  # because the user is not in the middle of an operation
 
     def __check_help(self, msg='help'):
         self.__check(msg, Intent.HELP, None, None, HELP)
@@ -157,20 +158,21 @@ class TestT2S(unittest.TestCase):
         self.__check_delete('student', 'delete student name is Anderson, and age is 199',
                             {'name': 'Anderson', 'age': '199'})
 
-    def __check_read(self, msg):
-        self.__check(msg, Intent.CONFIRMATION)
+    def __check_read(self, msg, entity_name, attributes=None):
+        self.__check(cmd_str=msg, expected_intent=Intent.READ,
+                     expected_class=entity_name, expected_attributes=attributes)
 
     def test_read_1(self):
-        self.__check_read("show all students")
+        self.__check_read("show all students", "student")
 
     def test_read_2(self):
-        self.__check_read("view students")
+        self.__check_read("view students", "student")
 
     def test_read_3(self):
-        self.__check_read("fetch the students")
+        self.__check_read("fetch the students", "student")
 
     def test_read_4(self):
-        self.__check_read("get the students")
+        self.__check_read("get the students", "student")
 
     def __check_corner_case(self, msg):
         self.__check(msg, Intent.MEANINGLESS, None, None, MISUNDERSTANDING)

@@ -234,6 +234,10 @@ class AIEngine(DAO):
 
                 # discovering of the entity class
                 if self.intent in (Intent.DELETE, Intent.ADD, Intent.READ, Intent.UPDATE):
+                    if self.tokens[0]['entity'] != 'VERB' and self.tokens[0]['word'] == self.intent:
+                        # adjusting the first token to be a verb, considering the intent (see test_corner_case_13)
+                        self.tokens[0]['entity'] = 'VERB'
+
                     self.entity_class = self.__getEntityClassFromMsg()
 
                 # discovering of the attributes
