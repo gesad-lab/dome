@@ -1,4 +1,5 @@
---delete from parser_cache;
+delete from parser_cache;
+delete from synonymous;
 /*
 DROP TABLE IF EXISTS msg_handle_log;
 CREATE TABLE "msg_handle_log" (

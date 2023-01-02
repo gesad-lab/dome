@@ -437,7 +437,7 @@ class AIEngine(DAO):
 
                 return att_context
 
-            # finding the index after the entity class name in the message
+            # finding the index of the entity class name in the message
             entity_class_token_idx = -1
             for i, token_i in enumerate(self.tokens):
                 # advance forward until the token of the entity class is found
@@ -445,64 +445,63 @@ class AIEngine(DAO):
                     entity_class_token_idx = i
                     break
 
-            if entity_class_token_idx > -1:  # if the entity class token was found
-                # iterate over the tokens and find the attribute names and values
-                j = entity_class_token_idx + 1
-                while j < len(self.tokens):
-                    # advance forward until the token of the type "NOUN" is found (i.e. the first noun it is an
-                    # attribute name)
-                    token_j = None
-                    while j < len(self.tokens) and token_j is None:
-                        if self.tokens[j]['entity'] == 'NOUN':
-                            token_j = self.tokens[j]
-                        else:
-                            j += 1
-
-                    if token_j:
-                        # found the first noun after token_j. It is the attribute name
-                        attribute_name = token_j['word']
-                        # check if the attribute name is in the attributes set
-                        if self.intent != Intent.UPDATE and attribute_name in processed_attributes:
-                            # the attribute name is already in the attributes list. It's an error.
-                            break
-                        # ask by the attribute value using question-answering pipeline
-                        response = self.question_answerer(question="What is the '" + attribute_name +
-                                                                   "' in the sentence fragment?"
-                                                                "\nAnswer me with the exact substring of the sentence fragment." \
-                                                                   "\nAnswer me with only the value of the attribute."
-                                                          , context=__get_attributes_context(attribute_name, token_j))
-
-                        # update the j index to the next token after the attribute value
-                        # get the end index in the original msg
-                        att_value_idx_end = self.user_msg.find(response['answer'], token_j['end'])
-                        if att_value_idx_end > -1:
-                            att_value_idx_end += len(response['answer'])
-
-                        if att_value_idx_end <= token_j['end']:
-                            # inconsistency in the answer (see test.test_corner_case_10)
-                            break
-                        # else: all right
-                        # add the pair of attribute name and attribute value in the result list
-                        attribute_value = response['answer']
-                        # clean the attribute value
-                        if not attribute_value[0].isalnum():  # see test.test_add_5()
-                            attribute_value = attribute_value[1:]
-                        if attribute_value[-1] in ['"', "'"]:
-                            attribute_value = attribute_value[:-1]
-
-                        # add the attribute pair to the map
-                        if idx_in_where_clause(att_value_idx_end):
-                            where_clause_attributes[attribute_name] = attribute_value
-                        else:
-                            processed_attributes[attribute_name] = attribute_value
-
-                        if att_value_idx_end > -1:
-                            # advance for the next token
-                            while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
-                                j += 1
+            # iterate over the tokens and find the attribute names and values
+            j = 0
+            while j < len(self.tokens):
+                # advance forward until the token of the type "NOUN" is found (i.e. the first noun it is an
+                # attribute name)
+                token_j = None
+                while j < len(self.tokens) and token_j is None:
+                    if self.tokens[j]['entity'] == 'NOUN' and j != entity_class_token_idx:
+                        token_j = self.tokens[j]
                     else:
-                        # no noun found after token_j. It is the end of the attribute list
+                        j += 1
+
+                if token_j:
+                    # found the first noun after token_j. It is the attribute name
+                    attribute_name = token_j['word']
+                    # check if the attribute name is in the attributes set
+                    if self.intent != Intent.UPDATE and attribute_name in processed_attributes:
+                        # the attribute name is already in the attributes list. It's an error.
                         break
+                    # ask by the attribute value using question-answering pipeline
+                    response = self.question_answerer(question="What is the '" + attribute_name +
+                                                               "' in the sentence fragment?"
+                                                            "\nAnswer me with the exact substring of the sentence fragment." \
+                                                               "\nAnswer me with only the value of the attribute."
+                                                      , context=__get_attributes_context(attribute_name, token_j))
+
+                    # update the j index to the next token after the attribute value
+                    # get the end index in the original msg
+                    att_value_idx_end = self.user_msg.find(response['answer'], token_j['end'])
+                    if att_value_idx_end > -1:
+                        att_value_idx_end += len(response['answer'])
+
+                    if att_value_idx_end <= token_j['end']:
+                        # inconsistency in the answer (see test.test_corner_case_10)
+                        break
+                    # else: all right
+                    # add the pair of attribute name and attribute value in the result list
+                    attribute_value = response['answer']
+                    # clean the attribute value
+                    if not attribute_value[0].isalnum():  # see test.test_add_5()
+                        attribute_value = attribute_value[1:]
+                    if attribute_value[-1] in ['"', "'"]:
+                        attribute_value = attribute_value[:-1]
+
+                    # add the attribute pair to the map
+                    if idx_in_where_clause(att_value_idx_end):
+                        where_clause_attributes[attribute_name] = attribute_value
+                    else:
+                        processed_attributes[attribute_name] = attribute_value
+
+                    if att_value_idx_end > -1:
+                        # advance for the next token
+                        while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
+                            j += 1
+                else:
+                    # no noun found after token_j. It is the end of the attribute list
+                    break
 
             return processed_attributes, where_clause_attributes
 
