@@ -430,11 +430,13 @@ class AIEngine(DAO):
                     considered_attributes = where_clause_attributes
                     att_context = ''
 
-                att_context += '\nsentence fragment="' + fragment_long + '";\n The answer is a substring of "' + \
-                              fragment_short + '". \n"' + \
-                              attribute_target + '" is the name of a field in database. \nI\'m trying discover ' \
-                                               'the value of the "' + attribute_target + '" in the sentence ' \
-                                                                                       'fragment.'
+                att_context += '\nsentence fragment="' + fragment_long + '";'
+                att_context += '\n The answer is a substring of "' + fragment_short + '".'
+                att_context += '\n"' + attribute_target + '" is the name of a field in database.'
+                att_context += '\nI\'m trying discover the value of the "' + attribute_target + \
+                               '" in the sentence fragment.'
+                att_context += '\nIn another words, complete to me "' + attribute_target + '=" ?'
+
                 for att_name, att_value in considered_attributes.items():
                     att_context += "\nThe field '" + att_name + "' has the value '" + att_value + "'. "
                     att_context += " So, '" + attribute_target + "' is not '" + att_value + "'! "
