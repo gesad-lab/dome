@@ -261,8 +261,8 @@ class AIEngine(DAO):
             for useless_expression in USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY:
                 considered_msg = considered_msg.replace(useless_expression, "")
             # seeking for direct commands
-            if self.tokens[0]['entity'] == 'VERB':
-                first_verb = self.tokens[0]['word']
+            if self.tokens_by_type_map and 'VERB' in self.tokens_by_type_map:
+                first_verb = self.tokens_by_type_map['VERB'][0]['word']
                 # finding in msg a direct command
                 candidate_intent = Intent.fromString(first_verb)
                 if candidate_intent:

@@ -183,6 +183,10 @@ class TestT2S(unittest.TestCase):
                      ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
+    def test_update_02(self):
+        msg = 'please change student with name Paulo update age to 30'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
+
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
 
