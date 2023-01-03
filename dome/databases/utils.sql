@@ -1,7 +1,7 @@
-delete from msg_handle_log;
-delete from users;
--- delete from parser_cache;
--- delete from synonymous;
+--delete from msg_handle_log;
+--delete from users;
+delete from parser_cache;
+delete from synonymous;
 /*
 DROP TABLE IF EXISTS msg_handle_log;
 CREATE TABLE "msg_handle_log" (

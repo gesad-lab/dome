@@ -351,7 +351,7 @@ class AIEngine(DAO):
         def __getEntityClassFromMsg(self) -> str:
             question = "What is the entity class that the user's message refers to?"
             context = self.get_bot_context() + "\nThe user's message intent is '" + self.intent.name + "'."
-            context += ".\nNow, the chatbot need discover the entity class that the user's message refers to, " \
+            context += "\nNow, the chatbot need discover the entity class that the user's message refers to, " \
                        "considering this context."
             options = ''
 
@@ -376,7 +376,7 @@ class AIEngine(DAO):
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
                        "\nThe user's current message is: '" + self.user_msg + "'."
 
-            options = ",".join(candidates)
+            options = ", ".join(candidates)
 
             response = self.__AIE.question_answerer_new(question, context, options)
             entity_class_candidate = response['answer']
