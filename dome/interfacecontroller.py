@@ -127,7 +127,7 @@ class InterfaceController:
         if showLogs:
             print('updating models.py...')
 
-        strFileBuffer = 'from django.db import models\n'
+        strFileBuffer = 'from django.db import models\n\n'
         for entity in self.__getEntities():
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
