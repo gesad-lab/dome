@@ -512,6 +512,10 @@ class AIEngine(DAO):
                     # no noun found after token_j. It is the end of the attribute list
                     break
 
+            if self.intent == Intent.UPDATE and not processed_attributes:
+                # inconsistency in the answer, throw exception
+                raise Exception("Inconsistency in the answer for a update command")
+
             return processed_attributes, where_clause_attributes
 
         def get_tokens_by_type(self, entityType) -> list:

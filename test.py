@@ -26,13 +26,16 @@ class TestT2S(unittest.TestCase):
             self.AC.clear_opr(self.user_data)
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
-    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None):
+    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
+                expected_where_clause=None):
         clear_user_data = expected_intent != Intent.CONFIRMATION and expected_intent != Intent.CANCELLATION
         response = self.__talk(cmd_str, clear_user_data=clear_user_data)
         response_parser = response['parser']
         processed_intent = response_parser.intent
         processed_class = response_parser.entity_class
         processed_attributes = response_parser.attributes
+        processed_where_clause = response_parser.where_clause_attributes
+
         if expected_intent == Intent.READ and processed_intent == Intent.CONFIRMATION:
             # update processed_intent because the READ intent is automatically converted to CONFIRMATION
             processed_intent = response['user_data']['previous_intent']
@@ -58,6 +61,10 @@ class TestT2S(unittest.TestCase):
             self.assertTrue(response['response_msg'] in response_list,
                             'response message not correct.\nresponse[response_msg]=' +
                             str(response['response_msg']) + '\nresponse_list=' + str(response_list))
+
+        if expected_where_clause:
+            self.assertEqual(processed_intent, Intent.UPDATE)
+            self.assertEqual(processed_where_clause, expected_where_clause)
 
     def __check_ADD(self, entity_name, attributes=None, cmd_str=None):
         if not cmd_str:
@@ -180,12 +187,33 @@ class TestT2S(unittest.TestCase):
     def test_update_01(self):
         msg = "For the students with name='Anderson', update the name to 'Anderson Martins'"
         self.__check(msg, Intent.UPDATE, 'student', {'name': 'Anderson Martins'},
-                     ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
+                     ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     def test_update_02(self):
         msg = 'please change student with name Paulo update age to 30'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Paulo'})
+
+    def test_update_03(self):
+        msg = 'for students with name Anderson, update age to 30'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_04(self):
+        msg = 'for students, update age to 30'
         self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
+
+    def test_update_05(self):
+        msg = 'update students'
+        with self.assertRaises(Exception):
+            self.__check(msg, Intent.UPDATE, 'student')
+
+    def test_update_05(self):
+        msg = 'Please, when students have the name equal to Anderson, update the age to 30.'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
 
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
