@@ -132,11 +132,15 @@ class InterfaceController:
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
-            # else: entitie with attributes
+            # else: entities with attributes
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
             for att in entity.getAttributes():
-                # all fiels with the same type, in this version.
-                strFileBuffer += f'\n    {att.name} = models.CharField(max_length=200, null={not att.notnull}, blank={not att.notnull})'
+                if att.name == 'id':
+                    # for django, the id is the primary key, and it is automatically created
+                    continue
+                # all fields with the same type, in this version.
+                strFileBuffer += f'\n    {att.name} = models.CharField(max_length=200, null={not att.notnull}, ' \
+                                 f'blank={not att.notnull})'
                 # print(strFileBuffer)
         # re-writing the model.py file
 
