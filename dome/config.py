@@ -20,14 +20,14 @@ USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY = ['please', 'i want to', 'i want', 'co
 
 # bot msgs
 MISUNDERSTANDING = [
-    """Um. I don't recognize it. Which operation do you want to do? Save, update, delete or get some information? (
+    """Um. I don't recognize it. Which operation do you want to do? Add, update, delete or get some information? (
     say 'help' for samples) """
     ,
     """Sorry, but I didn't get it. Try something like 'register new student' or 'get student information gender=Male' 
     (say 'help' for more samples) """
     , "Please, repeat in another way, because I didn't get it. (say 'help' for more info)"]
 
-GREETINGS = ["Hi! You can say something like 'Save student with name=Anderson'",
+GREETINGS = ["Hi! You can say something like 'Add student with name=Anderson'",
              "Hello! Please say something like 'Get student with name=Anderson'",
              "Hello! Good see you here! Please say some data operation like 'Include student with name=Anderson, "
              "email=andersonmg@gmail.com' "
@@ -62,12 +62,8 @@ ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel. ;)]',
                ]
 
 ATTRIBUTE_FORMAT = [
-    "I'll understand better if the data is in the following format:\n<<data name>> = <<data value>>\nFor "
-    "example:\nage = 21"]
-
-ATTRIBUTE_FORMAT_FIRST_ATTEMPT = lambda opr, clas: [
-    f"Ok! We are going to <b>{opr}</b> a <b>{clas}</b>. Please, now inform the data in the following format:\n<<data name>> = "
-    f"<<data value>>\nFor example:\nage = 21"]
+    "I'll understand better if the data is in the following format:\n 'data_name = data_value'.\nFor "
+    "example:\n'<i>Add student with age = 21</i>'"]
 
 ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to <b>{opr}</b> a <b>{clas}</b>.\nSay 'Ok' to confirm\n'Cancel' to "
                                   f"cancel this operation."]

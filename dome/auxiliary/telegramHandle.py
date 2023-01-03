@@ -52,7 +52,8 @@ class TelegramHandle:
 
     def echo(self, update, context):
         """Echo the user message."""
-        update.message.reply_text(self.__MSG_HANDLE(update.message.text, context), parse_mode='HTML')
+        response = self.__MSG_HANDLE(update.message.text, context)
+        update.message.reply_text(response, parse_mode='HTML')
         self.__tryagain = True  # msg processed, then the control variable is set to True
 
     def error(self, update, context):

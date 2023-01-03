@@ -9,8 +9,7 @@ from dome.auxiliary.constants import (OPR_APP_HOME_CMD,
                                       OPR_APP_HOME_WEB,
                                       OPR_APP_TELEGRAM_START,
                                       OPR_ATTRIBUTE_ADD, OPR_ENTITY_ADD)
-from dome.config import (ATTRIBUTE_FORMAT,
-                         ATTRIBUTE_FORMAT_FIRST_ATTEMPT, ATTRIBUTE_OK,
+from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          BYE, CANCEL, CLASS_NOT_IN_DOMAIN, DEBUG_MODE,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
@@ -227,11 +226,7 @@ class AutonomousController:
                         if not parser.attributes:
                             parser.attributes = {}
                         if (user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0):
-                            if user_data['pending_atts_first_attempt']:
-                                msg_return_list = ATTRIBUTE_FORMAT_FIRST_ATTEMPT(str(user_data['pending_intent']),
-                                                                                 user_data['pending_class'])
-                            else:
-                                msg_return_list = ATTRIBUTE_FORMAT
+                            msg_return_list = ATTRIBUTE_FORMAT
                         else:  # all ok!
                             user_data['pending_atts_first_attempt'] = False
                             user_data['pending_attributes'] = parser.attributes

@@ -381,7 +381,8 @@ class AIEngine(DAO):
             response = self.__AIE.question_answerer_new(question, context, options)
             entity_class_candidate = response['answer']
             if entity_class_candidate == self.intent:
-                return None  # it's an error. Probably the user did not inform the entity class in the right way.
+                # it's an error. Probably the user did not inform the entity class in the right way.
+                raise Exception('entity class equal to intent')
             # else
             cached_entity_class = self.__AIE.get_entity_name_by_alternative(entity_class_candidate)
             if cached_entity_class:
