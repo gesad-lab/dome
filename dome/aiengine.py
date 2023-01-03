@@ -403,7 +403,10 @@ class AIEngine(DAO):
             if self.intent == Intent.UPDATE:
                 question = "In the user's message, what type of '" + self.entity_class + \
                            "' must be updated? Give me the answer as a exact subsentence of the user's message."
-                where_clause = self.question_answerer(question, "user's message=" + self.user_msg)
+                context = "user's message=" + self.user_msg
+                context += '\nComplete to me: "Update ' + self.entity_class + ' for all ' + \
+                           self.entity_class + ' with ?"'
+                where_clause = self.question_answerer(question, context)
                 where_clause_idx_start = self.user_msg.find(where_clause['answer'])
                 if where_clause_idx_start > -1:
                     where_clause_idx_end = where_clause_idx_start + len(where_clause['answer'])
