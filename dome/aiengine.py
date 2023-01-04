@@ -3,7 +3,7 @@ import threading
 
 import requests
 from sentence_transformers import SentenceTransformer, util
-from transformers import pipeline, T5Tokenizer, T5ForConditionalGeneration
+from transformers import pipeline
 
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
@@ -179,13 +179,14 @@ class AIEngine(DAO):
     def __addToPipeline(self, pipeline_name, pipeline_object, pipeline_key=None):
         self.__pipelines[pipeline_key if pipeline_key else pipeline_name] = pipeline_object
 
-    def add_parser_cache(self, user_msg, intent, entity_class, attributes):
+    def add_parser_cache(self, user_msg, intent, entity_class, attributes, filter_attributes):
         # the Parser Cache stores the intent, the entity class, and the attributes map
         # considering an exact match with the user message
         self._execute_query("INSERT or IGNORE INTO parser_cache(user_msg, user_msg_len, processed_intent, "
-                            "processed_class, processed_attributes) VALUES (?,?,?,?,?)",
+                            "processed_class, processed_attributes, processed_filter_attributes) VALUES (?,?,?,?,?,?)",
                             (user_msg.lower(), len(user_msg), str(intent), entity_class,
-                             json.dumps(attributes, default=str) if attributes else None))
+                             json.dumps(attributes, default=str) if attributes else None,
+                             json.dumps(filter_attributes, default=str) if filter_attributes else None))
 
     def get_parser_cache(self, user_msg):
         return self._execute_query_fetchone("SELECT * FROM vw_considered_parser_cache WHERE user_msg = ?",
@@ -203,7 +204,7 @@ class AIEngine(DAO):
             self.intent = None
             self.entity_class = None
             self.attributes = None
-            self.where_clause_attributes = None
+            self.filter_attributes = None  # where clause attributes
 
             # verifying if there is cache for the user_msg in database
             cached_parser = None
@@ -214,9 +215,10 @@ class AIEngine(DAO):
                 self.intent = Intent(cached_parser['considered_intent'])
                 self.entity_class = cached_parser['considered_class']
                 # set self.attributes as a dict from the string loaded from cached_parser['considered_attributes'] json
-                self.attributes = None
                 if cached_parser['considered_attributes']:
                     self.attributes = json.loads(cached_parser['considered_attributes'])
+                if cached_parser['considered_filter_attributes']:
+                    self.filter_attributes = json.loads(cached_parser['considered_filter_attributes'])
             else:
                 # pos-tagging the user_msg
                 self.tokens = self.__AIE.posTagMsg(user_msg)
@@ -242,11 +244,12 @@ class AIEngine(DAO):
 
                 # discovering of the attributes
                 if self.entity_class:
-                    self.attributes, self.where_clause_attributes = self.__get_attributes_from_msg()
+                    self.attributes, self.filter_attributes = self.__get_attributes_from_msg()
 
             # saving the cache in database
             if not cached_parser:
-                self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class, self.attributes)
+                self.__AIE.add_parser_cache(user_msg, self.intent, self.entity_class,
+                                            self.attributes, self.filter_attributes)
 
         def __getIntentFromMsg(self) -> Intent:
             # get the intent from the user_msg

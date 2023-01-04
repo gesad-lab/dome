@@ -34,7 +34,7 @@ class TestT2S(unittest.TestCase):
         processed_intent = response_parser.intent
         processed_class = response_parser.entity_class
         processed_attributes = response_parser.attributes
-        processed_where_clause = response_parser.where_clause_attributes
+        processed_where_clause = response_parser.filter_attributes
 
         if expected_intent == Intent.READ and processed_intent == Intent.CONFIRMATION:
             # update processed_intent because the READ intent is automatically converted to CONFIRMATION

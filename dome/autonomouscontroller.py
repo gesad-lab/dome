@@ -230,7 +230,7 @@ class AutonomousController:
                         else:  # all ok!
                             user_data['pending_atts_first_attempt'] = False
                             user_data['pending_attributes'] = parser.attributes
-                            user_data['pending_where_clause'] = parser.where_clause_attributes
+                            user_data['pending_where_clause'] = parser.filter_attributes
                             # if is READ use case, call recursively to show results
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msg_process('ok', user_data=user_data)
