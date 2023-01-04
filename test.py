@@ -330,6 +330,10 @@ class TestT2S(unittest.TestCase):
             if row['considered_attributes']:
                 expected_attributes = json.loads(row['considered_attributes'])
 
+            if expected_attributes:
+                for key, value in expected_attributes.items():
+                    expected_attributes[key] = value.lower()
+
             self.__check(cmd_str=row['user_msg'],
                          expected_intent=Intent(row['considered_intent']),
                          expected_class=row['considered_class'],
