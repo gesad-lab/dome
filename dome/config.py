@@ -102,15 +102,15 @@ SUFFIX_ENV = '_env'
 SUFFIX_CONFIG = '_config'
 SUFFIX_WEB = '_web'
 WEBAPP_HOME_URL = 'http://localhost/admin'
-RUN_WEB_SERVER = True
 
 PNL_GENERAL_THRESHOLD = 0.75
 
 TIMEOUT_MSG_PARSER = 60  # seconds
 
-DEBUG_MODE = True
-
-USE_PARSER_CACHE = False
+# production variables
+RUN_WEB_SERVER = False
+DEBUG_MODE = False
+USE_PARSER_CACHE = True
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
