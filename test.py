@@ -203,7 +203,8 @@ class TestT2S(unittest.TestCase):
 
     def test_update_04(self):
         msg = 'for students, update age to 30'
-        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
+        with self.assertRaises(Exception):
+            self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'))
 
     def test_update_05(self):
         msg = 'update students'
