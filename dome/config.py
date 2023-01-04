@@ -6,7 +6,9 @@ import os
 INTENT_MAP = {
     'GREETING': {'greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'},
     'ADD': {'add', 'create', 'insert', 'include', 'put', 'define', 'register', 'record'},
-    'UPDATE': {'update', 'change', 'modify', 'alter', 'edit', 'correct', 'revise', 'replace', 'renew', 'redefine'},
+    'UPDATE': {'update', 'change', 'modify', 'alter', 'edit', 'correct', 'revise', 'replace', 'renew', 'redefine',
+               'set', 'updating', 'changing', 'modifying', 'altering', 'editing', 'correcting', 'revising', 'replacing',
+               'setting'},
     'READ': {'read', 'show', 'list', 'search', 'find', 'select', 'get', 'retrieve', 'fetch', 'view', 'give', 'display'},
     'DELETE': {'delete', 'remove', 'destroy', 'del', 'erase', 'kill'},
     'CANCELLATION': {'cancellation', 'cancel', 'stop', 'quit', 'exit'},
@@ -17,6 +19,8 @@ INTENT_MAP = {
 }
 
 USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY = ['please', 'i want to', 'i want', 'could you', 'can you']
+
+WHERE_CLAUSE_WORDS = {'where', 'which', 'that', 'whose', 'whom', 'who', 'what', 'when', 'for'}
 
 # bot msgs
 MISUNDERSTANDING = [

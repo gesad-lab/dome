@@ -221,6 +221,36 @@ class TestT2S(unittest.TestCase):
         self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
                      expected_where_clause={'name': 'Anderson'})
 
+    def test_update_08(self):
+        msg = 'Update students set the age to 42 when name is Anderson'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_09(self):
+        msg = 'set students with age to 42 when name is Anderson'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_10(self):
+        msg = 'for students with name Anderson, update the age to 42'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_11(self):
+        msg = 'Please change student with name Anderson update age to 30'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_12(self):
+        msg = 'Please, change the student with name=\'Anderson\', updating the age to 30'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_13(self):
+        msg = "update the age to 42, for students with name='Anderson'"
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
     def test_corner_case_1(self):
         self.__check_corner_case("bla bla bla")
 

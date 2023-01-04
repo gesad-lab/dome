@@ -8,7 +8,7 @@ from transformers import pipeline
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
-                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN)
+                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP)
 
 
 class AIEngine(DAO):
@@ -409,26 +409,34 @@ class AIEngine(DAO):
                 return "\nFor example, if the user's message is \"" + sentence + \
                     "\", your answer must be \"" + answer + "\"."
 
-            def generate_options() -> str:
-                options = ''
+            def generate_options():
+                _options = ''
+                _options_list = []
                 valid_tokens = {'NOUN', 'PROPN', 'NUM'}
                 # for each token in self.tokens, generate all possible options
                 for _i in range(len(self.tokens)):
                     if self.tokens[_i]['entity'] != 'NOUN' or \
+                            self.tokens[_i]['word'] in WHERE_CLAUSE_WORDS or \
+                            self.tokens[_i]['word'] in INTENT_MAP['UPDATE'] or \
                             self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
                         continue
                     # else
                     valid_sentence = False
                     for _j in range(_i+1, len(self.tokens)):
+                        if self.tokens[_j]['word'] in WHERE_CLAUSE_WORDS or \
+                                self.tokens[_j]['word'] in INTENT_MAP['UPDATE']:
+                            break
                         if self.tokens[_j]['entity'] in valid_tokens and \
                            not self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
                             valid_sentence = not valid_sentence  # true only each couple of valid tokens
                             if valid_sentence:
                                 # generate the sentence using the token start and end to preserve the case of the words
-                                options += '"' + self.user_msg[self.tokens[_i]['start']:self.tokens[_j]['end']] + '", '
-                return options[:-2]
+                                _options_list.append(self.user_msg[self.tokens[_i]['start']:self.tokens[_j]['end']])
+                                _options += '"' + _options_list[-1] + '", '
+                return _options[:-2], _options_list
 
             if self.intent == Intent.UPDATE:
+                options, options_list = generate_options()
                 question = "Considering the follow user's message:\n\"" + self.user_msg + '"'
                 question += "\nIn that user's message, what type of '" + self.entity_class + \
                             "' must be updated? Give me the answer as a exact subsentence of the user's message."
@@ -451,11 +459,14 @@ class AIEngine(DAO):
                                              "name='Anderson'")
                 question += generate_example('Update students setting the age to 42 when name is Anderson',
                                              'name is Anderson')
-                question += "\nYou must choose one of the fragments in options below."
+                question += "\nYou must choose one and only one of the fragments in options below."
+                for option in options_list:
+                    question += "\n- " + option
                 context = "user's message = " + self.user_msg
 
-                where_clause = self.question_answerer(question, context, generate_options())
+                where_clause = self.question_answerer(question, context, options)
                 where_clause_idx_start = self.user_msg.find(where_clause['answer'])
+
                 if where_clause_idx_start > -1:
                     where_clause_idx_end = where_clause_idx_start + len(where_clause['answer'])
                     where_clause = where_clause['answer']
@@ -560,7 +571,7 @@ class AIEngine(DAO):
                     # no noun found after token_j. It is the end of the attribute list
                     break
 
-            if self.intent == Intent.UPDATE and not processed_attributes:
+            if self.intent == Intent.UPDATE and (not processed_attributes or not where_clause_attributes):
                 # inconsistency in the answer, throw exception
                 raise Exception("Inconsistency in the answer for a update command")
 
