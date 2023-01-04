@@ -109,11 +109,12 @@ TIMEOUT_MSG_PARSER = 60  # seconds
 
 # production variables
 RUN_WEB_SERVER = False
-DEBUG_MODE = False
 USE_PARSER_CACHE = True
+DEBUG_MODE = True
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
+    USE_PARSER_CACHE = False
 
 # django default user
 DJANGO_SUPERUSER_DEFAULT_USERNAME = 'admin'

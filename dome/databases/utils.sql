@@ -1,7 +1,7 @@
 --delete from msg_handle_log;
 --delete from users;
-delete from parser_cache;
-delete from synonymous;
+-- delete from parser_cache;
+-- delete from synonymous;
 /*
 DROP TABLE IF EXISTS msg_handle_log;
 CREATE TABLE "msg_handle_log" (
@@ -21,9 +21,10 @@ CREATE VIEW 'vw_considered_parser_cache' AS
 	SELECT id, user_msg, 
 	ifnull(expected_intent, processed_intent) as 'considered_intent', 
 	ifnull(expected_class, processed_class) as 'considered_class',
-	ifnull(expected_attributes, processed_attributes) as 'considered_attributes'
+	ifnull(expected_attributes, processed_attributes) as 'considered_attributes',
+	ifnull(expected_filter_attributes, processed_filter_attributes) as 'considered_filter_attributes'
 	from parser_cache 
-*/
+
 /*
 DROP TABLE IF EXISTS parser_cache;
 CREATE TABLE "parser_cache" (
@@ -34,9 +35,11 @@ CREATE TABLE "parser_cache" (
 	"processed_intent"	TEXT NOT NULL,
 	"processed_class"	TEXT,
 	"processed_attributes"	TEXT,
+	"processed_filter_attributes"	TEXT,
 	"expected_intent"	TEXT,
 	"expected_class"	TEXT,
 	"expected_attributes"	TEXT,
+	"expected_filter_attributes"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 CREATE UNIQUE INDEX "parser_cache_user_msg_idx" ON "parser_cache" (

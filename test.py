@@ -210,9 +210,14 @@ class TestT2S(unittest.TestCase):
         with self.assertRaises(Exception):
             self.__check(msg, Intent.UPDATE, 'student')
 
-    def test_update_05(self):
+    def test_update_06(self):
         msg = 'Please, when students have the name equal to Anderson, update the age to 30.'
         self.__check(msg, Intent.UPDATE, 'student', {'age': '30'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
+                     expected_where_clause={'name': 'Anderson'})
+
+    def test_update_07(self):
+        msg = 'Update students setting the age to 42 when name is Anderson'
+        self.__check(msg, Intent.UPDATE, 'student', {'age': '42'}, ATTRIBUTE_OK(str(Intent.UPDATE), 'student'),
                      expected_where_clause={'name': 'Anderson'})
 
     def test_corner_case_1(self):

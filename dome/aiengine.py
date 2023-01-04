@@ -45,6 +45,7 @@ class AIEngine(DAO):
         return response[0]['label'] == 'POSITIVE'
 
     def posTagMsg(self, msg, model="vblagoje/bert-english-uncased-finetuned-pos", aggregation_strategy=None):
+        # https://huggingface.co/vblagoje/bert-english-uncased-finetuned-pos
         # configure the pipeline
         token_classifier = self.getPipeline(pipeline_name="token-classification",
                                             pipeline_key="posTag-m_" + model + "as_" + str(aggregation_strategy),
@@ -404,13 +405,56 @@ class AIEngine(DAO):
             where_clause_idx_end = -1
             user_msg_without_where_clause = self.user_msg
 
+            def generate_example(sentence, answer) -> str:
+                return "\nFor example, if the user's message is \"" + sentence + \
+                    "\", your answer must be \"" + answer + "\"."
+
+            def generate_options() -> str:
+                options = ''
+                valid_tokens = {'NOUN', 'PROPN', 'NUM'}
+                # for each token in self.tokens, generate all possible options
+                for _i in range(len(self.tokens)):
+                    if self.tokens[_i]['entity'] != 'NOUN' or \
+                            self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
+                        continue
+                    # else
+                    valid_sentence = False
+                    for _j in range(_i+1, len(self.tokens)):
+                        if self.tokens[_j]['entity'] in valid_tokens and \
+                           not self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
+                            valid_sentence = not valid_sentence  # true only each couple of valid tokens
+                            if valid_sentence:
+                                # generate the sentence using the token start and end to preserve the case of the words
+                                options += '"' + self.user_msg[self.tokens[_i]['start']:self.tokens[_j]['end']] + '", '
+                return options[:-2]
+
             if self.intent == Intent.UPDATE:
-                question = "In the user's message, what type of '" + self.entity_class + \
-                           "' must be updated? Give me the answer as a exact subsentence of the user's message."
-                context = "user's message=" + self.user_msg
-                context += '\nComplete to me: "Update ' + self.entity_class + ' for all ' + \
-                           self.entity_class + ' with ?"'
-                where_clause = self.question_answerer(question, context)
+                question = "Considering the follow user's message:\n\"" + self.user_msg + '"'
+                question += "\nIn that user's message, what type of '" + self.entity_class + \
+                            "' must be updated? Give me the answer as a exact subsentence of the user's message."
+                question += "You must consider that the user's message is an SQL dialect near natural human language. "
+                question += "\nYour answer must include at least one noun that corresponds to the filter's field name "\
+                            "and one expression (one or more words) that corresponds to the field's value."
+                question += '\nSo, complete to me: "Update ' + self.entity_class + ' for all ' + \
+                            self.entity_class + ' with ?"'
+                question += "\nThe operation I've already found out: it's an " + str(self.intent)
+                question += ".\nThe name of the table is '" + self.entity_class + "'."
+                question += "\nNow I'm trying to figure out the snippet of the user's message that would most likely " \
+                            "correspond to a 'where' clause in an SQL command."
+                question += "\nI want to know the pairs of field names and values I must apply to filter the "
+                question += str(self.intent) + " operation in the table '" + self.entity_class + "'."
+                question += generate_example("update " + self.entity_class + " set name = 'John' where id = 1",
+                                             "id = 1")
+                question += generate_example("update the book setting the title to 'The Lord of the Rings' "
+                                             "when the author is 'J. R. R. Tolkien'", "author is 'J. R. R. Tolkien'")
+                question += generate_example("for students with name='Anderson', set name='Anderson Silva' and age=45",
+                                             "name='Anderson'")
+                question += generate_example('Update students setting the age to 42 when name is Anderson',
+                                             'name is Anderson')
+                question += "\nYou must choose one of the fragments in options below."
+                context = "user's message = " + self.user_msg
+
+                where_clause = self.question_answerer(question, context, generate_options())
                 where_clause_idx_start = self.user_msg.find(where_clause['answer'])
                 if where_clause_idx_start > -1:
                     where_clause_idx_end = where_clause_idx_start + len(where_clause['answer'])
