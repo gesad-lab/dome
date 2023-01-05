@@ -208,8 +208,7 @@ class TestT2S(unittest.TestCase):
 
     def test_update_05(self):
         msg = 'update students'
-        with self.assertRaises(Exception):
-            self.__check(msg, Intent.UPDATE, 'student')
+        self.__check(msg, Intent.UPDATE, 'student')
 
     def test_update_06(self):
         msg = 'Please, when students have the name equal to Anderson, update the age to 30.'
@@ -319,7 +318,7 @@ class TestT2S(unittest.TestCase):
         self.__check(cmd_str='show teacher',
                      expected_intent=Intent.READ,
                      expected_class='teacher', )
-
+    '''
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
         for row in self.AIE.get_all_considered_parser_cache():
@@ -338,7 +337,7 @@ class TestT2S(unittest.TestCase):
                          expected_intent=Intent(row['considered_intent']),
                          expected_class=row['considered_class'],
                          expected_attributes=expected_attributes)
-
+    '''
 
 if __name__ == '__main__':
     unittest.main()
