@@ -1,8 +1,8 @@
+import os
+
 # intent mapping
 # >>>>> !!! DON'T CHANGE THE KEYS OF THE INTENT_MAP !!! <<<<<
 # >>>>> !!! KEEP ALL ELEMENTS OF THE VALUE LISTS IN LOWER CASE !!! <<<<<
-import os
-
 INTENT_MAP = {
     'GREETING': {'greeting', 'greetings', 'hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'},
     'ADD': {'add', 'create', 'insert', 'include', 'put', 'define', 'register', 'record'},
@@ -27,8 +27,8 @@ MISUNDERSTANDING = [
     """Um. I don't recognize it. Which operation do you want to do? Add, update, delete or get some information? (
     say 'help' for samples) """
     ,
-    """Sorry, but I didn't get it. Try something like 'register new student' or 'get student information gender=Male' 
-    (say 'help' for more samples) """
+    """Sorry, but I didn't get it. Try something like 'register new student with name 'Joseph'' or 
+    'get all students with gender=Male'\n(say 'help' for more samples)"""
     , "Please, repeat in another way, because I didn't get it. (say 'help' for more info)"]
 
 GREETINGS = ["Hi! You can say something like 'Add student with name=Anderson'",
@@ -50,9 +50,8 @@ name=Self-Adaptive Systems', 'view classes', or 'delete class name=Java'. """,
     name=Mary, email=mary@school.com' or 'delete student name=Mary'. """,
         """I'm your bot that securely saves your information. I understand better direct sentences. \nThus let me know 
     first what you want to do (add, read or delete some data), what type the information you want to operate (a 
-    student, a class, a class registration, etc.), and, finally, the data itself. \nSome examples: 'add class 
-    registration with student=Anderson, class=Python', 'delete registration student=Anderson', 'get info about the 
-    class=Python'. """
+    student, a class, a class registration, etc.), and, finally, the data itself. \nSome examples:\n'add a teacher 
+    with name='Paulo Henrique', gender='Male'\n'delete a student with name=Anderson'\n'get the class with name=Java'"""
         ]
 
 CANCEL = ['No problem! The operation was canceled successfully.']
@@ -66,8 +65,12 @@ ASK_CONFIRM = ['OK to confirm current operation;\nCANCEL to cancel. ;)]',
                ]
 
 ATTRIBUTE_FORMAT = [
-    "I'll understand better if the data is in the following format:\n 'data_name = data_value'.\nFor "
-    "example:\n'<i>Add student with age = 21</i>'"]
+    "I'll understand better if the data is in the following format:\n 'data_name = data_value'.\nObserve the "
+    "examples:"
+    "\n- <i>add student with name = 'Anderson', and age = 21</i>"
+    "\n- <i>update the student with name = 'Anderson', setting the age = 21</i>"
+    "\n- <i>delete the student with name = 'Anderson'</i>"
+    "\n- <i>get the student with name = 'Anderson'</i>"]
 
 ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to <b>{opr}</b> a <b>{clas}</b>.\nSay 'Ok' to confirm\n'Cancel' to "
                                   f"cancel this operation."]
@@ -94,8 +97,10 @@ CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about <b>'{clas}'<
 
 MISSING_CLASS = [
     "Would you please inform me of the information type that you want to operate? For instance, if you are trying to "
-    "add data about a student, say 'student'.\n(If you wish to cancel this operation, say 'cancel'.)"]
-MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word or between "...", ok?']
+    "add data about a student, say 'add student with name=\'Anderson\''."
+    "\n(If you wish to cancel this operation, say 'cancel'.)"]
+
+MULTIPLE_CLASSES = ['Please, try to inform the information type with only one word, ok?']
 
 GENERAL_FAILURE = '[ERROR] Sorry, but I could not complete the operation because of an internal error. Please, ' \
                   'try again using other words. '

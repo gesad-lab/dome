@@ -209,7 +209,7 @@ class AutonomousController:
 
                     # recursive call with the modified msg
                     return self.app_chatbot_msg_process(msg_considered, user_data=user_data)
-            else:  # parse.getIntent() is not None
+            else:  # parse.getIntent() is not None and one of CRUD intents
                 user_data['pending_intent'] = parser.intent
                 if parser.entity_class is None:
                     # use case no indicate class

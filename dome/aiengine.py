@@ -386,7 +386,7 @@ class AIEngine(DAO):
             entity_class_candidate = response['answer']
             if entity_class_candidate == self.intent:
                 # it's an error. Probably the user did not inform the entity class in the right way.
-                raise Exception('entity class equal to intent')
+                return None
             # else
             cached_entity_class = self.__AIE.get_entity_name_by_alternative(entity_class_candidate)
             if cached_entity_class:
@@ -572,8 +572,8 @@ class AIEngine(DAO):
                     break
 
             if self.intent == Intent.UPDATE and (not processed_attributes or not where_clause_attributes):
-                # inconsistency in the answer, throw exception
-                raise Exception("Inconsistency in the answer for a update command")
+                # inconsistency in the answer, return none
+                return None, None
 
             return processed_attributes, where_clause_attributes
 
