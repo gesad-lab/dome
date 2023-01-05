@@ -64,11 +64,12 @@ class DomainEngine:
         return self.__AC.getWebApp_path() + '_'
 
     def add(self, entity, attributes):
-        sql_cmd = "INSERT OR REPLACE INTO " + self.__getEntityDBName(entity) + "("
+        sql_cmd = "INSERT OR REPLACE INTO " + self.__getEntityDBName(entity)
+        sql_cmd += "(dome_created_at, dome_updated_at, "
         for k in attributes.keys():
             sql_cmd += k + ", "
         sql_cmd = sql_cmd[:-2]  # removing the last comma
-        sql_cmd += ") values("
+        sql_cmd += ") values((datetime('now', 'localtime')), (datetime('now', 'localtime')), "
         for v in attributes.values():
             sql_cmd += "'" + str(v) + "', "
         sql_cmd = sql_cmd[:-2]  # removing the last comma
@@ -77,6 +78,7 @@ class DomainEngine:
 
     def update(self, entity, attributes, where_clause):
         sql_cmd = "UPDATE " + self.__getEntityDBName(entity) + " SET"
+        sql_cmd += " dome_updated_at = (datetime('now', 'localtime')),"
         for attribute_name, attribute_value in attributes.items():
             sql_cmd += ' ' + attribute_name + "='" + attribute_value + "',"
         sql_cmd = sql_cmd[:-1]  # removing the last comma
@@ -94,6 +96,9 @@ class DomainEngine:
         for k in attributes.keys():
             sql_cmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
 
+        # ordering by the newest
+        # dome_updated_at is a reserved field automatically updated by the system
+        sql_cmd += " ORDER BY dome_updated_at DESC"
         # put limit to LIMIT_REGISTERS
         sql_cmd += " LIMIT " + str(LIMIT_REGISTERS)
 
@@ -103,7 +108,9 @@ class DomainEngine:
         if len(data) == 0:
             return None
         # else
-        return pd.DataFrame.from_records(data=data, columns=cols, index=['id'])
+        results = pd.DataFrame.from_records(data=data, columns=cols, index=['id'])
+        results.drop(['dome_created_at', 'dome_updated_at'], axis=1, inplace=True)
+        return results
 
     def delete(self, entity, attributes):
         sql_cmd = "DELETE FROM " + self.__getEntityDBName(entity) + " where "

@@ -127,13 +127,19 @@ class InterfaceController:
         if showLogs:
             print('updating models.py...')
 
-        strFileBuffer = 'from django.db import models\n\n'
+        strFileBuffer = 'from django.db import models'
+        strFileBuffer += '\nfrom django.utils.timezone import now'
+        strFileBuffer += '\n\n'
         for entity in self.__getEntities():
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
             # else: entities with attributes
             strFileBuffer += '\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
+            # adding the reserved timestamp fields
+            strFileBuffer += '\n' + '    dome_created_at = models.IntegerField(null=True)'
+            strFileBuffer += '\n' + '    dome_updated_at = models.IntegerField(null=True)'
+            # adding the other attributes
             for att in entity.getAttributes():
                 if att.name == 'id':
                     # for django, the id is the primary key, and it is automatically created

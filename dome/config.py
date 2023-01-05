@@ -91,7 +91,8 @@ NO_REGISTERS = ['There are no info to show.']
 LIMIT_REGISTERS = 10  # limit of registers to show
 
 LIMIT_REGISTERS_MSG = "A maximum of <b>" + str(LIMIT_REGISTERS) + \
-                      "</b>  registers are shown. Apply filters to a more accurate search."
+                      "</b>  registers are shown ordered by the newest modification." \
+                      "\nApply filters to a more accurate search."
 
 CLASS_NOT_IN_DOMAIN = lambda clas: [f"There is no information about <b>'{clas}'</b> saved. \nPlease, try something else."]
 
