@@ -24,8 +24,8 @@ WHERE_CLAUSE_WORDS = {'where', 'which', 'that', 'whose', 'whom', 'who', 'what', 
 
 # bot msgs
 MISUNDERSTANDING = [
-    """Um. I don't recognize it. Which operation do you want to do? Add, update, delete or get some information? (
-    say 'help' for samples) """
+    """Um. I don't recognize it. Which operation do you want to do? Add, update, delete or get some information? 
+    (say 'help' for samples) """
     ,
     """Sorry, but I didn't get it. Try something like 'register new student with name 'Joseph'' or 
     'get all students with gender=Male'\n(say 'help' for more samples)"""
