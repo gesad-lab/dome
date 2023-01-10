@@ -17,7 +17,9 @@ class DomainEngine:
             entity_name = row[0].replace(self.__getEntityDBNamePrefix(), '')
             entity_obj = self.saveEntity(entity_name)
             # getting attributes
-            sql_cmd = "SELECT name FROM PRAGMA_TABLE_INFO('" + row[0] + "') where name<>'id';"  # TODO: manage id
+            sql_cmd = "SELECT name FROM PRAGMA_TABLE_INFO('" + row[0] + "') where name<>'id' and " \
+                                                                        "name<>'dome_created_at' and " \
+                                                                        "name<>'dome_updated_at';"
             query2 = self.__executeSqlCmd(sql_cmd)
             for col_name in query2.fetchall():
                 entity_obj.addAttribute(col_name[0], 'string', False)  # TODO: manage type and notnull
