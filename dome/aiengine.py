@@ -280,7 +280,7 @@ class AIEngine(DAO):
             # test if the user_msg make some sense
             question = "Does the user message make any sense?"
             context = self.get_bot_context() + "\nSo, the first step is to discover if the user's current message " \
-                                               "makes some sense considering this context.\nThe user's current " \
+                                               "makes some sense considering that context.\nThe user's current " \
                                                "message is: '" + self.user_msg + "'"
             options = "Yes, No"
             question_answer = self.question_answerer(question, context, options)
@@ -356,7 +356,7 @@ class AIEngine(DAO):
             question = "What is the entity class that the user's message refers to?"
             context = self.get_bot_context() + "\nThe user's message intent is '" + self.intent.name + "'."
             context += "\nNow, the chatbot need discover the entity class that the user's message refers to, " \
-                       "considering this context."
+                       "considering that context."
             options = ''
 
             # adding the candidates
@@ -375,7 +375,8 @@ class AIEngine(DAO):
                 for candidate in candidates:
                     if self.__AIE.entitiesAreSimilar(class_key, candidate):
                         # context += "\nThe entity class is definitely this: " + class_key
-                        return class_key
+                        pass
+                        #return class_key
 
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
                        "\nThe user's current message is: '" + self.user_msg + "'."

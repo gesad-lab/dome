@@ -118,7 +118,7 @@ PNL_GENERAL_THRESHOLD = 0.75
 TIMEOUT_MSG_PARSER = 60  # seconds
 
 # production variables
-RUN_WEB_SERVER = False
+RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
 DEBUG_MODE = True
 
