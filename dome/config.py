@@ -121,6 +121,8 @@ TIMEOUT_MSG_PARSER = 60  # seconds
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
 DEBUG_MODE = False
+if "DOME_DEBUG_MODE" in os.environ:
+    DEBUG_MODE = eval(os.environ['DOME_DEBUG_MODE'])
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
