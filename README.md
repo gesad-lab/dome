@@ -8,6 +8,9 @@ With software engineering techniques, self-adaptive systems, and artificial inte
 DOME_TELEGRAM_TOKEN=telegram_bot_token<br/>
 HUGGINGFACE_TOKEN=huggingface_token<br/>
 
+# Install Microsoft C++ Build Tools<br/>
+#  https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
 # For a custom user data, before deploy, setup the follow environment variables:
 DJANGO_SUPERUSER_USERNAME=some_user_name<br/>
 DJANGO_SUPERUSER_PASSWORD=some_password<br/>
