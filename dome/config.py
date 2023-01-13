@@ -120,7 +120,7 @@ TIMEOUT_MSG_PARSER = 60  # seconds
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 if DEBUG_MODE:
     TIMEOUT_MSG_PARSER = 999999
