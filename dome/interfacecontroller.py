@@ -96,7 +96,7 @@ class InterfaceController:
         print('running the web server')
         self.__runAsyncCmd(
             os.getcwd() + '\\Scripts\\python.exe ' +
-            os.getcwd() + '\\' + self.__config_path + '\\manage.py runserver --skip-checks') #127.0.0.1:8080 --skip-checks')  # --noreload')
+            os.getcwd() + '\\' + self.__config_path + '\\manage.py runserver 127.0.0.1:80 --skip-checks') #127.0.0.1:8080 --skip-checks')  # --noreload')
         return True
 
     def getApp_cmd(self, msgHandle):
