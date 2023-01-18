@@ -88,7 +88,10 @@ class DomainEngine:
         if where_clause:
             sql_cmd += " where "
             for k in where_clause.keys():
-                sql_cmd += "LOWER(" + k + ") LIKE LOWER('%" + where_clause[k] + "%') AND "
+                if k == 'id':
+                    sql_cmd += " id=" + where_clause[k] + " AND "
+                else:
+                    sql_cmd += "LOWER(" + k + ") LIKE LOWER('%" + where_clause[k] + "%') AND "
             sql_cmd = sql_cmd[:-4]  # removing the last AND
 
         self.__executeSqlCmd(sql_cmd)
@@ -96,7 +99,10 @@ class DomainEngine:
     def read(self, entity, attributes):
         sql_cmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where (1=1)"
         for k in attributes.keys():
-            sql_cmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
+            if k == 'id':
+                sql_cmd += " AND id=" + attributes[k]
+            else:
+                sql_cmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
 
         # ordering by the newest
         # dome_updated_at is a reserved field automatically updated by the system
