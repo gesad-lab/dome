@@ -9,7 +9,7 @@ from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
                          DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP)
-
+import re
 
 class AIEngine(DAO):
     def get_db_file_name(self) -> str:
@@ -201,6 +201,8 @@ class AIEngine(DAO):
 
         def __init__(self, user_msg, aie_obj) -> None:
             self.user_msg = user_msg
+            # removing double spaces from self.user_msg
+            self.user_msg = re.sub(' +', ' ', self.user_msg)
             self.__AIE = aie_obj
             self.intent = None
             self.entity_class = None
