@@ -182,7 +182,10 @@ class AutonomousController:
                     if query_result is None:
                         msg_return_list = NO_REGISTERS
                     else:
-                        query_result
+                        # formatting columns names
+                        query_result.rename(columns={c: '<b>' + c.replace('_', ' ').upper() + '</b>'
+                                                     for c in query_result.columns},
+                                            inplace=True)
                         msg_return_list = [
                             str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True)) +
                             '\n------\n<i>' + LIMIT_REGISTERS_MSG + '</i>']

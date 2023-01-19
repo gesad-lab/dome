@@ -141,7 +141,7 @@ class InterfaceController:
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
-            strFileBuffer += f'admin.site.register({entity.name.capitalize()})' + '\n'
+            strFileBuffer += f'admin.site.register({entity.name})' + '\n'
 
         update_file(self.__webapp_path + '\\admin.py', strFileBuffer)
 
@@ -155,7 +155,7 @@ class InterfaceController:
             if len(entity.getAttributes()) == 0:
                 continue
             # else: entities with attributes
-            strFileBuffer += '\n\n\n' + 'class ' + entity.name.capitalize() + '(models.Model):'
+            strFileBuffer += '\n\n\n' + 'class ' + entity.name + '(models.Model):'
             # adding the reserved timestamp fields
             strFileBuffer += '\n' + '    dome_created_at = models.IntegerField(null=True)'
             strFileBuffer += '\n' + '    dome_updated_at = models.IntegerField(null=True)'

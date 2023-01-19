@@ -11,6 +11,7 @@ from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_D
                          DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP)
 import re
 
+
 class AIEngine(DAO):
     def get_db_file_name(self) -> str:
         return "kdb.sqlite"
@@ -119,8 +120,10 @@ class AIEngine(DAO):
             return False
         # else test similarity
         model = self.getPipeline("text-similarity")
+        # replacing '_' by ' ' to improve similarity
+        considered_entity_name = entity_name.replace('_', ' ')
         # Compute embedding for both texts
-        embedding_1 = model.encode(entity_name, convert_to_tensor=True)
+        embedding_1 = model.encode(considered_entity_name, convert_to_tensor=True)
         embedding_2 = model.encode(alternative, convert_to_tensor=True)
         result = util.pytorch_cos_sim(embedding_1, embedding_2)[0][0].item()
         if result > threshold:
@@ -260,7 +263,7 @@ class AIEngine(DAO):
                         # adjusting the first token to be a verb, considering the intent (see test_corner_case_13)
                         self.tokens[0]['entity'] = 'VERB'
 
-                    self.entity_class = self.__getEntityClassFromMsg()
+                    self.entity_class = self.__get_entity_class_from_msg()
 
                 # discovering of the attributes
                 if self.entity_class:
@@ -371,7 +374,10 @@ class AIEngine(DAO):
             # else
             return Intent.MEANINGLESS
 
-        def __getEntityClassFromMsg(self) -> str:
+        def __entities_are_similar(self, entity1, entity2) -> bool:
+            self.__AIE.entitiesAreSimilar(entity1, entity2)
+
+        def __get_entity_class_from_msg(self) -> str:
             question = "What is the entity class that the user's message refers to?"
             context = self.get_bot_context() + "\nThe user's message intent is '" + self.intent.name + "'."
             context += "\nNow, the chatbot need discover the entity class that the user's message refers to, " \
@@ -392,7 +398,7 @@ class AIEngine(DAO):
             # adding current classes
             for class_key in self.__AIE.get_entities_map():
                 for candidate in candidates:
-                    if self.__AIE.entitiesAreSimilar(class_key, candidate):
+                    if self.__entities_are_similar(class_key, candidate):
                         context += "\nThere already is an entity class named: " + class_key
 
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
@@ -411,7 +417,14 @@ class AIEngine(DAO):
                 return cached_entity_class
             # else
             # add the entity class to the cache
-            self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate)
+            # update the entity_class_candidate replacing special characters for '_'
+            entity_class_candidate_original = entity_class_candidate
+            entity_class_candidate = re.sub(r'[^a-zA-Z0-9_]', '_', entity_class_candidate)
+
+            if self.intent in [Intent.ADD, Intent.UPDATE]:
+                self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate)
+                self.__AIE.add_alternative_entity_name(entity_class_candidate, entity_class_candidate_original)
+
             return entity_class_candidate
 
         def __get_attributes_from_msg(self) -> tuple:
@@ -436,7 +449,7 @@ class AIEngine(DAO):
                     if self.tokens[_i]['entity'] != 'NOUN' or \
                             self.tokens[_i]['word'] in WHERE_CLAUSE_WORDS or \
                             self.tokens[_i]['word'] in INTENT_MAP['UPDATE'] or \
-                            self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
+                            self.__entities_are_similar(self.entity_class, self.tokens[_i]['word']):
                         continue
                     # else
                     valid_sentence = False
@@ -445,7 +458,7 @@ class AIEngine(DAO):
                                 self.tokens[_j]['word'] in INTENT_MAP['UPDATE']:
                             break
                         if self.tokens[_j]['entity'] in valid_tokens and \
-                           not self.__AIE.entitiesAreSimilar(self.entity_class, self.tokens[_i]['word']):
+                           not self.__entities_are_similar(self.entity_class, self.tokens[_i]['word']):
                             valid_sentence = not valid_sentence  # true only each couple of valid tokens
                             if valid_sentence:
                                 # generate the sentence using the token start and end to preserve the case of the words
