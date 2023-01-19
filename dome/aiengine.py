@@ -393,9 +393,7 @@ class AIEngine(DAO):
             for class_key in self.__AIE.get_entities_map():
                 for candidate in candidates:
                     if self.__AIE.entitiesAreSimilar(class_key, candidate):
-                        # context += "\nThe entity class is definitely this: " + class_key
-                        pass
-                        #return class_key
+                        context += "\nThere already is an entity class named: " + class_key
 
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
                        "\nThe user's current message is: '" + self.user_msg + "'."
