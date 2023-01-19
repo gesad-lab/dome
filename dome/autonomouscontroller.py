@@ -245,7 +245,10 @@ class AutonomousController:
                             if user_data['pending_intent'] == Intent.READ:
                                 return self.app_chatbot_msg_process('ok', user_data=user_data)
                             # else
-                            msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']), user_data['pending_class'])
+                            msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']),
+                                                           user_data['pending_class'],
+                                                           user_data['pending_attributes'],
+                                                           user_data['pending_where_clause'])
 
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
 

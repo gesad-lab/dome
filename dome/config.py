@@ -72,8 +72,12 @@ ATTRIBUTE_FORMAT = [
     "\n- <i>delete the student with name = 'Anderson'</i>"
     "\n- <i>get the student with name = 'Anderson'</i>"]
 
-ATTRIBUTE_OK = lambda opr, clas: [f"Ok! I got it!\nWe are going to <b>{opr}</b> a <b>{clas}</b>.\nSay 'Ok' to confirm\n'Cancel' to "
-                                  f"cancel this operation."]
+ATTRIBUTE_OK = lambda opr, clas, att, where: [f"Ok! I got it!\nWe are going to <b>{opr}</b> a <b>"
+                                              f"{clas.replace('_', ' ').title()}</b>."
+                                              + (f"\nWith attributes = <b>{att}</b>." if att else "")
+                                              + (f"\nOnly when <b>{where}</b>." if where else "")
+                                              + f"\nSay 'Ok' to confirm\n'Cancel' to"
+                                              f" cancel this operation."]
 
 SAVE_SUCCESS = ['Ok! Information saved successfully!',
                 'It done! Information saved. ;)',
@@ -120,7 +124,7 @@ TIMEOUT_MSG_PARSER = 60  # seconds
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
-DEBUG_MODE = False
+DEBUG_MODE = True
 if "DOME_DEBUG_MODE" in os.environ:
     DEBUG_MODE = eval(os.environ['DOME_DEBUG_MODE'])
 
