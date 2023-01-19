@@ -4,7 +4,6 @@ class Entity: #TODO: #12 choose other name to differ from responseParse.entity
     def __init__(self, name):
         self.name = name
         self.__attributes = {}
-        #self.addAttribute('att0', 'str', True) #all entities need at least one attribute not null
 
     def getAttributes(self):
         return self.__attributes.values()

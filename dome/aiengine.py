@@ -55,11 +55,28 @@ class AIEngine(DAO):
         tokens = token_classifier(considered_msg)
 
         if aggregation_strategy is None:
-            # merge the token that word starts with ## (e.g. ##ing) with the previous token
             for i in range(len(tokens) - 1, -1, -1):
                 if i > 0 and tokens[i]['word'].startswith('##'):
+                    # merge the token that word starts with ## (e.g. ##ing) with the previous token
                     tokens[i - 1]['word'] += tokens[i]['word'][2:]
-                    tokens[i - 1]['end'] += len(tokens[i]['word']) - 2
+                    tokens[i - 1]['end'] = tokens[i]['end']
+                    tokens[i]['entity'] = None
+                    tokens[i]['word'] = None
+                elif 0 < i < (len(tokens) - 1) and tokens[i]['word'] == '-' and tokens[i - 1]['entity'] == 'NOUN' and \
+                        tokens[i + 1]['entity'] == 'NOUN':
+                    # merge the token that is a hyphen with the previous and next token
+                    tokens[i - 1]['word'] += tokens[i]['word'] + tokens[i + 1]['word']
+                    tokens[i - 1]['end'] = tokens[i + 1]['end']
+                    tokens[i]['entity'] = None
+                    tokens[i]['word'] = None
+                    tokens[i + 1]['entity'] = None
+                    tokens[i + 1]['word'] = None
+                elif 0 < i < len(tokens) and tokens[i - 1]['entity'] == 'ADJ' and \
+                        tokens[i]['entity'] == 'NOUN':
+                    # merge the token that is a noun with the previous token
+                    tokens[i - 1]['word'] += ' ' + tokens[i]['word']
+                    tokens[i - 1]['end'] = tokens[i]['end']
+                    tokens[i - 1]['entity'] = 'NOUN'
                     tokens[i]['entity'] = None
                     tokens[i]['word'] = None
                 elif tokens[i]['word'] == 'delete' and tokens[i]['entity'] == 'PROPN':
@@ -560,7 +577,10 @@ class AIEngine(DAO):
                     if attribute_value[-1] in ['"', "'"]:
                         attribute_value = attribute_value[:-1]
 
-                    # add the attribute pair to the map
+                    # update the attribute_name replacing special characters for '_'
+                    attribute_name = re.sub(r'[^a-zA-Z0-9_]', '_', attribute_name)
+
+                    # add the attribute pair to the correspondent map
                     if idx_in_where_clause(att_value_idx_end):
                         where_clause_attributes[attribute_name] = attribute_value
                     else:
