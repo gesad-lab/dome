@@ -375,7 +375,7 @@ class AIEngine(DAO):
             return Intent.MEANINGLESS
 
         def __entities_are_similar(self, entity1, entity2) -> bool:
-            self.__AIE.entitiesAreSimilar(entity1, entity2)
+            return self.__AIE.entitiesAreSimilar(entity1, entity2)
 
         def __get_entity_class_from_msg(self) -> str:
             question = "What is the entity class that the user's message refers to?"

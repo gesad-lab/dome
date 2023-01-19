@@ -276,7 +276,7 @@ class TestT2S(unittest.TestCase):
     def test_corner_case_7(self):
         self.__check(cmd_str='get invoices',
                      expected_intent=Intent.READ,
-                     expected_class='invoice')
+                     expected_class='invoices')
 
     def test_corner_case_8(self):
         # 'limit = 10' is a corner case
