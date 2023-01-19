@@ -40,7 +40,7 @@ class AutonomousController:
         # TODO: manager the type of task
         # ...
         if opr == OPR_APP_HOME_WEB:
-            self.__IC.updateAppWeb()
+            self.__IC.update_app_web()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_APP_HOME_CMD:
             self.__IC.getApp_cmd(self.app_chatbot_responseProcess)
@@ -51,10 +51,10 @@ class AutonomousController:
         elif opr == OPR_ATTRIBUTE_ADD:
             self.__DE.addAttribute(data['entity'], data['name']
                                    , data['type'], data['notnull'])
-            self.__IC.updateAppWeb()
+            self.__IC.update_app_web()
             return True
         elif opr == OPR_APP_TELEGRAM_START:
-            self.__IC.updateAppWeb(True)
+            self.__IC.update_app_web(True)
             self.__IC.startApp_telegram(self.app_chatbot_msg_handle)
             return True  # TODO: to analyse return type/value
         # else
@@ -129,13 +129,19 @@ class AutonomousController:
         return response['response_msg']
 
     def __update_model(self, user_data):
+        # updating the internal domain model entities and attributes
         domain_entity = self.__DE.saveEntity(user_data['pending_class'])
         for att_name in user_data['pending_attributes'].keys():
             self.__DE.addAttribute(domain_entity, att_name, 'str')
         if 'pending_where_clause' in user_data and user_data['pending_where_clause']:
             for att_name in user_data['pending_where_clause'].keys():
                 self.__DE.addAttribute(domain_entity, att_name, 'str')
-        self.__IC.updateAppWeb()
+        try:
+            self.__IC.update_app_web()
+        except BaseException as e:
+            # rollback the entity and attributes
+            self.__DE.init_entities()
+            raise Exception('Error updating the model')
 
     def app_chatbot_msg_process(self, msg, user_data=None):
 

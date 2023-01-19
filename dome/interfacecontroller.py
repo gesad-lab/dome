@@ -1,5 +1,5 @@
 from dome.aiengine import AIEngine
-from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB
+from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE
 from dome.analyticsengine import AnalyticsEngine
 from dome.businessprocessengine import BusinessProcessEngine
 import os
@@ -9,6 +9,30 @@ import platform
 from dome.config import MANAGED_SYSTEM_NAME
 from dome.auxiliary.telegramHandle import TelegramHandle
 from util.django_util import init_django_user
+import ast
+
+
+# https://stackoverflow.com/questions/11854745/how-to-tell-if-a-string-contains-valid-python-code
+def is_valid_python(code):
+    try:
+        ast.parse(code)
+    except SyntaxError:
+        return False
+    return True
+
+
+def update_file(path, txtContent, test_if_is_valid_python_code=True):
+    if not os.access(path, os.R_OK):
+        # raise an exception
+        raise Exception("File not found: " + path)
+
+    if test_if_is_valid_python_code and not is_valid_python(txtContent):
+        # raise an exception
+        raise Exception("Invalid Python code: " + txtContent)
+
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(txtContent)
+        f.close()
 
 
 class InterfaceController:
@@ -96,7 +120,7 @@ class InterfaceController:
         print('running the web server')
         self.__runAsyncCmd(
             os.getcwd() + '\\Scripts\\python.exe ' +
-            os.getcwd() + '\\' + self.__config_path + '\\manage.py runserver 0.0.0.0:80 --skip-checks') #127.0.0.1:8080 --skip-checks')  # --noreload')
+            os.getcwd() + '\\' + self.__config_path + '\\manage.py runserver 0.0.0.0:80 --skip-checks')  # 127.0.0.1:8080 --skip-checks')  # --noreload')
         return True
 
     def getApp_cmd(self, msgHandle):
@@ -107,24 +131,22 @@ class InterfaceController:
             self.__TELEGRAM_HANDLE = TelegramHandle(msgHandle)
         return True
 
-    def updateModel(self, showLogs=True):
+    def update_model(self):
         # update admin.py
-        if showLogs:
+        if DEBUG_MODE:
             print('updating admin.py...')
 
-        strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n'
+        strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n\n'
         for entity in self.__getEntities():
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
-            strFileBuffer += '\n' + f'admin.site.register({entity.name.capitalize()})'
+            strFileBuffer += f'admin.site.register({entity.name.capitalize()})' + '\n'
 
-        if not self.__updateFile(self.__webapp_path + '\\admin.py', strFileBuffer):
-            return False
-        # else:
+        update_file(self.__webapp_path + '\\admin.py', strFileBuffer)
 
         # update models.py
-        if showLogs:
+        if DEBUG_MODE:
             print('updating models.py...')
 
         strFileBuffer = 'from django.db import models'
@@ -145,34 +167,20 @@ class InterfaceController:
                 # all fields with the same type, in this version.
                 strFileBuffer += f'\n    {att.name} = models.CharField(max_length=200, null={not att.notnull}, ' \
                                  f'blank={not att.notnull})'
-                # print(strFileBuffer)
+
         # re-writing the model.py file
+        update_file(self.__webapp_path + '\\models.py', strFileBuffer)
+        self.migrateModel()
 
-        if not self.__updateFile(self.__webapp_path + '\\models.py', strFileBuffer):
-            return False
-        # else:
-
-        self.migrateModel(showLogs)
-        return True  # TODO: #21 to analyse the type of return
-
-    def updateAppWeb(self, run_server=False):
-        return self.updateModel() and (run_server and self.__run_server())
+    def update_app_web(self, run_server=False):
+        return self.update_model() and (run_server and self.__run_server())
 
     # util methods
     def __getEntities(self) -> list:
         return self.__AC.getEntities()
 
-    def __updateFile(self, path, txtContent):
-        if not os.access(path, os.R_OK):
-            return False
-
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(txtContent)
-            f.close()
-        return True
-
-    def migrateModel(self, showLogs=True):
-        if showLogs:
+    def migrateModel(self):
+        if DEBUG_MODE:
             print('migrating model...')
 
         self.__runSyncCmd(

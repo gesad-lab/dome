@@ -10,7 +10,11 @@ class DomainEngine:
         self.__AC = AC  # Autonomous Controller Object
         self.__TDB = None  # Transaction Database Connection
         self.__entities_map = {}  # map of entities
-        # update table names
+        self.init_entities()
+
+    def init_entities(self):
+        # update current entities and attributes
+        self.__entities_map.clear()
         sql_cmd = "SELECT name FROM sqlite_schema WHERE type ='table' AND name LIKE '" + self.__getEntityDBNamePrefix() + "%';"
         query = self.__executeSqlCmd(sql_cmd)
         for row in query.fetchall():
