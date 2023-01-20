@@ -1,5 +1,6 @@
 from dome.aiengine import AIEngine
-from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE, MANAGED_SYSTEM_WEBAPP_TITLE
+from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE, MANAGED_SYSTEM_WEBAPP_TITLE, \
+    NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION
 from dome.analyticsengine import AnalyticsEngine
 from dome.businessprocessengine import BusinessProcessEngine
 import os
@@ -180,6 +181,7 @@ class InterfaceController:
             # adding the reserved timestamp fields
             strFileBuffer += '\n' + '    dome_created_at = models.CharField(max_length=25, editable=False)'
             strFileBuffer += '\n' + '    dome_updated_at = models.CharField(max_length=25, editable=False)'
+            attributes_to_use_in_str = []
             # adding the other attributes
             for att in entity.getAttributes():
                 if att.name == 'id':
@@ -188,6 +190,17 @@ class InterfaceController:
                 # all fields with the same type, in this version.
                 strFileBuffer += f'\n    {att.name} = models.CharField(max_length=200, null={not att.notnull}, ' \
                                  f'blank={not att.notnull})'
+                if len(attributes_to_use_in_str) < NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION and \
+                        att.name not in ['dome_created_at', 'dome_updated_at']:
+                    attributes_to_use_in_str.append(att.name)
+
+            if attributes_to_use_in_str:
+                # adding the __str__ method
+                strFileBuffer += '\n\n    def __str__(self):'
+                strFileBuffer += '\n        return f"'
+                for att in attributes_to_use_in_str:
+                    strFileBuffer += "{self." + att + "} | "
+                strFileBuffer = strFileBuffer[:-3] + '"'
 
         # re-writing the model.py file
         overwriting_file(self.__webapp_path + '\\models.py', strFileBuffer)

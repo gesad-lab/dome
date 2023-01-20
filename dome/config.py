@@ -142,3 +142,4 @@ HUGGINGFACE_TOKEN = os.environ['HUGGINGFACE_TOKEN']
 
 # managed system webapp custom variables
 MANAGED_SYSTEM_WEBAPP_TITLE = 'Managed System Webapp'
+NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION = 3
