@@ -21,7 +21,7 @@ def is_valid_python(code):
     return True
 
 
-def update_file(path, txtContent, test_if_is_valid_python_code=True):
+def overwriting_file(path, txtContent, test_if_is_valid_python_code=True):
     if not os.access(path, os.R_OK):
         # raise an exception
         raise Exception("File not found: " + path)
@@ -70,7 +70,7 @@ class InterfaceController:
 
         print('creating django config dir...')
         self.__config_path = self.__checkPath(MANAGED_SYSTEM_NAME + SUFFIX_CONFIG)
-        self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path + '\\settings.py')
+        self.__settings_path = self.__checkPath(self.__config_path + '\\' + self.__config_path)
         if not os.path.exists(self.__config_path):
             print('starting django project...')
             self.__runSyncCmd('Scripts\\django-admin.exe startproject ' + self.__config_path)  # synchronous
@@ -83,7 +83,7 @@ class InterfaceController:
             self.__runSyncCmd(
                 'Scripts\\python.exe  ' + self.__config_path + '\\manage.py startapp ' + self.__webapp_path)  # synchronous
             # extra setup in settings.py
-            for line in fileinput.FileInput(self.__settings_path, inplace=1):
+            for line in fileinput.FileInput(self.__settings_path + '\\settings.py', inplace=1):
                 if "    'django.contrib.staticfiles'," in line:
                     line = line.replace(line, "    'livesync',\n" + line + "    '" + self.__webapp_path
                                         + '.apps.' + self.__webapp_path.replace('_', ' ').title().replace(' ', '')
@@ -96,8 +96,21 @@ class InterfaceController:
                     line = line.replace(line,
                                         "ALLOWED_HOSTS = ['*',]")  # for thsi version, allow all hosts
                 print(line, end='')
-            print('updating manage.py file...(done)')
             fileinput.close()
+
+            # Overwriting the urls.py file with the follow content to eliminate the admin login page:
+            # vide: https://stackoverflow.com/questions/24390488/django-admin-without-authentication
+            strFileContent = "from django.urls import path\n" \
+                             "from django.contrib import admin\n" \
+                             "\n\nclass AccessUser:\n" \
+                             "    has_module_perms = has_perm = __getattr__ = lambda s, *a, **kw: True\n" \
+                             "\n\nadmin.site.has_permission = lambda r: setattr(r, 'user', AccessUser()) or True\n" \
+                             "\n\nurlpatterns = [path('admin/', admin.site.urls)]\n"
+
+            print('updating urls.py file...')
+            # overwrite the urls.py file
+            overwriting_file(self.__settings_path + '\\urls.py', strFileContent)
+
             self.migrateModel()
             # creating superuser
             # needs creating the follow system variables:
@@ -108,7 +121,7 @@ class InterfaceController:
             os.environ['DJANGO_SUPERUSER_EMAIL'] = '<<some email>>'
             '''
             print('creating Django superuser...')
-            init_django_user()  # initializing the django user envoirements variables
+            init_django_user()  # initializing the django user environments variables
             self.__runSyncCmd(
                 'Scripts\\python.exe ' + self.__config_path + '\\manage.py createsuperuser --noinput')  # --username=root --email=andersonmg@gmail.com')
 
@@ -143,7 +156,7 @@ class InterfaceController:
                 continue
             strFileBuffer += f'admin.site.register({entity.name})' + '\n'
 
-        update_file(self.__webapp_path + '\\admin.py', strFileBuffer)
+        overwriting_file(self.__webapp_path + '\\admin.py', strFileBuffer)
 
         # update models.py
         if DEBUG_MODE:
@@ -169,11 +182,13 @@ class InterfaceController:
                                  f'blank={not att.notnull})'
 
         # re-writing the model.py file
-        update_file(self.__webapp_path + '\\models.py', strFileBuffer)
+        overwriting_file(self.__webapp_path + '\\models.py', strFileBuffer)
         self.migrateModel()
 
     def update_app_web(self, run_server=False):
-        return self.update_model() and (run_server and self.__run_server())
+        self.update_model()
+        if run_server:
+            self.__run_server()
 
     # util methods
     def __getEntities(self) -> list:
