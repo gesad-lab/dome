@@ -143,3 +143,9 @@ HUGGINGFACE_TOKEN = os.environ['HUGGINGFACE_TOKEN']
 # managed system webapp custom variables
 MANAGED_SYSTEM_WEBAPP_TITLE = 'Managed System Webapp'
 NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION = 3
+
+MANAGED_SYSTEM_WEBAPP_BASE_URL = 'http://dome-uece.duckdns.org'
+if DEBUG_MODE:
+    MANAGED_SYSTEM_WEBAPP_BASE_URL = 'http://127.0.0.1'
+
+MANAGED_SYSTEM_WEBAPP_BASE_URL += '/admin/managedsys_web'

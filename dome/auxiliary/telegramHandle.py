@@ -54,7 +54,14 @@ class TelegramHandle:
         """Echo the user message."""
         if update:
             response = self.__MSG_HANDLE(update.message.text, context)
-            update.message.reply_text(response, parse_mode='HTML')
+
+            try:
+                update.message.reply_text(response, parse_mode='HTML')
+            except Exception:
+                # probably the message has denied HTML tags
+                # trying again without HTML parsing
+                update.message.reply_text(response)
+
             self.__tryagain = True  # msg processed, then the control variable is set to True
 
     def error(self, update, context):

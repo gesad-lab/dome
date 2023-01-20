@@ -2,8 +2,6 @@ import datetime as dth
 import random
 import time
 
-from tabulate import tabulate
-
 from dome.aiengine import AIEngine, Intent
 from dome.auxiliary.constants import (OPR_APP_HOME_CMD,
                                       OPR_APP_HOME_WEB,
@@ -14,7 +12,7 @@ from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
                          NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
-                         CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG)
+                         CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -43,7 +41,7 @@ class AutonomousController:
             self.__IC.update_app_web()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_APP_HOME_CMD:
-            self.__IC.getApp_cmd(self.app_chatbot_responseProcess)
+            self.__IC.getApp_cmd(self.app_chatbot_msg_handle)
             return True  # TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
             return self.__DE.saveEntity(data['name'])
@@ -66,14 +64,6 @@ class AutonomousController:
     # util methods
     def getEntities(self) -> list:
         return self.__DE.getEntities()
-
-    def testMsg(self, msg):
-        print(msg)
-        response = 'É uma saudação? ' + str(self.__AIE.msgIsGreeting(msg))
-        response += '\nSentimento positivo? ' + str(self.__AIE.msgIsPositive(msg))
-        response += '\nÉ uma despedida? ' + str(self.__AIE.msgIsGoodbye(msg))
-        print(response)
-        return response
 
     @staticmethod
     def clear_opr(user_data):
@@ -138,7 +128,7 @@ class AutonomousController:
                 self.__DE.addAttribute(domain_entity, att_name, 'str')
         try:
             self.__IC.update_app_web()
-        except BaseException as e:
+        except BaseException:
             # rollback the entity and attributes
             self.__DE.init_entities()
             raise Exception('Error updating the model')
@@ -182,13 +172,25 @@ class AutonomousController:
                     if query_result is None:
                         msg_return_list = NO_REGISTERS
                     else:
-                        # formatting columns names
-                        query_result.rename(columns={c: '<b>' + c.replace('_', ' ').upper() + '</b>'
-                                                     for c in query_result.columns},
-                                            inplace=True)
-                        msg_return_list = [
-                            str(tabulate(query_result, headers='keys', tablefmt='simple', showindex=True)) +
-                            '\n------\n<i>' + LIMIT_REGISTERS_MSG + '</i>']
+                        get_html = ''
+                        entity_url = MANAGED_SYSTEM_WEBAPP_BASE_URL + '/' + user_data['pending_class']
+                        # iterating over the rows
+                        for index, row in query_result.iterrows():
+                            str_row = '<a href="' + entity_url + '/' + str(index) + '/">'
+                            str_row += user_data['pending_class'] + ' - '
+                            str_row += 'id: ' + str(index)
+                            # adding the link to edit the row
+                            str_row += '</a>\n'
+                            # adding the fields
+                            for c in query_result.columns:
+                                str_row += (c + ': ' + str(row[c]))[:40] + '\n'
+                            get_html += str_row
+
+                        get_html += '------<a href="' + entity_url + '/">View all</a>'
+                        get_html += '\n<i>' + LIMIT_REGISTERS_MSG + '</i>'
+
+                        msg_return_list = [get_html]
+
                 self.clear_opr(user_data)
             else:  # ok without pending intent
                 msg_return_list = CONFIRMATION_WITHOUT_PENDING_INTENT
