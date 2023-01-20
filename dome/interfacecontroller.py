@@ -170,8 +170,8 @@ class InterfaceController:
             # else: entities with attributes
             strFileBuffer += '\n\n\n' + 'class ' + entity.name + '(models.Model):'
             # adding the reserved timestamp fields
-            strFileBuffer += '\n' + '    dome_created_at = models.IntegerField(null=True)'
-            strFileBuffer += '\n' + '    dome_updated_at = models.IntegerField(null=True)'
+            strFileBuffer += '\n' + '    dome_created_at = models.CharField(max_length=25, editable=False)'
+            strFileBuffer += '\n' + '    dome_updated_at = models.CharField(max_length=25, editable=False)'
             # adding the other attributes
             for att in entity.getAttributes():
                 if att.name == 'id':
