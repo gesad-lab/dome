@@ -139,3 +139,6 @@ DJANGO_SUPERUSER_DEFAULT_EMAIL = 'admin@t2s.org'
 
 # Hugging Face token
 HUGGINGFACE_TOKEN = os.environ['HUGGINGFACE_TOKEN']
+
+# managed system webapp custom variables
+MANAGED_SYSTEM_WEBAPP_TITLE = 'Managed System Webapp'

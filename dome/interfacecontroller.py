@@ -1,5 +1,5 @@
 from dome.aiengine import AIEngine
-from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE
+from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE, MANAGED_SYSTEM_WEBAPP_TITLE
 from dome.analyticsengine import AnalyticsEngine
 from dome.businessprocessengine import BusinessProcessEngine
 import os
@@ -105,7 +105,10 @@ class InterfaceController:
                              "\n\nclass AccessUser:\n" \
                              "    has_module_perms = has_perm = __getattr__ = lambda s, *a, **kw: True\n" \
                              "\n\nadmin.site.has_permission = lambda r: setattr(r, 'user', AccessUser()) or True\n" \
-                             "\n\nurlpatterns = [path('admin/', admin.site.urls)]\n"
+                             "\n\nurlpatterns = [path('admin/', admin.site.urls)]\n" \
+                             "\n\nadmin.site.site_header = \"" + MANAGED_SYSTEM_WEBAPP_TITLE + "\"" \
+                             "\nadmin.site.site_title = \"" + MANAGED_SYSTEM_WEBAPP_TITLE + "\"" \
+                             "\nadmin.site.index_title = \"" + MANAGED_SYSTEM_WEBAPP_TITLE + "\""
 
             print('updating urls.py file...')
             # overwrite the urls.py file
