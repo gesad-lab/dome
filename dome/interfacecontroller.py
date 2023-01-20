@@ -152,12 +152,17 @@ class InterfaceController:
         if DEBUG_MODE:
             print('updating admin.py...')
 
-        strFileBuffer = 'from django.contrib import admin\nfrom .models import *\n\n'
+        strFileBuffer = 'from django.contrib import admin\n' \
+                        'from django.contrib.auth.models import Group, User\n' \
+                        'from .models import *\n\n'
         for entity in self.__getEntities():
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
             strFileBuffer += f'admin.site.register({entity.name})' + '\n'
+
+        strFileBuffer += '\nadmin.site.unregister(Group)'
+        strFileBuffer += '\nadmin.site.unregister(User)\n'
 
         overwriting_file(self.__webapp_path + '\\admin.py', strFileBuffer)
 
