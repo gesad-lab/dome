@@ -52,9 +52,10 @@ class TelegramHandle:
 
     def echo(self, update, context):
         """Echo the user message."""
-        response = self.__MSG_HANDLE(update.message.text, context)
-        update.message.reply_text(response, parse_mode='HTML')
-        self.__tryagain = True  # msg processed, then the control variable is set to True
+        if update:
+            response = self.__MSG_HANDLE(update.message.text, context)
+            update.message.reply_text(response, parse_mode='HTML')
+            self.__tryagain = True  # msg processed, then the control variable is set to True
 
     def error(self, update, context):
         if (self.__tryagain  # only if the msg was not processed and only once
