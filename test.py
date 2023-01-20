@@ -66,17 +66,17 @@ class TestT2S(unittest.TestCase):
             self.assertEqual(processed_intent, Intent.UPDATE)
             self.assertEqual(processed_where_clause, expected_where_clause)
 
-    def __check_ADD(self, entity_name, attributes=None, cmd_str=None):
-        if not cmd_str:
-            cmd_str = 'add ' + entity_name
+    def __check_ADD(self, entity_name, attributes=None, add_msg=None):
+        if not add_msg:
+            add_msg = 'add ' + entity_name
             if attributes:
-                cmd_str += ' with'
+                add_msg += ' with'
                 for attribute_name, attribute_value in attributes.items():
-                    cmd_str += ' ' + attribute_name
-                    cmd_str += '=' + attribute_value + ","
-                cmd_str = cmd_str[:-1]  # remove the last comma
+                    add_msg += ' ' + attribute_name
+                    add_msg += '=' + attribute_value + ","
+                add_msg = add_msg[:-1]  # remove the last comma
 
-        self.__check(cmd_str, Intent.ADD, entity_name, attributes, ATTRIBUTE_OK(str(Intent.ADD), entity_name,
+        self.__check(add_msg, Intent.ADD, entity_name, attributes, ATTRIBUTE_OK(str(Intent.ADD), entity_name,
                                                                                 attributes, None))
         self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
@@ -129,7 +129,7 @@ class TestT2S(unittest.TestCase):
 
     def test_add_5(self):
         self.__check_ADD('subject', {'name': 'Math', 'description': "The best subject ever!"},
-                         cmd_str="add subject with name=Math, description='The best subject ever!'")
+                         add_msg="add subject with name=Math, description='The best subject ever!'")
 
     def __check_cancel(self, msg='cancel'):
         self.__check(msg, Intent.CANCELLATION, None, None, CANCEL)
@@ -189,11 +189,11 @@ class TestT2S(unittest.TestCase):
         self.__check(update_msg, Intent.UPDATE, entity_name, attributes,
                      ATTRIBUTE_OK(str(Intent.UPDATE), entity_name, attributes, expected_where_clause),
                      expected_where_clause=expected_where_clause)
+        self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     def test_update_01(self):
         msg = "For the students with name='Anderson', update the name to 'Anderson Martins'"
         self.__check_update(msg, 'student', {'name': 'Anderson Martins'}, {'name': 'Anderson'})
-        self.__check('ok', Intent.CONFIRMATION, None, None, SAVE_SUCCESS)
 
     def test_update_02(self):
         msg = 'please change student with name Paulo update age to 30'
@@ -260,7 +260,7 @@ class TestT2S(unittest.TestCase):
         msg = 'Include outcome value 900, date is today, and description is "adjusting the numbers"'
         self.__check_ADD(entity_name='outcome',
                          attributes={'value': '900', 'date': 'today', 'description': 'adjusting the numbers'},
-                         cmd_str=msg)
+                         add_msg=msg)
 
     def test_corner_case_6(self):
         self.__check(cmd_str='show teachers',
@@ -312,6 +312,29 @@ class TestT2S(unittest.TestCase):
         self.__check(cmd_str='show teacher',
                      expected_intent=Intent.READ,
                      expected_class='teacher', )
+
+    def test_evaluation_domain(self):
+        self.__check_ADD(entity_name='article', attributes={'title': 'The title', 'author': 'The author'},)
+        self.__check_update('update article with title "The title" and author "The author" '
+                            'set the title to "The new title"', 'article', {'title': 'The new title'},
+                            expected_where_clause={'title': 'The title', 'author': 'The author'})
+        self.__check_delete(delete_msg='delete article when author="Anderson"',
+                            entity_name='article',
+                            attributes={'author': 'Anderson'})
+        self.__check_read(msg='show me the articles',
+                          entity_name='article')
+        # creating other fields
+        self.__check_ADD(entity_name='article', attributes={'title': 'The title', 'author': 'The author',
+                                                            'abstract': 'The abstract', 'keywords': 'The keywords'})
+        self.__check_update('update article with title "The title", setting the co-author as "Anderson Gomes"',
+                            entity_name='article',
+                            attributes={'co_author': 'Anderson Gomes'},
+                            expected_where_clause={'title': 'The title'})
+        self.__check_update('update article with id=1, setting the first author as "Paulo Maia"',
+                            entity_name='article',
+                            attributes={'first_author': 'Paulo Maia'},
+                            expected_where_clause={'id': '1'})
+
     '''
     def test_all_parser_cache(self):
         print('*** testing all parser cache')
