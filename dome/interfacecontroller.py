@@ -156,11 +156,20 @@ class InterfaceController:
         strFileBuffer = 'from django.contrib import admin\n' \
                         'from django.contrib.auth.models import Group, User\n' \
                         'from .models import *\n\n'
+        strFileBuffer += 'class BaseAdmin(admin.ModelAdmin):\n'
+        strFileBuffer += '    def has_delete_permission(self, request, obj=None):\n'
+        strFileBuffer += '        return False\n\n'  # Disabling delete
+
         for entity in self.__getEntities():
             # only add entities with one attribute at least
             if len(entity.getAttributes()) == 0:
                 continue
-            strFileBuffer += f'admin.site.register({entity.name})' + '\n'
+            strFileBuffer += 'class ' + entity.name + 'Admin(BaseAdmin):\n'
+            strFileBuffer += '    list_display = ('
+            for attribute in entity.getAttributes():
+                strFileBuffer += '"' + attribute.name + '", '
+            strFileBuffer = strFileBuffer[:-2] + ')\n'
+            strFileBuffer += f'admin.site.register({entity.name}, {entity.name}Admin)' + '\n\n'
 
         strFileBuffer += '\nadmin.site.unregister(Group)'
         strFileBuffer += '\nadmin.site.unregister(User)\n'
