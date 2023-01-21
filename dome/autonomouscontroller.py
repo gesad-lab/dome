@@ -178,14 +178,14 @@ class AutonomousController:
                         # iterating over the rows
                         for index, row in query_result.iterrows():
                             str_row = '<a href="' + entity_url + '/' + str(index) + '/">'
-                            str_row += user_data['pending_class'] + ' - '
-                            str_row += 'id: ' + str(index)
+                            str_row += user_data['pending_class'].upper() + ' ('
+                            str_row += 'id: ' + str(index) + ')'
                             # adding the link to edit the row
                             str_row += '</a>\n'
                             # adding the fields
                             for c in query_result.columns:
                                 if row[c]:
-                                    new_row = c + ': ' + str(row[c])
+                                    new_row = '<b>' + c.replace('_', ' ').title() + '</b>: ' + str(row[c])
                                     if len(new_row) > LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS:
                                         new_row = new_row[:LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS] + '...'
                                     str_row += new_row + '\n'

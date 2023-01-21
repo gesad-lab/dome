@@ -122,7 +122,7 @@ PNL_GENERAL_THRESHOLD = 0.75
 TIMEOUT_MSG_PARSER = 30  # seconds
 
 # limit of chars to show in a get message for each attribute
-LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 100
+LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
 
 # production variables
 RUN_WEB_SERVER = True
