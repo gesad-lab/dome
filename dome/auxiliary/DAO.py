@@ -6,6 +6,8 @@ from abc import abstractmethod
 class DAO:
     # get databases dir path
     __DB_PATH_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'databases/')
+    if 'DOME_DB_PATH_DIR' in os.environ:  # for an isolated database directory (usefully for production server)
+        __DB_PATH_DIR = os.environ['DOME_DB_PATH_DIR']
 
     def __init__(self):
         # variable that keep database connection
