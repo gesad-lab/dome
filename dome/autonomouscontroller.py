@@ -12,7 +12,8 @@ from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          DELETE_FAILURE, DELETE_SUCCESS, GREETINGS,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
                          NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
-                         CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL)
+                         CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL,
+                         LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -184,7 +185,10 @@ class AutonomousController:
                             # adding the fields
                             for c in query_result.columns:
                                 if row[c]:
-                                    str_row += (c + ': ' + str(row[c]))[:40] + '\n'
+                                    new_row = c + ': ' + str(row[c])
+                                    if len(new_row) > LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS:
+                                        new_row = new_row[:LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS] + '...'
+                                    str_row += new_row + '\n'
                             get_html += str_row
 
                         get_html += '------<a href="' + entity_url + '/">View all</a>'
