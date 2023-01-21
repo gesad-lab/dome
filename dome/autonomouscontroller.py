@@ -183,7 +183,8 @@ class AutonomousController:
                             str_row += '</a>\n'
                             # adding the fields
                             for c in query_result.columns:
-                                str_row += (c + ': ' + str(row[c]))[:40] + '\n'
+                                if row[c]:
+                                    str_row += (c + ': ' + str(row[c]))[:40] + '\n'
                             get_html += str_row
 
                         get_html += '------<a href="' + entity_url + '/">View all</a>'
