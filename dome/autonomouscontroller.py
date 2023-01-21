@@ -13,7 +13,7 @@ from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
                          NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
                          CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL,
-                         LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS)
+                         LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS, MAX_USER_MSG_SIZE, MAX_USER_MSG_SIZE_MSG)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -141,121 +141,128 @@ class AutonomousController:
         if ('session_expiration_time' not in user_data
                 or user_data['session_expiration_time'] < dth.datetime.now()):
             self.clear_opr(user_data)
-
-        parser = self.__AIE.get_msg_parser(msg)
+        parser = None
         msg_return_list = MISUNDERSTANDING  # default
 
-        if parser.intent == Intent.CONFIRMATION:
-            if (user_data['pending_intent'] is not None
-                    and user_data['pending_class'] is not None
-                    and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
-                if user_data['pending_intent'] == Intent.ADD:
-                    # updating the model
-                    self.__update_model(user_data)
-                    # add the data
-                    self.__DE.add(user_data['pending_class'], user_data['pending_attributes'])
-                    msg_return_list = SAVE_SUCCESS
-                elif user_data['pending_intent'] == Intent.UPDATE:
-                    # updating the model
-                    self.__update_model(user_data)
-                    # updating the data
-                    self.__DE.update(user_data['pending_class'], user_data['pending_attributes'],
-                                     user_data['pending_where_clause'])
-                    msg_return_list = SAVE_SUCCESS
-                elif user_data['pending_intent'] == Intent.DELETE:
-                    query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_attributes'])
-                    if query_result.rowcount == 0:
-                        msg_return_list = DELETE_FAILURE
-                    else:
-                        msg_return_list = DELETE_SUCCESS(query_result.rowcount)
-                elif user_data['pending_intent'] == Intent.READ:
-                    query_result = self.__DE.read(user_data['pending_class'], user_data['pending_attributes'])
-                    if query_result is None:
-                        msg_return_list = NO_REGISTERS
-                    else:
-                        get_html = ''
-                        entity_url = MANAGED_SYSTEM_WEBAPP_BASE_URL + '/' + user_data['pending_class']
-                        # iterating over the rows
-                        for index, row in query_result.iterrows():
-                            str_row = '<a href="' + entity_url + '/' + str(index) + '/">'
-                            str_row += user_data['pending_class'].upper() + ' ('
-                            str_row += 'id: ' + str(index) + ')'
-                            # adding the link to edit the row
-                            str_row += '</a>\n'
-                            # adding the fields
-                            for c in query_result.columns:
-                                if row[c]:
-                                    new_row = '<b>' + c.replace('_', ' ').title() + '</b>: ' + str(row[c])
-                                    if len(new_row) > LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS:
-                                        new_row = new_row[:LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS] + '...'
-                                    str_row += new_row + '\n'
-                            get_html += str_row
+        if len(msg) <= MAX_USER_MSG_SIZE:
+            parser = self.__AIE.get_msg_parser(msg)
 
-                        get_html += '------<a href="' + entity_url + '/">View all</a>'
-                        get_html += '\n<i>' + LIMIT_REGISTERS_MSG + '</i>'
+            if parser.intent == Intent.CONFIRMATION:
+                if (user_data['pending_intent'] is not None
+                        and user_data['pending_class'] is not None
+                        and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
+                    if user_data['pending_intent'] == Intent.ADD:
+                        # updating the model
+                        self.__update_model(user_data)
+                        # add the data
+                        self.__DE.add(user_data['pending_class'], user_data['pending_attributes'])
+                        msg_return_list = SAVE_SUCCESS
+                    elif user_data['pending_intent'] == Intent.UPDATE:
+                        # updating the model
+                        self.__update_model(user_data)
+                        # updating the data
+                        self.__DE.update(user_data['pending_class'], user_data['pending_attributes'],
+                                         user_data['pending_where_clause'])
+                        msg_return_list = SAVE_SUCCESS
+                    elif user_data['pending_intent'] == Intent.DELETE:
+                        query_result = self.__DE.delete(user_data['pending_class'], user_data['pending_attributes'])
+                        if query_result.rowcount == 0:
+                            msg_return_list = DELETE_FAILURE
+                        else:
+                            msg_return_list = DELETE_SUCCESS(query_result.rowcount)
+                    elif user_data['pending_intent'] == Intent.READ:
+                        query_result = self.__DE.read(user_data['pending_class'], user_data['pending_attributes'])
+                        if query_result is None:
+                            msg_return_list = NO_REGISTERS
+                        else:
+                            get_html = ''
+                            entity_url = MANAGED_SYSTEM_WEBAPP_BASE_URL + '/' + user_data['pending_class']
+                            # iterating over the rows
+                            for index, row in query_result.iterrows():
+                                str_row = '<a href="' + entity_url + '/' + str(index) + '/">'
+                                str_row += user_data['pending_class'].upper() + ' ('
+                                str_row += 'id: ' + str(index) + ')'
+                                # adding the link to edit the row
+                                str_row += '</a>\n'
+                                # adding the fields
+                                for c in query_result.columns:
+                                    if row[c]:
+                                        new_row = '<b>' + c.replace('_', ' ').title() + '</b>: ' + str(row[c])
+                                        if len(new_row) > LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS:
+                                            new_row = new_row[:LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS] + '...'
+                                        str_row += new_row + '\n'
+                                get_html += str_row
 
-                        msg_return_list = [get_html]
+                            get_html += '------<a href="' + entity_url + '/">View all</a>'
+                            get_html += '\n<i>' + LIMIT_REGISTERS_MSG + '</i>'
 
+                            msg_return_list = [get_html]
+
+                    self.clear_opr(user_data)
+                else:  # ok without pending intent
+                    msg_return_list = CONFIRMATION_WITHOUT_PENDING_INTENT
+            elif parser.intent == Intent.CANCELLATION:
+                if user_data['pending_intent']:
+                    self.clear_opr(user_data)
+                    msg_return_list = CANCEL
+                else:  # cancel without pending intent
+                    msg_return_list = CANCEL_WITHOUT_PENDING_INTENT
+            elif parser.intent == Intent.GREETING:
                 self.clear_opr(user_data)
-            else:  # ok without pending intent
-                msg_return_list = CONFIRMATION_WITHOUT_PENDING_INTENT
-        elif parser.intent == Intent.CANCELLATION:
-            if user_data['pending_intent']:
+                msg_return_list = GREETINGS
+            elif parser.intent == Intent.GOODBYE:
                 self.clear_opr(user_data)
-                msg_return_list = CANCEL
-            else:  # cancel without pending intent
-                msg_return_list = CANCEL_WITHOUT_PENDING_INTENT
-        elif parser.intent == Intent.GREETING:
-            self.clear_opr(user_data)
-            msg_return_list = GREETINGS
-        elif parser.intent == Intent.GOODBYE:
-            self.clear_opr(user_data)
-            msg_return_list = BYE
-        elif parser.intent == Intent.HELP:
-            self.clear_opr(user_data)
-            msg_return_list = HELP
-        else:
-            if parser.intent == Intent.MEANINGLESS:
-                if user_data['pending_intent'] is not None:  # there is a previous pending operation
-                    msg_considered = str(user_data['pending_intent']) + ' '
+                msg_return_list = BYE
+            elif parser.intent == Intent.HELP:
+                self.clear_opr(user_data)
+                msg_return_list = HELP
+            else:
+                if parser.intent == Intent.MEANINGLESS:
+                    if user_data['pending_intent'] is not None:  # there is a previous pending operation
+                        msg_considered = str(user_data['pending_intent']) + ' '
 
-                    if user_data['pending_class'] is not None:
-                        msg_considered += str(user_data['pending_class']) + ' '
+                        if user_data['pending_class'] is not None:
+                            msg_considered += str(user_data['pending_class']) + ' '
 
-                    msg_considered += msg
+                        msg_considered += msg
 
-                    # recursive call with the modified msg
-                    return self.app_chatbot_msg_process(msg_considered, user_data=user_data)
-            else:  # parse.getIntent() is not None and one of CRUD intents
-                user_data['pending_intent'] = parser.intent
-                if parser.entity_class is None:
-                    # use case no indicate class
-                    msg_return_list = MISSING_CLASS
-                else:  # all right. one class use case
-                    user_data['pending_class'] = parser.entity_class
-                    # if is DELETE or READ use case, test if the class is in the domain
-                    if ((not self.__DE.entityExists(user_data['pending_class']))
-                            and ((user_data['pending_intent'] == Intent.DELETE)
-                                 or (user_data['pending_intent'] == Intent.READ))):
-                        msg_return_list = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
-                    else:  # class exists
-                        # processing the attributes
-                        if not parser.attributes:
-                            parser.attributes = {}
-                        if (user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0):
-                            msg_return_list = ATTRIBUTE_FORMAT
-                        else:  # all ok!
-                            user_data['pending_atts_first_attempt'] = False
-                            user_data['pending_attributes'] = parser.attributes
-                            user_data['pending_where_clause'] = parser.filter_attributes
-                            # if is READ use case, call recursively to show results
-                            if user_data['pending_intent'] == Intent.READ:
-                                return self.app_chatbot_msg_process('ok', user_data=user_data)
-                            # else
-                            msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']),
-                                                           user_data['pending_class'],
-                                                           user_data['pending_attributes'],
-                                                           user_data['pending_where_clause'])
+                        # recursive call with the modified msg
+                        return self.app_chatbot_msg_process(msg_considered, user_data=user_data)
+                else:  # parse.getIntent() is not None and one of CRUD intents
+                    user_data['pending_intent'] = parser.intent
+                    if parser.entity_class is None:
+                        # use case no indicate class
+                        msg_return_list = MISSING_CLASS
+                    else:  # all right. one class use case
+                        user_data['pending_class'] = parser.entity_class
+                        # if is DELETE or READ use case, test if the class is in the domain
+                        if ((not self.__DE.entityExists(user_data['pending_class']))
+                                and ((user_data['pending_intent'] == Intent.DELETE)
+                                     or (user_data['pending_intent'] == Intent.READ))):
+                            msg_return_list = CLASS_NOT_IN_DOMAIN(user_data['pending_class'])
+                        else:  # class exists
+                            # processing the attributes
+                            if not parser.attributes:
+                                parser.attributes = {}
+                            if (user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0):
+                                msg_return_list = ATTRIBUTE_FORMAT
+                            else:  # all ok!
+                                user_data['pending_atts_first_attempt'] = False
+                                user_data['pending_attributes'] = parser.attributes
+                                user_data['pending_where_clause'] = parser.filter_attributes
+                                # if is READ use case, call recursively to show results
+                                if user_data['pending_intent'] == Intent.READ:
+                                    return self.app_chatbot_msg_process('ok', user_data=user_data)
+                                # else
+                                msg_return_list = ATTRIBUTE_OK(str(user_data['pending_intent']),
+                                                               user_data['pending_class'],
+                                                               user_data['pending_attributes'],
+                                                               user_data['pending_where_clause'])
+        else:  # user msg is too long
+            # this is an important method to avoid the bot to be blocked by a malicious user
+            user_data['user_msg'] = 'MSG_TOO_LONG_DOME'  # to avoid flood the log database with malicious messages
+            self.clear_opr(user_data)
+            msg_return_list = MAX_USER_MSG_SIZE_MSG
 
         user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
 

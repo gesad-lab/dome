@@ -106,6 +106,10 @@ TIMEOUT_MSG_PARSER = 30  # seconds
 # limit of chars to show in a get message for each attribute
 LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
 
+# size limit for user msg
+MAX_USER_MSG_SIZE = 512
+MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with academic purposes. Please, try to send it in a smaller version."]
+
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
