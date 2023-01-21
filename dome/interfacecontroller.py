@@ -168,7 +168,7 @@ class InterfaceController:
             strFileBuffer += '    list_display = ('
             for attribute in entity.getAttributes():
                 strFileBuffer += '"' + attribute.name + '", '
-            strFileBuffer = strFileBuffer[:-2] + ')\n'
+            strFileBuffer += ')\n'
             strFileBuffer += f'admin.site.register({entity.name}, {entity.name}Admin)' + '\n\n'
 
         strFileBuffer += '\nadmin.site.unregister(Group)'
