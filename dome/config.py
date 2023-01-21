@@ -110,6 +110,11 @@ LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
 MAX_USER_MSG_SIZE = 300
 MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with academic purposes. Please, try to send it in a smaller version. Current limit in chars is " + str(MAX_USER_MSG_SIZE) + "."]
 
+# max request per second per user
+MAX_REQUESTS_PER_SECOND = 0.1
+DDoS_MSG = "Sorry, but you are sending too many requests. Please, try again later."
+DDoS_PENALTY = 15  # seconds
+
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True

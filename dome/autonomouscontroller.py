@@ -13,7 +13,7 @@ from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          HELP, MISSING_CLASS, MISUNDERSTANDING,
                          NO_REGISTERS, SAVE_SUCCESS, WEBAPP_HOME_URL, GENERAL_FAILURE, CANCEL_WITHOUT_PENDING_INTENT,
                          CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL,
-                         LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS, MAX_USER_MSG_SIZE, MAX_USER_MSG_SIZE_MSG)
+                         LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS, MAX_USER_MSG_SIZE, MAX_USER_MSG_SIZE_MSG, DDoS_MSG)
 from dome.domainengine import DomainEngine
 from dome.interfacecontroller import InterfaceController
 
@@ -95,6 +95,9 @@ class AutonomousController:
         user_data['pending_atts_first_attempt'] = True
 
     def app_chatbot_msg_handle(self, msg, context):
+        if not self.__SE.check_DDoS(context._user_id_and_data[0]):
+            return DDoS_MSG
+        # else: all ok
         t0 = time.perf_counter()
         if 'id' not in context.user_data:
             # new session
@@ -150,7 +153,8 @@ class AutonomousController:
             if parser.intent == Intent.CONFIRMATION:
                 if (user_data['pending_intent'] is not None
                         and user_data['pending_class'] is not None
-                        and ((len(user_data['pending_attributes']) > 0) or (user_data['pending_intent'] == Intent.READ))):
+                        and ((len(user_data['pending_attributes']) > 0) or (
+                                user_data['pending_intent'] == Intent.READ))):
                     if user_data['pending_intent'] == Intent.ADD:
                         # updating the model
                         self.__update_model(user_data)
