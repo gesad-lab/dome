@@ -165,9 +165,10 @@ class InterfaceController:
             if len(entity.getAttributes()) == 0:
                 continue
             strFileBuffer += 'class ' + entity.name + 'Admin(BaseAdmin):\n'
-            strFileBuffer += '    list_display = ('
+            strFileBuffer += '    list_display = ("id", '
             for attribute in entity.getAttributes():
-                strFileBuffer += '"' + attribute.name + '", '
+                if attribute.name != 'id':
+                    strFileBuffer += '"' + attribute.name + '", '
             strFileBuffer += ')\n'
             strFileBuffer += f'admin.site.register({entity.name}, {entity.name}Admin)' + '\n\n'
 
