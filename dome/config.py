@@ -107,8 +107,8 @@ TIMEOUT_MSG_PARSER = 30  # seconds
 LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
 
 # size limit for user msg
-MAX_USER_MSG_SIZE = 512
-MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with academic purposes. Please, try to send it in a smaller version."]
+MAX_USER_MSG_SIZE = 300
+MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with academic purposes. Please, try to send it in a smaller version. Current limit in chars is " + str(MAX_USER_MSG_SIZE) + "."]
 
 # production variables
 RUN_WEB_SERVER = True
