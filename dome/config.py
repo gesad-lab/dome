@@ -113,7 +113,7 @@ MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with ac
 # max request per second per user
 MAX_REQUESTS_PER_SECOND = 0.1
 DDoS_MSG = "Sorry, but you are sending too many requests. Please, try again later."
-DDoS_PENALTY = 15  # seconds
+DDoS_PENALTY = 1  # seconds
 
 # production variables
 RUN_WEB_SERVER = True
