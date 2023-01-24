@@ -132,7 +132,7 @@ class AIEngine(DAO):
             # else
         return False
 
-    def question_answerer_new(self, question, context, options=None):
+    def question_answerer_remote(self, question, context, options=None):
         API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
         headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
 
@@ -163,7 +163,7 @@ class AIEngine(DAO):
 
         return response
 
-    def question_answerer(self, question, context):
+    def question_answerer_local(self, question, context):
         models = ['deepset/roberta-base-squad2',
                   'distilbert-base-cased-distilled-squad',
                   'deepset/minilm-uncased-squad2']
@@ -252,7 +252,7 @@ class AIEngine(DAO):
                         self.tokens_by_type_map[token['entity']] = []
                     self.tokens_by_type_map[token['entity']].append(token)
 
-                self.question_answerer = self.__AIE.question_answerer_new
+                self.question_answerer = self.__AIE.question_answerer_remote
 
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
@@ -406,7 +406,7 @@ class AIEngine(DAO):
 
             options = ", ".join(candidates)
 
-            response = self.__AIE.question_answerer_new(question, context, options)
+            response = self.__AIE.question_answerer_remote(question, context, options)
             entity_class_candidate = response['answer']
             if entity_class_candidate == self.intent:
                 # it's an error. Probably the user did not inform the entity class in the right way.
