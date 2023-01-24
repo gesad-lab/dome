@@ -57,6 +57,8 @@ class TelegramHandle:
             msg = ''
             if update.message:
                 msg = update.message.text
+                if msg in ['/start', '/help']:
+                    msg = 'help me'
                 if update.message.date:
                     dth_income_message = update.message.date.astimezone()
 
