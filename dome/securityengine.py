@@ -19,17 +19,13 @@ class DDoSPrevent:
         if self.there_is_penalty():
             return False
         # else: check again
-        if self.last_request_time is None:
-            # first request
-            self.last_request_time = dth.datetime.now()
-            return True
-        # else:
-        delta = dth.datetime.now() - self.last_request_time
-        if delta.total_seconds() < (1.0 / self.max_requests_per_second):
-            # add the penalty
-            self.add_penalty()
-            return False
-        # else: no penalty
+        if self.last_request_time:
+            delta = dth.datetime.now() - self.last_request_time
+            if delta.total_seconds() < (1.0 / self.max_requests_per_second):
+                # add the penalty
+                self.add_penalty()
+                return False
+        # else: first time or no penalty
         # updating the last request time
         self.last_request_time = dth.datetime.now()
         return True
