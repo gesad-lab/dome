@@ -408,7 +408,8 @@ class AIEngine(DAO):
 
             response = self.__AIE.question_answerer_remote(question, context, options)
             entity_class_candidate = response['answer']
-            if entity_class_candidate == self.intent:
+
+            if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
                 # it's an error. Probably the user did not inform the entity class in the right way.
                 return None
             # else
