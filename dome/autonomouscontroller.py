@@ -15,7 +15,7 @@ from dome.config import (ATTRIBUTE_FORMAT, ATTRIBUTE_OK,
                          CONFIRMATION_WITHOUT_PENDING_INTENT, LIMIT_REGISTERS_MSG, MANAGED_SYSTEM_WEBAPP_BASE_URL,
                          LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS, MAX_USER_MSG_SIZE, MAX_USER_MSG_SIZE_MSG, DDoS_MSG)
 from dome.domainengine import DomainEngine
-from dome.interfacecontroller import InterfaceController
+from dome.infrastructurecontroller import InterfaceController
 
 
 class AutonomousController:
