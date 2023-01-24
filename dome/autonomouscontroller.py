@@ -94,8 +94,8 @@ class AutonomousController:
 
         user_data['pending_atts_first_attempt'] = True
 
-    def app_chatbot_msg_handle(self, msg, context):
-        is_DDoS = self.__SE.is_DDoS(context._user_id_and_data[0])
+    def app_chatbot_msg_handle(self, msg, context, dth_income_message):
+        is_DDoS = self.__SE.is_DDoS(context._user_id_and_data[0], dth_income_message)
         if is_DDoS:
             return DDoS_MSG
         # else: all ok

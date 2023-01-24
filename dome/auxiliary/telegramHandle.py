@@ -2,7 +2,7 @@ import logging
 import os
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
+import datetime as dth
 
 class TelegramHandle:
     def __init__(self, msg_handle) -> None:
@@ -53,7 +53,14 @@ class TelegramHandle:
     def echo(self, update, context):
         """Echo the user message."""
         if update:
-            response = self.__MSG_HANDLE(update.message.text, context)
+            dth_income_message = dth.datetime.now()
+            msg = ''
+            if update.message:
+                msg = update.message.text
+                if update.message.date:
+                    dth_income_message = update.message.date.astimezone()
+
+            response = self.__MSG_HANDLE(msg, context, dth_income_message)
 
             try:
                 update.message.reply_text(response, parse_mode='HTML')

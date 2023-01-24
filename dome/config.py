@@ -111,8 +111,8 @@ MAX_USER_MSG_SIZE = 300
 MAX_USER_MSG_SIZE_MSG = ["The message is too long. DoME is an experiment with academic purposes. Please, try to send it in a smaller version. Current limit in chars is " + str(MAX_USER_MSG_SIZE) + "."]
 
 # max request per second per user
-MAX_REQUESTS_PER_SECOND = 0.65
-DDoS_MSG = "Sorry, but you are sending too many requests. Please, try again later."
+MAX_REQUESTS_PER_SECOND = 0.75
+DDoS_MSG = "Sorry, but you are sending too many requests per second, and you'll receive a block penalty. This is an academic experiment, and that rule is to prevent malicious attacks.\nPlease, try again in a few minutes sending the messages at an average human pace."
 DDoS_PENALTY = 60  # seconds
 
 # production variables

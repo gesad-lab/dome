@@ -15,31 +15,33 @@ class DDoSPrevent:
         self.recurrence_factor = penalty_recurrence_factor
         self.current_factor = 1
 
-    def check(self):
+    def check(self, dth_now=dth.datetime.now()):
+        dth_now = dth_now.astimezone()
         if self.there_is_penalty():
             return False
         # else: check again
         if self.last_request_time:
-            delta = dth.datetime.now() - self.last_request_time
+            delta = dth_now - self.last_request_time
             if delta.total_seconds() < (1.0 / self.max_requests_per_second):
                 # add the penalty
                 self.add_penalty()
                 return False
         # else: first time or no penalty
         # updating the last request time
-        self.last_request_time = dth.datetime.now()
+        self.last_request_time = dth_now
         return True
 
     def add_penalty(self):
         # adding the penalty in seconds to self.last_request_time
-        self.last_request_time = dth.datetime.now() + dth.timedelta(seconds=self.penalty_seconds * self.current_factor)
+        self.last_request_time = dth.datetime.now().astimezone() + \
+                                 dth.timedelta(seconds=self.penalty_seconds * self.current_factor)
         self.current_factor *= self.recurrence_factor
 
     def there_is_penalty(self):
         if self.last_request_time is None:
             return False
         # else:
-        return self.last_request_time > dth.datetime.now()
+        return self.last_request_time > dth.datetime.now(self.last_request_time.tzinfo)
 
     def __str__(self):
         return json.dumps(self.__dict__, default=str)
@@ -99,12 +101,12 @@ class SecurityEngine(DAO):
     def get_AC(self):
         return self.__AC
 
-    def is_DDoS(self, chat_id) -> DDoSPrevent:
+    def is_DDoS(self, chat_id, msg_datetime) -> DDoSPrevent:
         # check if the user is having a DDoS attack
         if chat_id not in self.__DDoS_prevent:
             self.__DDoS_prevent[chat_id] = DDoSPrevent(max_requests_per_second=MAX_REQUESTS_PER_SECOND,
                                                        penalty_seconds=DDoS_PENALTY)
-        if self.__DDoS_prevent[chat_id].check():
+        if self.__DDoS_prevent[chat_id].check(msg_datetime):
             return None
         # else:  is DDoS
         return self.__DDoS_prevent[chat_id]
