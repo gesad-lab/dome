@@ -335,6 +335,16 @@ class TestT2S(unittest.TestCase):
                             attributes={'first_author': 'Paulo Maia'},
                             expected_where_clause={'id': '1'})
 
+    def test_corner_case_14(self):
+        # attributes values with special chars
+        self.__check_ADD(entity_name='article',
+                         attributes={'title': 'The Shor\'s Quantum Algorithm'},
+                         add_msg='Add an article with title="The Shor\'s Quantum Algorithm"')
+        self.__check_update(update_msg='update article with title "The Shors Quantum Algorithm" '
+                                       'set the title to "The new title\'s name"'
+                            , entity_name='article', attributes={'title': 'The new title\'s name'},
+                            expected_where_clause={'title': 'The Shors Quantum Algorithm'})
+
     '''
     def test_all_parser_cache(self):
         print('*** testing all parser cache')

@@ -77,7 +77,10 @@ class DomainEngine:
         sql_cmd = sql_cmd[:-2]  # removing the last comma
         sql_cmd += ") values((datetime('now', 'localtime')), (datetime('now', 'localtime')), "
         for v in attributes.values():
-            sql_cmd += "'" + str(v) + "', "
+            att_val = str(v)
+            # removing ' from the string to prevent syntax errors
+            att_val = att_val.replace("'", "")
+            sql_cmd += "'" + att_val + "', "
         sql_cmd = sql_cmd[:-2]  # removing the last comma
         sql_cmd += ")"
         self.__executeSqlCmd(sql_cmd)
@@ -86,6 +89,8 @@ class DomainEngine:
         sql_cmd = "UPDATE " + self.__getEntityDBName(entity) + " SET"
         sql_cmd += " dome_updated_at = (datetime('now', 'localtime')),"
         for attribute_name, attribute_value in attributes.items():
+            # removing ' from the attribute_value to prevent syntax errors
+            attribute_value = attribute_value.replace("'", "")
             sql_cmd += ' ' + attribute_name + "='" + attribute_value + "',"
         sql_cmd = sql_cmd[:-1]  # removing the last comma
         # fill-up the where clause
