@@ -92,8 +92,6 @@ class AutonomousController:
 
         user_data['pending_where_clause'] = {}
 
-        user_data['pending_atts_first_attempt'] = True
-
     def app_chatbot_msg_handle(self, msg, context, dth_income_message):
         is_DDoS = self.__SE.is_DDoS(context._user_id_and_data[0], dth_income_message)
         if is_DDoS:
@@ -145,6 +143,8 @@ class AutonomousController:
         if ('session_expiration_time' not in user_data
                 or user_data['session_expiration_time'] < dth.datetime.now()):
             self.clear_opr(user_data)
+
+        user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
         parser = None
         msg_return_list = MISUNDERSTANDING  # default
 
@@ -252,7 +252,6 @@ class AutonomousController:
                             if (user_data['pending_intent'] != Intent.READ) and (len(parser.attributes) == 0):
                                 msg_return_list = ATTRIBUTE_FORMAT
                             else:  # all ok!
-                                user_data['pending_atts_first_attempt'] = False
                                 user_data['pending_attributes'] = parser.attributes
                                 user_data['pending_where_clause'] = parser.filter_attributes
                                 # if is READ use case, call recursively to show results
@@ -268,8 +267,6 @@ class AutonomousController:
             user_data['user_msg'] = 'MSG_TOO_LONG_DOME'  # to avoid flood the log database with malicious messages
             self.clear_opr(user_data)
             msg_return_list = MAX_USER_MSG_SIZE_MSG
-
-        user_data['session_expiration_time'] = dth.datetime.now() + dth.timedelta(minutes=30)
 
         # updating return_dict
         return_dict['response_msg'] = random.choice(msg_return_list)
