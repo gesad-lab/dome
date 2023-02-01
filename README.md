@@ -3,22 +3,22 @@ DomE Experiment is an implementation of a reference architecture for creating in
 Thus, an alternative to the traditional software production processes is proposed, which involve several stages and different actors, sometimes demanding a lot of time and money without obtaining the expected result.
 With software engineering techniques, self-adaptive systems, and artificial intelligence, it is possible, as will be shown, the integration between design time and execution time, obtaining, directly from the user's actions, the necessary data for the evolution of the domain model. The essential artifacts are built from the domain model, making them available, in real-time and with a good level of security, the primary interfaces for data manipulation by the user.
 
-## Demonstration
+# Demonstration
 Access the DoME's Telegram bot at the following link:
 https://t.me/uece_dome_bot
 
-## Installation
-# Setup the follow environment variables:
+# Installation
+## Setup the follow environment variables:
 DOME_TELEGRAM_TOKEN=telegram_bot_token<br/>
 HUGGINGFACE_TOKEN=huggingface_token<br/>
 
-# Install Microsoft C++ Build Tools<br/>
+## Install Microsoft C++ Build Tools<br/>
 https://visualstudio.microsoft.com/visual-cpp-build-tools/
 
-# For uses a GPU, install CUDA Toolkit:
+## For uses a GPU, install CUDA Toolkit:
 https://developer.nvidia.com/cuda-downloads
 
-## Credits
+# Credits
 This project is linked with the Master's Degree Program of the University of State of Ceará (http://www.uece.br/ppgcc/). <br/>
 Project Supervisor: PhD Paulo Henrique Maia (https://gesad.github.io/team/paulo-henrique/)<br/>
 Student: Anderson Martins Gomes (https://www.linkedin.com/in/amartinsg/)
