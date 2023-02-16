@@ -42,7 +42,7 @@ class AutonomousController:
             self.__IC.update_app_web()
             return {'homeurl': WEBAPP_HOME_URL}
         elif opr == OPR_APP_HOME_CMD:
-            self.__IC.getApp_cmd(self.app_chatbot_msg_handle)
+            self.__IC.getApp_cmd(self.app_chatbot_msg_handler)
             return True  # TODO: to analyse return type/value
         elif opr == OPR_ENTITY_ADD:
             return self.__DE.saveEntity(data['name'])
@@ -54,7 +54,7 @@ class AutonomousController:
             return True
         elif opr == OPR_APP_TELEGRAM_START:
             self.__IC.update_app_web(True)
-            self.__IC.startApp_telegram(self.app_chatbot_msg_handle)
+            self.__IC.startApp_telegram(self.app_chatbot_msg_handler)
             return True  # TODO: to analyse return type/value
         # else
         return None
@@ -92,7 +92,7 @@ class AutonomousController:
 
         user_data['pending_where_clause'] = {}
 
-    def app_chatbot_msg_handle(self, msg, context, dth_income_message):
+    def app_chatbot_msg_handler(self, msg, context, dth_income_message):
         is_DDoS = self.__SE.is_DDoS(context._user_id_and_data[0], dth_income_message)
         if is_DDoS:
             return DDoS_MSG

@@ -8,7 +8,7 @@ import subprocess as sp
 import fileinput
 import platform
 from dome.config import MANAGED_SYSTEM_NAME
-from dome.auxiliary.telegramHandle import TelegramHandle
+from dome.auxiliary.telegramHandler import TelegramHandler
 from util.django_util import init_django_user
 import ast
 
@@ -145,7 +145,7 @@ class InterfaceController:
 
     def startApp_telegram(self, msgHandle):
         if self.__TELEGRAM_HANDLE is None:
-            self.__TELEGRAM_HANDLE = TelegramHandle(msgHandle)
+            self.__TELEGRAM_HANDLE = TelegramHandler(msgHandle)
         return True
 
     def update_model(self):

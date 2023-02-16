@@ -4,15 +4,16 @@ import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import datetime as dth
 
-class TelegramHandle:
-    def __init__(self, msg_handle) -> None:
+
+class TelegramHandler:
+    def __init__(self, msg_handler) -> None:
         self.__TOKEN = os.getenv('DOME_TELEGRAM_TOKEN')
         # Enable logging
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                             level=logging.INFO)
         self.__logger = logging.getLogger(__name__)
         self.__PORT = int(os.environ.get('PORT', '8443'))
-        self.__MSG_HANDLE = msg_handle
+        self.__MSG_HANDLER = msg_handler
         self.__tryagain = True
 
         """Start the bot."""
@@ -44,11 +45,11 @@ class TelegramHandle:
 
     def start(self, update, context):
         """Send a message when the command /start is issued."""
-        update.message.reply_text(self.__MSG_HANDLE('Hi!', context))
+        update.message.reply_text(self.__MSG_HANDLER('Hi!', context))
 
     def help(self, update, context):
         """Send a message when the command /help is issued."""
-        update.message.reply_text(self.__MSG_HANDLE('Help!', context))
+        update.message.reply_text(self.__MSG_HANDLER('Help!', context))
 
     def echo(self, update, context):
         """Echo the user message."""
@@ -65,7 +66,7 @@ class TelegramHandle:
                 if update.message.date:
                     dth_income_message = update.message.date.astimezone()
 
-            response = self.__MSG_HANDLE(msg, context, dth_income_message)
+            response = self.__MSG_HANDLER(msg, context, dth_income_message)
 
             try:
                 update.message.reply_text(response, parse_mode='HTML')
