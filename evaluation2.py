@@ -68,11 +68,15 @@ class TestT2S(unittest.TestCase):
             self.assertEqual(processed_where_clause, expected_where_clause)
 
     def test_evaluation_2(self):
-        url = 'https://drive.google.com/file/d/1TcJwceDj_Y4vLc66OX7qqi7FSf7Tt8pu/view?usp=sharing'
+        url = 'https://drive.google.com/file/d/1IMckKMW5jZDFPXDdv1kJFw0ye2MEiIG7/view?usp=sharing'
         url = 'https://drive.google.com/uc?id=' + url.split('/')[-2]
         df = pd.read_csv(url)
+
         number_of_errors = 0
+        number_of_assertion_errors = 0
         for index, row in df.iterrows():
+            if index < 0:
+                continue
             user_msg = row['user_msg']
             print('id:', index, '| user_msg:', user_msg)
             expected_intent = Intent(row['expected_intent'])
@@ -101,7 +105,12 @@ class TestT2S(unittest.TestCase):
             except AssertionError as e:
                 print('*** ERROR:', e)
                 number_of_errors += 1
+                number_of_assertion_errors += 1
+            except Exception as e:
+                print('*** ERROR:', e)
+                number_of_errors += 1
 
+        print('number of assertion errors:', number_of_assertion_errors)
         print('number of errors:', number_of_errors)
         print('number of tests:', len(df))
         print('hit hate:', (len(df) - number_of_errors) / len(df))
