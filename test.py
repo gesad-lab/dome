@@ -398,5 +398,5 @@ class TestT2S(unittest.TestCase):
                          expected_attributes=expected_attributes)
     '''
 
-if __name__ == '__main__':
-    unittest.main()
+#if __name__ == '__main__':
+#    unittest.main()
