@@ -95,7 +95,13 @@ class InterfaceController:
                                         + line)
                 elif "ALLOWED_HOSTS = []" in line:
                     line = line.replace(line,
-                                        "ALLOWED_HOSTS = ['*',]")  # for thsi version, allow all hosts
+                                        "ALLOWED_HOSTS = ['*',]")  # for this version, allow all hosts
+                elif "DEBUG = True" in line:
+                    replace_line = "DEBUG = " + str(DEBUG_MODE)
+                    if not PRINT_DEBUG_MSGS:
+                        replace_line += "\n\n# Disable debug messages in console"
+                        replace_line += "\nLOGGING_CONFIG = None"
+                    line = line.replace(line, replace_line)
                 print(line, end='')
             fileinput.close()
 
