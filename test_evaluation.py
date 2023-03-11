@@ -8,6 +8,7 @@ from dome.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HE
 from dome.multichannelapp import MultiChannelApp
 import pandas as pd
 
+
 class TestT2S(unittest.TestCase):
     # initializing some variables
     @classmethod
@@ -315,7 +316,7 @@ class TestT2S(unittest.TestCase):
                      expected_class='teacher', )
 
     def test_evaluation_domain(self):
-        self.__check_ADD(entity_name='article', attributes={'title': 'The title', 'author': 'The author'},)
+        self.__check_ADD(entity_name='article', attributes={'title': 'The title', 'author': 'The author'}, )
         self.__check_update('update article with title "The title" and author "The author" '
                             'set the title to "The new title"', 'article', {'title': 'The new title'},
                             expected_where_clause={'title': 'The title', 'author': 'The author'})
@@ -366,10 +367,10 @@ class TestT2S(unittest.TestCase):
             # catch the exception and account the error
             try:
                 self.__check(cmd_str=row['user_msg'],
-                     expected_intent=Intent(row['expected_intent']),
-                     expected_class=row['expected_class'],
-                     expected_attributes=expected_attributes,
-                     expected_where_clause=expected_filter_attributes)
+                             expected_intent=Intent(row['expected_intent']),
+                             expected_class=row['expected_class'],
+                             expected_attributes=expected_attributes,
+                             expected_where_clause=expected_filter_attributes)
             except Exception as e:
                 print('ERROR:', e)
                 number_of_errors += 1
@@ -398,5 +399,6 @@ class TestT2S(unittest.TestCase):
                          expected_attributes=expected_attributes)
     '''
 
-#if __name__ == '__main__':
-#    unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()
