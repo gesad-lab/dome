@@ -117,8 +117,8 @@ DDoS_PENALTY = 60  # seconds
 
 # production variables
 RUN_WEB_SERVER = True
-USE_PARSER_CACHE = True
-DEBUG_MODE = True
+USE_PARSER_CACHE = False
+DEBUG_MODE = False
 PRINT_DEBUG_MSGS = False
 
 if "DOME_DEBUG_MODE" in os.environ:
