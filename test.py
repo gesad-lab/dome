@@ -1,3 +1,4 @@
+import itertools
 import json
 import unittest
 
@@ -5,7 +6,7 @@ from dome.auxiliary.enums.intent import Intent
 from dome.config import ATTRIBUTE_OK, BYE, CANCEL, DELETE_SUCCESS, GREETINGS, HELP, MISUNDERSTANDING, SAVE_SUCCESS, \
     CANCEL_WITHOUT_PENDING_INTENT
 from dome.multichannelapp import MultiChannelApp
-
+import pandas as pd
 
 class TestT2S(unittest.TestCase):
     # initializing some variables
@@ -344,6 +345,37 @@ class TestT2S(unittest.TestCase):
                                        'set the title to "The new title\'s name"'
                             , entity_name='article', attributes={'title': 'The new title\'s name'},
                             expected_where_clause={'title': 'The Shors Quantum Algorithm'})
+
+    def test_evaluation_2(self):
+        url = 'https://drive.google.com/file/d/1TcJwceDj_Y4vLc66OX7qqi7FSf7Tt8pu/view?usp=sharing'
+        url = 'https://drive.google.com/uc?id=' + url.split('/')[-2]
+        df = pd.read_csv(url)
+        number_of_errors = 0
+        for index, row in df.iterrows():
+            print('id:', index, '| user_msg:', row)
+            # transform the string loaded from cached_parser['expected_attributes'] json into a list of tuples
+            expected_attributes = None
+            if row['expected_attributes'] and isinstance(row['expected_attributes'], str):
+                expected_attributes = json.loads(row['expected_attributes'], )
+
+            # transform the string loaded from cached_parser['expected_filter_attributes'] json into a list of tuples
+            expected_filter_attributes = None
+            if row['expected_filter_attributes'] and isinstance(row['expected_filter_attributes'], str):
+                expected_filter_attributes = json.loads(row['expected_filter_attributes'])
+
+            # catch the exception and account the error
+            try:
+                self.__check(cmd_str=row['user_msg'],
+                     expected_intent=Intent(row['expected_intent']),
+                     expected_class=row['expected_class'],
+                     expected_attributes=expected_attributes,
+                     expected_where_clause=expected_filter_attributes)
+            except Exception as e:
+                print('ERROR:', e)
+                number_of_errors += 1
+        print('number of errors:', number_of_errors)
+        print('number of tests:', len(df))
+        print('hit hate:', (len(df) - number_of_errors) / len(df))
 
     '''
     def test_all_parser_cache(self):
