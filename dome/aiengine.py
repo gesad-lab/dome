@@ -8,7 +8,8 @@ from transformers import pipeline
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
-                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP)
+                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP,
+                         PRINT_DEBUG_MSGS)
 import re
 
 
@@ -146,7 +147,7 @@ class AIEngine(DAO):
             input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
             if options_:
                 input_text += '\n-OPTIONS: %s' % options_
-            if DEBUG_MODE:
+            if DEBUG_MODE and PRINT_DEBUG_MSGS:
                 print('PROMPT -------------------')
                 print(input_text)
                 print('--------------------------')
@@ -156,7 +157,7 @@ class AIEngine(DAO):
         response_str = prompt_answer[0]['generated_text']
         response = {"answer": response_str}
 
-        if DEBUG_MODE:
+        if DEBUG_MODE and PRINT_DEBUG_MSGS:
             print('RESPONSE -----------------')
             print(response)
             print('--------------------------')

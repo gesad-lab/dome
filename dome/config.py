@@ -119,6 +119,8 @@ DDoS_PENALTY = 60  # seconds
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = True
 DEBUG_MODE = True
+PRINT_DEBUG_MSGS = False
+
 if "DOME_DEBUG_MODE" in os.environ:
     DEBUG_MODE = eval(os.environ['DOME_DEBUG_MODE'])
 

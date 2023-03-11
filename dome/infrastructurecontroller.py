@@ -1,6 +1,6 @@
 from dome.aiengine import AIEngine
 from dome.config import RUN_WEB_SERVER, SUFFIX_CONFIG, SUFFIX_ENV, SUFFIX_WEB, DEBUG_MODE, MANAGED_SYSTEM_WEBAPP_TITLE, \
-    NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION
+    NUMBER_MAX_FIELDS_IN_MODELS_TO_STR_FUNCTION, PRINT_DEBUG_MSGS
 from dome.analyticsengine import AnalyticsEngine
 from dome.businessprocessengine import BusinessProcessEngine
 import os
@@ -150,7 +150,7 @@ class InterfaceController:
 
     def update_model(self):
         # update admin.py
-        if DEBUG_MODE:
+        if DEBUG_MODE and PRINT_DEBUG_MSGS:
             print('updating admin.py...')
 
         strFileBuffer = 'from django.contrib import admin\n' \
@@ -178,7 +178,7 @@ class InterfaceController:
         overwriting_file(self.__webapp_path + '\\admin.py', strFileBuffer)
 
         # update models.py
-        if DEBUG_MODE:
+        if DEBUG_MODE and PRINT_DEBUG_MSGS:
             print('updating models.py...')
 
         strFileBuffer = 'from django.db import models'
@@ -227,7 +227,7 @@ class InterfaceController:
         return self.__AC.getEntities()
 
     def migrateModel(self):
-        if DEBUG_MODE:
+        if DEBUG_MODE and PRINT_DEBUG_MSGS:
             print('migrating model...')
 
         self.__runSyncCmd(

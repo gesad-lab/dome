@@ -73,27 +73,35 @@ class TestT2S(unittest.TestCase):
         df = pd.read_csv(url)
         number_of_errors = 0
         for index, row in df.iterrows():
-            print('id:', index, '| user_msg:', row)
+            user_msg = row['user_msg']
+            print('id:', index, '| user_msg:', user_msg)
+            expected_intent = Intent(row['expected_intent'])
+            expected_class = None
+            if isinstance(row['expected_class'], str):
+                expected_class = row['expected_class']
+
             # transform the string loaded from cached_parser['expected_attributes'] json into a list of tuples
             expected_attributes = None
             if row['expected_attributes'] and isinstance(row['expected_attributes'], str):
-                expected_attributes = json.loads(row['expected_attributes'], )
+                expected_attributes = json.loads(str(row['expected_attributes']).lower(), )
 
             # transform the string loaded from cached_parser['expected_filter_attributes'] json into a list of tuples
             expected_filter_attributes = None
             if row['expected_filter_attributes'] and isinstance(row['expected_filter_attributes'], str):
-                expected_filter_attributes = json.loads(row['expected_filter_attributes'])
+                expected_filter_attributes = json.loads(str(row['expected_filter_attributes']).lower())
 
             # catch the exception and account the error
             try:
                 self.__check(cmd_str=str(row['user_msg']).lower(),
-                             expected_intent=Intent(row['expected_intent']),
-                             expected_class=row['expected_class'],
+                             expected_intent=expected_intent,
+                             expected_class=expected_class,
                              expected_attributes=expected_attributes,
                              expected_where_clause=expected_filter_attributes)
-            except Exception as e:
-                print('ERROR:', e)
+                print('**** OK. Test passed.')
+            except AssertionError as e:
+                print('*** ERROR:', e)
                 number_of_errors += 1
+
         print('number of errors:', number_of_errors)
         print('number of tests:', len(df))
         print('hit hate:', (len(df) - number_of_errors) / len(df))
