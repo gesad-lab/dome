@@ -1,4 +1,6 @@
+import datetime
 import json
+import os
 import unittest
 
 import pandas as pd
@@ -71,6 +73,9 @@ class TestT2S(unittest.TestCase):
         url = 'https://drive.google.com/file/d/1IMckKMW5jZDFPXDdv1kJFw0ye2MEiIG7/view?usp=sharing'
         url = 'https://drive.google.com/uc?id=' + url.split('/')[-2]
         df = pd.read_csv(url)
+        df['evaluation1_error_type'] = None  # None | 'assertion' | 'general'
+        df['evaluation2_error_type'] = None  # None | 'assertion' | 'general'
+        df['evaluation2_error_description'] = None
 
         number_of_errors = 0
         number_of_assertion_errors = 0
@@ -94,6 +99,13 @@ class TestT2S(unittest.TestCase):
             if row['expected_filter_attributes'] and isinstance(row['expected_filter_attributes'], str):
                 expected_filter_attributes = json.loads(str(row['expected_filter_attributes']).lower())
 
+            # check the first evaluation
+            if (row['processed_intent'] != row['expected_intent']
+                    or row['processed_class'] != row['expected_class']
+                    or row['processed_attributes'] != row['expected_attributes']
+                    or row['processed_filter_attributes'] != row['expected_filter_attributes']):
+                row['evaluation1_error_type'] = 'assertion'
+
             # catch the exception and account the error
             try:
                 self.__check(cmd_str=str(row['user_msg']).lower(),
@@ -106,14 +118,26 @@ class TestT2S(unittest.TestCase):
                 print('*** ERROR:', e)
                 number_of_errors += 1
                 number_of_assertion_errors += 1
+                row['evaluation2_error_type'] = 'assertion'
+                row['evaluation2_error_description'] = str(e)
             except Exception as e:
                 print('*** ERROR:', e)
                 number_of_errors += 1
+                row['evaluation2_error_type'] = 'general'
+                row['evaluation2_error_description'] = str(e)
 
         print('number of assertion errors:', number_of_assertion_errors)
         print('number of errors:', number_of_errors)
         print('number of tests:', len(df))
         print('hit hate:', (len(df) - number_of_errors) / len(df))
+
+        # saving the dataframe in a csv file
+        # generating a unique file name using the current date and time
+        logs_dir = os.path.dirname(os.path.abspath(__file__)) + '\\logs'
+        dt_string = datetime.datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
+        file_name = logs_dir + '\\evaluation2_' + dt_string + '.csv'
+        print('Logs saved in:', file_name)
+        df.to_csv(file_name, index=False)
 
 
 if __name__ == '__main__':
