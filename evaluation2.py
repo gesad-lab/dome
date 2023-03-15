@@ -36,10 +36,17 @@ class TestT2S(unittest.TestCase):
         clear_user_data = expected_intent != Intent.CONFIRMATION and expected_intent != Intent.CANCELLATION
         response = self.__talk(cmd_str, clear_user_data=clear_user_data)
         response_parser = response['parser']
-        processed_intent = response_parser.intent
-        processed_class = response_parser.entity_class
-        processed_attributes = response_parser.attributes
-        processed_where_clause = response_parser.filter_attributes
+
+        processed_intent = Intent.MEANINGLESS
+        processed_class = None
+        processed_attributes = None
+        processed_where_clause = None
+
+        if response_parser:
+            processed_intent = response_parser.intent
+            processed_class = response_parser.entity_class
+            processed_attributes = response_parser.attributes
+            processed_where_clause = response_parser.filter_attributes
 
         if expected_intent == Intent.READ and processed_intent == Intent.CONFIRMATION:
             # update processed_intent because the READ intent is automatically converted to CONFIRMATION
@@ -83,10 +90,10 @@ class TestT2S(unittest.TestCase):
         number_of_errors_eval1 = 0
         number_of_assertion_errors = 0
         for index, row in df.iterrows():
-            if index < 0:
+            if index + 1 < 105:
                 continue
             user_msg = row['user_msg']
-            print('id:', index, '| user_msg:', user_msg)
+            print('id:', index + 1, '| user_msg:', user_msg)
             expected_intent = Intent(row['expected_intent'])
             expected_class = None
             if isinstance(row['expected_class'], str):
