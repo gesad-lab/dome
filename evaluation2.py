@@ -6,7 +6,9 @@ import unittest
 import pandas as pd
 
 import util.delete_util as del_util
+from dome.autonomouscontroller import AutonomousController
 from dome.auxiliary.enums.intent import Intent
+from dome.infrastructurecontroller import InterfaceController
 from dome.multichannelapp import MultiChannelApp
 
 
@@ -78,6 +80,7 @@ class TestT2S(unittest.TestCase):
         df['evaluation2_error_description'] = None
 
         number_of_errors = 0
+        number_of_errors_eval1 = 0
         number_of_assertion_errors = 0
         for index, row in df.iterrows():
             if index < 0:
@@ -92,7 +95,7 @@ class TestT2S(unittest.TestCase):
             # transform the string loaded from cached_parser['expected_attributes'] json into a list of tuples
             expected_attributes = None
             if row['expected_attributes'] and isinstance(row['expected_attributes'], str):
-                expected_attributes = json.loads(str(row['expected_attributes']).lower(), )
+                expected_attributes = json.loads(str(row['expected_attributes']).lower())
 
             # transform the string loaded from cached_parser['expected_filter_attributes'] json into a list of tuples
             expected_filter_attributes = None
@@ -100,11 +103,12 @@ class TestT2S(unittest.TestCase):
                 expected_filter_attributes = json.loads(str(row['expected_filter_attributes']).lower())
 
             # check the first evaluation
-            if (row['processed_intent'] != row['expected_intent']
-                    or row['processed_class'] != row['expected_class']
-                    or row['processed_attributes'] != row['expected_attributes']
-                    or row['processed_filter_attributes'] != row['expected_filter_attributes']):
-                row['evaluation1_error_type'] = 'assertion'
+            if (str(row['processed_intent']) != str(row['expected_intent'])
+                    or str(row['processed_class']) != str(row['expected_class'])
+                    or str(row['processed_attributes']) != str(row['expected_attributes'])
+                    or str(row['processed_filter_attributes']) != str(row['expected_filter_attributes'])):
+                df.loc[index, ['evaluation1_error_type']] = 'assertion'
+                number_of_errors_eval1 += 1
 
             # catch the exception and account the error
             try:
@@ -118,14 +122,19 @@ class TestT2S(unittest.TestCase):
                 print('*** ERROR:', e)
                 number_of_errors += 1
                 number_of_assertion_errors += 1
-                row['evaluation2_error_type'] = 'assertion'
-                row['evaluation2_error_description'] = str(e)
+                df.loc[index, ['evaluation2_error_type']] = 'assertion'
+                df.loc[index, ['evaluation2_error_description']] = str(e)
             except Exception as e:
                 print('*** ERROR:', e)
                 number_of_errors += 1
-                row['evaluation2_error_type'] = 'general'
-                row['evaluation2_error_description'] = str(e)
+                df.loc[index, ['evaluation2_error_type']] = 'general'
+                df.loc[index, ['evaluation2_error_description']] = str(e)
 
+        print('\n***evaluation 1')
+        print('number of errors:', number_of_errors_eval1)
+        print('hit hate:', (len(df) - number_of_errors_eval1) / len(df))
+
+        print('\n***evaluation 2')
         print('number of assertion errors:', number_of_assertion_errors)
         print('number of errors:', number_of_errors)
         print('number of tests:', len(df))
@@ -141,5 +150,7 @@ class TestT2S(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    del_util.deleteOldManagedFiles()
+    # del_util.deleteOldManagedFiles()
+    # ic = InterfaceController()
+    # ic.migrateModel()
     unittest.main()

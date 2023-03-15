@@ -102,6 +102,7 @@ WEBAPP_HOME_URL = 'http://localhost/admin'
 PNL_GENERAL_THRESHOLD = 0.75
 
 TIMEOUT_MSG_PARSER = 30  # seconds
+TIMEOUT_MSG_PARSER = 999999
 
 # limit of chars to show in a get message for each attribute
 LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
