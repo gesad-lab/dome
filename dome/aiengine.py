@@ -164,7 +164,7 @@ class AIEngine(DAO):
 
         return response
 
-    def question_answerer_local(self, question, context):
+    def question_answerer_local(self, question, context, options):
         models = ['deepset/roberta-base-squad2',
                   'distilbert-base-cased-distilled-squad',
                   'deepset/minilm-uncased-squad2']
@@ -173,7 +173,7 @@ class AIEngine(DAO):
         best_answer = None
         best_score = 0
         for model in models:
-            answer = self.__get_question_answer_pipeline(model)(question, context)
+            answer = self.__get_question_answer_pipeline(model)(question, context + '\n' + options)
             if answer['score'] > PNL_GENERAL_THRESHOLD:
                 # return immediately if the answer is good enough
                 return answer
