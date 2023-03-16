@@ -106,12 +106,21 @@ class DomainEngine:
         self.__executeSqlCmd(sql_cmd)
 
     def read(self, entity, attributes):
+
+        if not self.entityExists(entity):
+            return None
+        # else: entity exists
+        entity_obj = self.__entities_map[entity]
+
         sql_cmd = "SELECT * FROM " + self.__getEntityDBName(entity) + " where (1=1)"
         for k in attributes.keys():
             if k == 'id':
                 sql_cmd += " AND id=" + attributes[k]
-            else:
+            # checking if the attribute exists for the current entity
+            elif k in entity_obj.getAttributes():
                 sql_cmd += " AND LOWER(" + k + ") LIKE LOWER('%" + attributes[k] + "%')"
+            else:
+                return None  # there is no that attribute in entity
 
         # ordering by the newest
         # dome_updated_at is a reserved field automatically updated by the system
