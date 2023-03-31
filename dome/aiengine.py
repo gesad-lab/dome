@@ -133,7 +133,57 @@ class AIEngine(DAO):
             # else
         return False
 
-    def question_answerer_remote(self, question, context, options=None):
+    @staticmethod
+    def __call_remote_model(api_url, input_text):
+        payload = {"inputs": input_text, "options": {"use_cache": True, "wait_for_model": True}}
+        __response = requests.post(api_url, headers={"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}, json=payload)
+        return __response.json()
+
+    @staticmethod
+    def __prompt_remote_model(api_url, question_, context_, options_=None):
+        input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
+        if options_:
+            input_text += '\n-OPTIONS: %s' % options_
+        if DEBUG_MODE and PRINT_DEBUG_MSGS:
+            print('PROMPT -------------------')
+            print(input_text)
+            print('--------------------------')
+        return AIEngine.__call_remote_model(api_url, input_text)
+
+    MODELS_API_URLS = [#'https://api-inference.huggingface.co/models/google/flan-t5-xl',
+                       # https://huggingface.co/Intel/dynamic_tinybert
+                       #'https://api-inference.huggingface.co/models/Intel/dynamic_tinybert',
+                       # https://huggingface.co/distilbert-base-cased-distilled-squad
+                       #'https://api-inference.huggingface.co/models/distilbert-base-cased-distilled-squad',
+                       # https://huggingface.co/deepset/roberta-base-squad2
+                       #'https://api-inference.huggingface.co/models/deepset/roberta-base-squad2',
+                       'https://api-inference.huggingface.co/models/google/flan-t5-xxl',
+                       ]
+
+    @staticmethod
+    def question_answerer_remote(question, context, options=''):
+        answers_keys = set()
+        last_answer = None
+        for model_url in AIEngine.MODELS_API_URLS:
+            last_answer = AIEngine.__prompt_remote_model(model_url, question, context, options)
+            last_answer = last_answer[0]['generated_text']
+            last_answer = {"answer": last_answer}
+
+            if DEBUG_MODE and PRINT_DEBUG_MSGS:
+                print('RESPONSE -----------------')
+                print(last_answer)
+                print('--------------------------')
+
+            if last_answer['answer'] in answers_keys:
+                # two models give the same answer
+                return last_answer
+            # never seen answer
+            answers_keys.add(last_answer['answer'])
+
+        return last_answer  # return some answer. All are different.
+
+
+    def question_answerer_remote_old(self, question, context, options=None):
         API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
         headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
 
@@ -164,7 +214,7 @@ class AIEngine(DAO):
 
         return response
 
-    def question_answerer_local(self, question, context, options):
+    def question_answerer_local(self, question, context, options=''):
         models = ['deepset/roberta-base-squad2',
                   'distilbert-base-cased-distilled-squad',
                   'deepset/minilm-uncased-squad2']
@@ -253,7 +303,7 @@ class AIEngine(DAO):
                         self.tokens_by_type_map[token['entity']] = []
                     self.tokens_by_type_map[token['entity']].append(token)
 
-                self.question_answerer = self.__AIE.question_answerer_local
+                self.question_answerer = self.__AIE.question_answerer_remote
 
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
@@ -407,7 +457,7 @@ class AIEngine(DAO):
 
             options = ", ".join(candidates)
 
-            response = self.__AIE.question_answerer_local(question, context, options)
+            response = self.__AIE.question_answerer_remote(question, context, options)
             entity_class_candidate = response['answer']
 
             if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
