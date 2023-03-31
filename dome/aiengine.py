@@ -140,10 +140,12 @@ class AIEngine(DAO):
         return __response.json()
 
     @staticmethod
-    def __prompt_remote_model(api_url, question_, context_, options_=None):
+    def __prompt_remote_model(api_url, question_, context_, options_=None, only_question=False):
         input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
         if options_:
             input_text += '\n-OPTIONS: %s' % options_
+        if only_question:
+            input_text = question_
         if DEBUG_MODE and PRINT_DEBUG_MSGS:
             print('PROMPT -------------------')
             print(input_text)
@@ -161,11 +163,11 @@ class AIEngine(DAO):
                        ]
 
     @staticmethod
-    def question_answerer_remote(question, context, options=''):
+    def question_answerer_remote(question, context, options='', only_question=False):
         answers_keys = set()
         last_answer = None
         for model_url in AIEngine.MODELS_API_URLS:
-            last_answer = AIEngine.__prompt_remote_model(model_url, question, context, options)
+            last_answer = AIEngine.__prompt_remote_model(model_url, question, context, options, only_question)
             last_answer = last_answer[0]['generated_text']
             last_answer = {"answer": last_answer}
 
@@ -438,6 +440,7 @@ class AIEngine(DAO):
             # adding the candidates
             candidates = []
             attributes = self.__AIE.get_all_attributes()
+            strong_candidates = []
 
             # iterate over the tags after the verb token (intent)
             for token in self.tokens:
@@ -451,13 +454,20 @@ class AIEngine(DAO):
                 for candidate in candidates:
                     if self.__entities_are_similar(class_key, candidate):
                         context += "\nThere already is an entity class named: " + class_key
+                        strong_candidates.append(candidate)
 
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
                        "\nThe user's current message is: '" + self.user_msg + "'."
 
             options = ", ".join(candidates)
+            if strong_candidates:
+                options = ", ".join(strong_candidates)
 
-            response = self.__AIE.question_answerer_remote(question, context, options)
+            # optimized version
+            question = "Chatbot context: the user is requesting an " + str(self.intent) + " operation. User message: '" \
+                       + self.user_msg + "'. Identify the referred entity class. The entity class must be a noun upon which " \
+                                         "the user is requesting an " + str(self.intent) + " operation.\nOptions: " + options + "."
+            response = self.__AIE.question_answerer_remote(question, context, options, True)
             entity_class_candidate = response['answer']
 
             if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
