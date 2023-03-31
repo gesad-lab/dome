@@ -89,6 +89,10 @@ class AIEngine(DAO):
                 elif tokens[i]['word'] == 'delete' and tokens[i]['entity'] == 'PROPN':
                     # to solve bug about delete expression that the model recognizes as PROPN
                     tokens[i]['entity'] = 'VERB'
+                elif tokens[i]['word'] == 'a' and tokens[i]['entity'] == 'NOUN':
+                    # to solve bug about 'a' as a noun
+                    tokens[i]['entity'] = None
+                    tokens[i]['word'] = None
 
         return tokens
 
