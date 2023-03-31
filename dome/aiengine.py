@@ -54,6 +54,11 @@ class AIEngine(DAO):
                                             model=model, aggregation_strategy=aggregation_strategy)
 
         considered_msg = msg.lower()
+        # replacing some useless expressions in user msg
+        # replacing "add new"
+        considered_msg = considered_msg.replace("add new", "add")
+        considered_msg = considered_msg.replace("add a new", "add a")
+
         tokens = token_classifier(considered_msg)
 
         if aggregation_strategy is None:
@@ -463,12 +468,16 @@ class AIEngine(DAO):
             if strong_candidates:
                 options = ", ".join(strong_candidates)
 
-            # optimized version
-            question = "Chatbot context: the user is requesting an " + str(self.intent) + " operation. User message: '" \
-                       + self.user_msg + "'. Identify the referred entity class. The entity class must be a noun upon which " \
-                                         "the user is requesting an " + str(self.intent) + " operation.\nOptions: " + options + "."
-            response = self.__AIE.question_answerer_remote(question, context, options, True)
-            entity_class_candidate = response['answer']
+            entity_class_candidate = None
+            if len(strong_candidates) == 1:
+                entity_class_candidate = strong_candidates[0]
+            else:  # there are more than one candidate
+                # asking language model
+                question = "Chatbot context: the user is requesting an " + str(self.intent) + " operation. User message: '" \
+                           + self.user_msg + "'. Identify the referred entity class. The entity class must be a noun upon which " \
+                                             "the user is requesting an " + str(self.intent) + " operation.\nOptions: " + options + "."
+                response = self.__AIE.question_answerer_remote(question, context, options, True)
+                entity_class_candidate = response['answer']
 
             if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
                 # it's an error. Probably the user did not inform the entity class in the right way.
