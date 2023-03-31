@@ -650,6 +650,10 @@ class AIEngine(DAO):
                     if att_value_idx_end == -1:
                         # trying to find the attribute value anywhere
                         att_value_idx_end = self.user_msg.find(response['answer'], 0)
+                    if att_value_idx_end == -1:
+                        # it's an error. The attribute value is not in the original message
+                        j += 1
+                        continue
 
                     if att_value_idx_end > -1:
                         att_value_idx_end += len(response['answer'])
