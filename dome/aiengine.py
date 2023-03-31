@@ -91,8 +91,7 @@ class AIEngine(DAO):
                     tokens[i]['entity'] = 'VERB'
                 elif tokens[i]['word'] == 'a' and tokens[i]['entity'] == 'NOUN':
                     # to solve bug about 'a' as a noun
-                    tokens[i]['entity'] = None
-                    tokens[i]['word'] = None
+                    tokens[i]['entity'] = 'ADJ'
 
         return tokens
 
