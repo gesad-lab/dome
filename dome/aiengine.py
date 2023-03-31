@@ -635,13 +635,13 @@ class AIEngine(DAO):
                     # update the j index to the next token after the attribute value
                     # get the end index in the original msg
                     att_value_idx_end = self.user_msg.find(response['answer'], token_j['end'])
+                    if att_value_idx_end == -1:
+                        # trying to find the attribute value anywhere
+                        att_value_idx_end = self.user_msg.find(response['answer'], 0)
+
                     if att_value_idx_end > -1:
                         att_value_idx_end += len(response['answer'])
 
-                    if att_value_idx_end <= token_j['end']:
-                        # inconsistency in the answer (see test.test_corner_case_10)
-                        break
-                    # else: all right
                     # add the pair of attribute name and attribute value in the result list
                     attribute_value = response['answer']
                     # clean the attribute value
@@ -661,8 +661,11 @@ class AIEngine(DAO):
 
                     if att_value_idx_end > -1:
                         # advance for the next token
-                        while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
+                        if att_value_idx_end <= token_j['end']:
                             j += 1
+                        else:
+                            while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
+                                j += 1
                 else:
                     # no noun found after token_j. It is the end of the attribute list
                     break
