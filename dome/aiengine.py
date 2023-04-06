@@ -1,6 +1,8 @@
 import json
+import os
 import threading
 
+import openai
 import requests
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
@@ -143,6 +145,20 @@ class AIEngine(DAO):
 
     @staticmethod
     def __call_remote_model(api_url, input_text):
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        # response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
+            # model="text-davinci-003",
+            model="gpt-3.5-turbo",
+            #prompt=input_text,
+            messages=[{"role": "system", "content": "answer me only with the answer in a string format"},
+                      {'role': 'user', 'content': input_text}],
+            temperature=0,
+        )
+        return response.choices[0].message.content.strip()
+
+    @staticmethod
+    def __call_remote_model_old(api_url, input_text):
         payload = {"inputs": input_text, "options": {"use_cache": True, "wait_for_model": True}}
         __response = requests.post(api_url, headers={"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}, json=payload)
         return __response.json()
@@ -176,7 +192,16 @@ class AIEngine(DAO):
         last_answer = None
         for model_url in AIEngine.MODELS_API_URLS:
             last_answer = AIEngine.__prompt_remote_model(model_url, question, context, options, only_question)
-            last_answer = last_answer[0]['generated_text']
+            # last_answer = last_answer[0]['generated_text']
+            # removing the 'ANSWER: ' prefix from the last_answer
+            last_answer = last_answer.strip()
+            last_answer = last_answer.strip('Answer: ')
+        # removing special characters like " and ' from the last_answer variable from the start and the end
+            last_answer = last_answer.strip('"')
+            last_answer = last_answer.strip("'")
+            last_answer = last_answer.strip("=")
+            last_answer = last_answer.strip()
+
             last_answer = {"answer": last_answer}
 
             if DEBUG_MODE and PRINT_DEBUG_MSGS:
@@ -602,7 +627,7 @@ class AIEngine(DAO):
                 att_context += '\n"' + attribute_target + '" is the name of a field in database.'
                 att_context += '\nI\'m trying discover the value of the "' + attribute_target + \
                                '" in the sentence fragment.'
-                att_context += '\nIn another words, complete to me "' + attribute_target + '=" ?'
+                #att_context += '\nIn another words, complete to me "' + attribute_target + '=" ?'
 
                 for att_name, att_value in considered_attributes.items():
                     att_context += "\nThe field '" + att_name + "' has the value '" + att_value + "'. "

@@ -18,7 +18,7 @@ INTENT_MAP = {
     'MEANINGLESS': {'unknown', 'unintelligible', 'unrecognized', 'meaningless', 'uninterpretable'}
 }
 
-USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY = ['please', 'i want to', 'i want', 'could you', 'can you']
+USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY = ['please', 'i want to', 'i want', 'could you', 'can you', 'lista']
 
 WHERE_CLAUSE_WORDS = {'where', 'which', 'that', 'whose', 'whom', 'who', 'what', 'when', 'for'}
 
@@ -119,7 +119,7 @@ DDoS_PENALTY = 60  # seconds
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = False
-DEBUG_MODE = True
+DEBUG_MODE = False
 PRINT_DEBUG_MSGS = True
 
 if "DOME_DEBUG_MODE" in os.environ:
