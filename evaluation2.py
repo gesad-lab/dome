@@ -31,7 +31,7 @@ class TestT2S(unittest.TestCase):
             self.AC.clear_opr(self.user_data)
         return self.AC.app_chatbot_msg_process(msg, self.user_data)
 
-    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
+    def __check_old(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
                 expected_where_clause=None):
         clear_user_data = expected_intent != Intent.CONFIRMATION and expected_intent != Intent.CANCELLATION
         response = self.__talk(cmd_str, clear_user_data=clear_user_data)
@@ -77,6 +77,12 @@ class TestT2S(unittest.TestCase):
         if expected_where_clause:
             self.assertEqual(processed_intent, Intent.UPDATE)
             self.assertEqual(str(processed_where_clause).lower(), str(expected_where_clause).lower())
+
+    def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
+                expected_where_clause=None):
+        # check the user intent
+        self.__check_old(cmd_str, expected_intent, expected_class, expected_attributes, response_list,
+                    expected_where_clause)
 
     def test_evaluation_2(self):
         url = 'https://drive.google.com/file/d/1IMckKMW5jZDFPXDdv1kJFw0ye2MEiIG7/view?usp=sharing'

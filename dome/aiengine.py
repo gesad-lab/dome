@@ -338,7 +338,7 @@ class AIEngine(DAO):
                         self.tokens_by_type_map[token['entity']] = []
                     self.tokens_by_type_map[token['entity']].append(token)
 
-                self.question_answerer = self.__AIE.question_answerer_remote
+                self.question_answerer = self.__AIE.question_answerer_remote_old
 
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
@@ -504,7 +504,7 @@ class AIEngine(DAO):
                 question = "Chatbot context: the user is requesting an " + str(self.intent) + " operation. User message: '" \
                            + self.user_msg + "'. Identify the referred entity class. The entity class must be a noun upon which " \
                                              "the user is requesting an " + str(self.intent) + " operation.\nOptions: " + options + "."
-                response = self.__AIE.question_answerer_remote(question, context, options, True)
+                response = self.__AIE.question_answerer_remote_old(question, context, options)
                 entity_class_candidate = response['answer']
 
             if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
@@ -663,7 +663,7 @@ class AIEngine(DAO):
                         # the attribute name is already in the attributes list. It's an error.
                         break
                     # ask by the attribute value using question-answering pipeline
-                    response = self.question_answerer(question="What is the '" + attribute_name +
+                    response = self.__AIE.question_answerer_remote(question="What is the '" + attribute_name +
                                                                "' in the sentence fragment?"
                                                             "\nAnswer me with the exact substring of the sentence fragment." \
                                                                "\nAnswer me with only the value of the attribute."

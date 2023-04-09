@@ -102,7 +102,7 @@ WEBAPP_HOME_URL = 'http://localhost/admin'
 PNL_GENERAL_THRESHOLD = 0.75
 
 TIMEOUT_MSG_PARSER = 30  # seconds
-TIMEOUT_MSG_PARSER = 999999
+# TIMEOUT_MSG_PARSER = 999999
 
 # limit of chars to show in a get message for each attribute
 LENGTH_LIMIT_CHARS_TO_SHOW_IN_ROWS = 120
@@ -119,14 +119,14 @@ DDoS_PENALTY = 60  # seconds
 # production variables
 RUN_WEB_SERVER = True
 USE_PARSER_CACHE = False
-DEBUG_MODE = False
+DEBUG_MODE = True
 PRINT_DEBUG_MSGS = True
 
 if "DOME_DEBUG_MODE" in os.environ:
     DEBUG_MODE = eval(os.environ['DOME_DEBUG_MODE'])
 
 if DEBUG_MODE:
-    TIMEOUT_MSG_PARSER = 999999
+    # TIMEOUT_MSG_PARSER = 999999
     USE_PARSER_CACHE = False
 
 # django default user
