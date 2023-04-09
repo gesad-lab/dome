@@ -14,6 +14,7 @@ https://t.me/uece_dome_bot
 ## Setup the follow environment variables:
 DOME_TELEGRAM_TOKEN=telegram_bot_token<br/>
 HUGGINGFACE_TOKEN=huggingface_token<br/>
+OPENAI_API_KEY=openai_api_key<br/>
 
 ## Install Microsoft C++ Build Tools<br/>
 https://visualstudio.microsoft.com/visual-cpp-build-tools/
