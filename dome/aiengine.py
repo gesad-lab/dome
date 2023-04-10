@@ -585,10 +585,10 @@ class AIEngine(DAO):
                     # add the pair of attribute name and attribute value in the result list
                     attribute_value = response['answer'].strip()
                     # clean the attribute value
-                    attribute_value = attribute_value.strip("equal to ")
-                    attribute_value = attribute_value.strip('"')
-                    attribute_value = attribute_value.strip("'")
-                    attribute_value = attribute_value.strip()
+                    if not attribute_value[0].isalnum():  # see test.test_add_5()
+                        attribute_value = attribute_value[1:]
+                    if attribute_value[-1] in ['"', "'"]:
+                        attribute_value = attribute_value[:-1]
 
                     # update the attribute_name replacing special characters for '_'
                     attribute_name = re.sub(r'[^a-zA-Z0-9_]', '_', attribute_name)
