@@ -126,7 +126,7 @@ if "DOME_DEBUG_MODE" in os.environ:
     DEBUG_MODE = eval(os.environ['DOME_DEBUG_MODE'])
 
 if DEBUG_MODE:
-    # TIMEOUT_MSG_PARSER = 999999
+    TIMEOUT_MSG_PARSER = 999999
     USE_PARSER_CACHE = False
 
 # django default user

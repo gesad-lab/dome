@@ -1,8 +1,6 @@
 import json
-import os
 import threading
 
-import openai
 import requests
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
@@ -10,8 +8,7 @@ from transformers import pipeline
 from dome.auxiliary.DAO import DAO
 from dome.auxiliary.enums.intent import Intent
 from dome.config import (PNL_GENERAL_THRESHOLD, USELESS_EXPRESSIONS_FOR_INTENT_DISCOVERY, TIMEOUT_MSG_PARSER,
-                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP,
-                         PRINT_DEBUG_MSGS)
+                         DEBUG_MODE, USE_PARSER_CACHE, HUGGINGFACE_TOKEN, WHERE_CLAUSE_WORDS, INTENT_MAP)
 import re
 
 
@@ -56,11 +53,6 @@ class AIEngine(DAO):
                                             model=model, aggregation_strategy=aggregation_strategy)
 
         considered_msg = msg.lower()
-        # replacing some useless expressions in user msg
-        # replacing "add new"
-        considered_msg = considered_msg.replace("add new", "add")
-        considered_msg = considered_msg.replace("add a new", "add a")
-
         tokens = token_classifier(considered_msg)
 
         if aggregation_strategy is None:
@@ -91,9 +83,6 @@ class AIEngine(DAO):
                 elif tokens[i]['word'] == 'delete' and tokens[i]['entity'] == 'PROPN':
                     # to solve bug about delete expression that the model recognizes as PROPN
                     tokens[i]['entity'] = 'VERB'
-                elif tokens[i]['word'] == 'a' and tokens[i]['entity'] == 'NOUN':
-                    # to solve bug about 'a' as a noun
-                    tokens[i]['entity'] = 'ADJ'
 
         return tokens
 
@@ -143,82 +132,7 @@ class AIEngine(DAO):
             # else
         return False
 
-    @staticmethod
-    def __call_remote_model(api_url, input_text):
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        # response = openai.Completion.create(
-        response = openai.ChatCompletion.create(
-            # model="text-davinci-003",
-            model="gpt-3.5-turbo",
-            #prompt=input_text,
-            messages=[{"role": "system", "content": "answer me only with the answer in a string format"},
-                      {'role': 'user', 'content': input_text}],
-            temperature=0,
-        )
-        return response.choices[0].message.content.strip()
-
-    @staticmethod
-    def __call_remote_model_old(api_url, input_text):
-        payload = {"inputs": input_text, "options": {"use_cache": True, "wait_for_model": True}}
-        __response = requests.post(api_url, headers={"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}, json=payload)
-        return __response.json()
-
-    @staticmethod
-    def __prompt_remote_model(api_url, question_, context_, options_=None, only_question=False):
-        input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
-        if options_:
-            input_text += '\n-OPTIONS: %s' % options_
-        if only_question:
-            input_text = question_
-        if DEBUG_MODE and PRINT_DEBUG_MSGS:
-            print('PROMPT -------------------')
-            print(input_text)
-            print('--------------------------')
-        return AIEngine.__call_remote_model(api_url, input_text)
-
-    MODELS_API_URLS = [#'https://api-inference.huggingface.co/models/google/flan-t5-xl',
-                       # https://huggingface.co/Intel/dynamic_tinybert
-                       #'https://api-inference.huggingface.co/models/Intel/dynamic_tinybert',
-                       # https://huggingface.co/distilbert-base-cased-distilled-squad
-                       #'https://api-inference.huggingface.co/models/distilbert-base-cased-distilled-squad',
-                       # https://huggingface.co/deepset/roberta-base-squad2
-                       #'https://api-inference.huggingface.co/models/deepset/roberta-base-squad2',
-                       'https://api-inference.huggingface.co/models/google/flan-t5-xxl',
-                       ]
-
-    @staticmethod
-    def question_answerer_remote(question, context, options='', only_question=False):
-        answers_keys = set()
-        last_answer = None
-        for model_url in AIEngine.MODELS_API_URLS:
-            last_answer = AIEngine.__prompt_remote_model(model_url, question, context, options, only_question)
-            # last_answer = last_answer[0]['generated_text']
-            # removing the 'ANSWER: ' prefix from the last_answer
-            last_answer = last_answer.strip()
-            last_answer = last_answer.strip('Answer: ')
-        # removing special characters like " and ' from the last_answer variable from the start and the end
-            last_answer = last_answer.strip('"')
-            last_answer = last_answer.strip("'")
-            last_answer = last_answer.strip("=")
-            last_answer = last_answer.strip()
-
-            last_answer = {"answer": last_answer}
-
-            if DEBUG_MODE and PRINT_DEBUG_MSGS:
-                print('RESPONSE -----------------')
-                print(last_answer)
-                print('--------------------------')
-
-            if last_answer['answer'] in answers_keys:
-                # two models give the same answer
-                return last_answer
-            # never seen answer
-            answers_keys.add(last_answer['answer'])
-
-        return last_answer  # return some answer. All are different.
-
-
-    def question_answerer_remote_old(self, question, context, options=None):
+    def question_answerer_remote(self, question, context, options=None):
         API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
         headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
 
@@ -232,7 +146,7 @@ class AIEngine(DAO):
             input_text = '-QUESTION: %s-CONTEXT: %s' % (question_ + '\n', context_)
             if options_:
                 input_text += '\n-OPTIONS: %s' % options_
-            if DEBUG_MODE and PRINT_DEBUG_MSGS:
+            if DEBUG_MODE:
                 print('PROMPT -------------------')
                 print(input_text)
                 print('--------------------------')
@@ -242,14 +156,14 @@ class AIEngine(DAO):
         response_str = prompt_answer[0]['generated_text']
         response = {"answer": response_str}
 
-        if DEBUG_MODE and PRINT_DEBUG_MSGS:
+        if DEBUG_MODE:
             print('RESPONSE -----------------')
             print(response)
             print('--------------------------')
 
         return response
 
-    def question_answerer_local(self, question, context, options=''):
+    def question_answerer_local(self, question, context):
         models = ['deepset/roberta-base-squad2',
                   'distilbert-base-cased-distilled-squad',
                   'deepset/minilm-uncased-squad2']
@@ -258,7 +172,7 @@ class AIEngine(DAO):
         best_answer = None
         best_score = 0
         for model in models:
-            answer = self.__get_question_answer_pipeline(model)(question, context + '\n' + options)
+            answer = self.__get_question_answer_pipeline(model)(question, context)
             if answer['score'] > PNL_GENERAL_THRESHOLD:
                 # return immediately if the answer is good enough
                 return answer
@@ -338,7 +252,7 @@ class AIEngine(DAO):
                         self.tokens_by_type_map[token['entity']] = []
                     self.tokens_by_type_map[token['entity']].append(token)
 
-                self.question_answerer = self.__AIE.question_answerer_remote_old
+                self.question_answerer = self.__AIE.question_answerer_remote
 
                 # discovering of the intent
                 self.intent = self.__getIntentFromMsg()
@@ -473,7 +387,6 @@ class AIEngine(DAO):
             # adding the candidates
             candidates = []
             attributes = self.__AIE.get_all_attributes()
-            strong_candidates = []
 
             # iterate over the tags after the verb token (intent)
             for token in self.tokens:
@@ -487,27 +400,17 @@ class AIEngine(DAO):
                 for candidate in candidates:
                     if self.__entities_are_similar(class_key, candidate):
                         context += "\nThere already is an entity class named: " + class_key
-                        strong_candidates.append(candidate)
 
             context += "\nSo, answer me what is the entity class that the user's current message refers to." \
                        "\nThe user's current message is: '" + self.user_msg + "'."
 
             options = ", ".join(candidates)
-            if strong_candidates:
-                options = ", ".join(strong_candidates)
 
-            entity_class_candidate = None
-            if len(strong_candidates) == 1:
-                entity_class_candidate = strong_candidates[0]
-            else:  # there are more than one candidate
-                # asking language model
-                question = "Chatbot context: the user is requesting an " + str(self.intent) + " operation. User message: '" \
-                           + self.user_msg + "'. Identify the referred entity class. The entity class must be a noun upon which " \
-                                             "the user is requesting an " + str(self.intent) + " operation.\nOptions: " + options + "."
-                response = self.__AIE.question_answerer_remote_old(question, context, options)
-                entity_class_candidate = response['answer']
+            response = self.__AIE.question_answerer_remote(question, context, options)
+            entity_class_candidate = response['answer']
 
-            if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent:
+            if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent \
+                    and entity_class_candidate != 'show':  # show is a special case (v.g. show me the shows)
                 # it's an error. Probably the user did not inform the entity class in the right way.
                 return None
             # else
@@ -557,7 +460,7 @@ class AIEngine(DAO):
                                 self.tokens[_j]['word'] in INTENT_MAP['UPDATE']:
                             break
                         if self.tokens[_j]['entity'] in valid_tokens and \
-                           not self.__entities_are_similar(self.entity_class, self.tokens[_i]['word']):
+                                not self.__entities_are_similar(self.entity_class, self.tokens[_i]['word']):
                             valid_sentence = not valid_sentence  # true only each couple of valid tokens
                             if valid_sentence:
                                 # generate the sentence using the token start and end to preserve the case of the words
@@ -571,7 +474,7 @@ class AIEngine(DAO):
                 question += "\nIn that user's message, what type of '" + self.entity_class + \
                             "' must be updated? Give me the answer as a exact subsentence of the user's message."
                 question += "You must consider that the user's message is an SQL dialect near natural human language. "
-                question += "\nYour answer must include at least one noun that corresponds to the filter's field name "\
+                question += "\nYour answer must include at least one noun that corresponds to the filter's field name " \
                             "and one expression (one or more words) that corresponds to the field's value."
                 question += '\nSo, complete to me: "Update ' + self.entity_class + ' for all ' + \
                             self.entity_class + ' with ?"'
@@ -627,7 +530,7 @@ class AIEngine(DAO):
                 att_context += '\n"' + attribute_target + '" is the name of a field in database.'
                 att_context += '\nI\'m trying discover the value of the "' + attribute_target + \
                                '" in the sentence fragment.'
-                #att_context += '\nIn another words, complete to me "' + attribute_target + '=" ?'
+                att_context += '\nIn another words, complete to me "' + attribute_target + '=" ?'
 
                 for att_name, att_value in considered_attributes.items():
                     att_context += "\nThe field '" + att_name + "' has the value '" + att_value + "'. "
@@ -663,33 +566,29 @@ class AIEngine(DAO):
                         # the attribute name is already in the attributes list. It's an error.
                         break
                     # ask by the attribute value using question-answering pipeline
-                    response = self.__AIE.question_answerer_remote(question="What is the '" + attribute_name +
+                    response = self.question_answerer(question="What is the '" + attribute_name +
                                                                "' in the sentence fragment?"
-                                                            "\nAnswer me with the exact substring of the sentence fragment." \
+                                                               "\nAnswer me with the exact substring of the sentence fragment." \
                                                                "\nAnswer me with only the value of the attribute."
                                                       , context=__get_attributes_context(attribute_name, token_j))
 
                     # update the j index to the next token after the attribute value
                     # get the end index in the original msg
                     att_value_idx_end = self.user_msg.find(response['answer'], token_j['end'])
-                    if att_value_idx_end == -1:
-                        # trying to find the attribute value anywhere
-                        att_value_idx_end = self.user_msg.find(response['answer'], 0)
-                    if att_value_idx_end == -1:
-                        # it's an error. The attribute value is not in the original message
-                        j += 1
-                        continue
-
                     if att_value_idx_end > -1:
                         att_value_idx_end += len(response['answer'])
 
+                    if att_value_idx_end <= token_j['end']:
+                        # inconsistency in the answer (see test.test_corner_case_10)
+                        break
+                    # else: all right
                     # add the pair of attribute name and attribute value in the result list
-                    attribute_value = response['answer']
+                    attribute_value = response['answer'].strip()
                     # clean the attribute value
-                    if not attribute_value[0].isalnum():  # see test.test_add_5()
-                        attribute_value = attribute_value[1:]
-                    if attribute_value[-1] in ['"', "'"]:
-                        attribute_value = attribute_value[:-1]
+                    attribute_value = attribute_value.strip("equal to ")
+                    attribute_value = attribute_value.strip('"')
+                    attribute_value = attribute_value.strip("'")
+                    attribute_value = attribute_value.strip()
 
                     # update the attribute_name replacing special characters for '_'
                     attribute_name = re.sub(r'[^a-zA-Z0-9_]', '_', attribute_name)
@@ -702,11 +601,8 @@ class AIEngine(DAO):
 
                     if att_value_idx_end > -1:
                         # advance for the next token
-                        if att_value_idx_end <= token_j['end']:
+                        while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
                             j += 1
-                        else:
-                            while j < len(self.tokens) and self.tokens[j]['end'] <= att_value_idx_end:
-                                j += 1
                 else:
                     # no noun found after token_j. It is the end of the attribute list
                     break
