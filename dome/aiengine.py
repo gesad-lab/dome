@@ -144,13 +144,18 @@ class AIEngine(DAO):
             __response = requests.post(API_URL, headers=headers, json=payload)
             return __response.json()[0]['generated_text'].strip()
 
-        def __call_openai(input_text):
+        def __call_openai(question, context, options=None):
             openai.api_key = os.getenv("OPENAI_API_KEY")
+            _messages = [{"role": "system", "content": context},
+                         {"role": "system", "content": "answer me only with the answer in a string format"},
+                         {'role': 'user', 'content': question}]
+            if options is not None:
+                _messages.append({"role": "system", "content": "options: %s" % options})
+
             _response = openai.ChatCompletion.create(
                 # model="text-davinci-003",
                 model="gpt-3.5-turbo",
-                messages=[{"role": "system", "content": "answer me only with the answer in a string format"},
-                          {'role': 'user', 'content': input_text}],
+                messages=_messages,
                 temperature=0,
             )
             _response = _response.choices[0].message.content.strip()
@@ -174,7 +179,8 @@ class AIEngine(DAO):
                 print('PROMPT -------------------')
                 print(input_text)
                 print('--------------------------')
-            return __call_openai(input_text)
+            return __call_openai(question_, context_, options_)
+            # return __call_hf(input_text)
 
         response_str = prompt(question, context, options)
         response = {"answer": response_str}

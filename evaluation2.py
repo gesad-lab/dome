@@ -96,7 +96,7 @@ class TestT2S(unittest.TestCase):
         number_of_errors_eval1 = 0
         number_of_assertion_errors = 0
         for index, row in df.iterrows():
-            if index + 1 < 0:
+            if index + 1 < 129:
                 continue
             user_msg = row['user_msg']
             print('id:', index + 1, '| user_msg:', user_msg)
