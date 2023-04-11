@@ -4,6 +4,7 @@ import os
 import unittest
 
 import pandas as pd
+import unicodedata
 
 import util.delete_util as del_util
 from dome.autonomouscontroller import AutonomousController
@@ -60,14 +61,25 @@ class TestT2S(unittest.TestCase):
                          'intent not correct.\nprocessed_intent = ' + str(processed_intent) +
                          '\nexpected_intent = ' + str(expected_intent) +
                          '\nuser_msg: ' + cmd_str)
-        self.assertEqual(str(expected_class).lower(), str(processed_class).lower(),
+
+        def normalize_str(s):
+            s = str(s)
+            if s:
+                s = s.lower()
+                s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode('utf-8')
+            return s
+        expected_class = normalize_str(expected_class)
+        processed_class = normalize_str(processed_class)
+        self.assertEqual(expected_class, processed_class,
                          'entity class not correct.\nprocessed_class=' +
-                         str(processed_class) + '\nexpected_class=' + str(expected_class) +
+                         processed_class + '\nexpected_class=' + expected_class +
                          '\nuser_msg: ' + cmd_str)
 
-        self.assertEqual(str(expected_attributes).lower(), str(processed_attributes).lower(), 'attributes not correct.' +
-                         '\nprocessed_attributes=' + str(processed_attributes) +
-                         '\nexpected_attributes=' + str(expected_attributes) +
+        expected_attributes = normalize_str(expected_attributes)
+        processed_attributes = normalize_str(processed_attributes)
+        self.assertEqual(expected_attributes, processed_attributes, 'attributes not correct.' +
+                         '\nprocessed_attributes=' + processed_attributes +
+                         '\nexpected_attributes=' + expected_attributes +
                          '\nuser_msg: ' + cmd_str)
         if response_list:
             self.assertTrue(response['response_msg'] in response_list,
@@ -76,11 +88,15 @@ class TestT2S(unittest.TestCase):
 
         if expected_where_clause:
             self.assertEqual(processed_intent, Intent.UPDATE)
-            self.assertEqual(str(processed_where_clause).lower(), str(expected_where_clause).lower())
+            processed_where_clause = normalize_str(processed_where_clause)
+            expected_where_clause = normalize_str(expected_where_clause)
+            self.assertEqual(processed_where_clause, expected_where_clause, 'where clause not correct.' +
+                                                                           '\nprocessed_where_clause=' + processed_where_clause +
+                                                                           '\nexpected_where_clause=' + expected_where_clause +
+                                                                           '\nuser_msg: ' + cmd_str)
 
     def __check(self, cmd_str, expected_intent, expected_class=None, expected_attributes=None, response_list=None,
                 expected_where_clause=None):
-        # check the user intent
         self.__check_old(cmd_str, expected_intent, expected_class, expected_attributes, response_list,
                     expected_where_clause)
 
