@@ -1,6 +1,8 @@
 import json
+import os
 import threading
 
+import openai
 import requests
 from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline
@@ -97,6 +99,7 @@ class AIEngine(DAO):
         return attributes
 
     def add_alternative_entity_name(self, entity_name, alternative):
+        pass  # for evaluation avoid to add to database
         self._execute_query("INSERT OR IGNORE INTO synonymous(entity_name, alternative) VALUES (?,?)",
                             (entity_name, alternative,))
 
@@ -133,13 +136,34 @@ class AIEngine(DAO):
         return False
 
     def question_answerer_remote(self, question, context, options=None):
-        API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
-        headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
 
-        def generate(input_text):
+        def __call_hf(input_text):
+            API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xl"
+            headers = {"Authorization": f"Bearer {HUGGINGFACE_TOKEN}"}
             payload = {"inputs": input_text, "options": {"use_cache": True, "wait_for_model": True}}
             __response = requests.post(API_URL, headers=headers, json=payload)
-            return __response.json()
+            return __response.json()[0]['generated_text'].strip()
+
+        def __call_openai(input_text):
+            openai.api_key = os.getenv("OPENAI_API_KEY")
+            _response = openai.ChatCompletion.create(
+                # model="text-davinci-003",
+                model="gpt-3.5-turbo",
+                messages=[{"role": "system", "content": "answer me only with the answer in a string format"},
+                          {'role': 'user', 'content': input_text}],
+                temperature=0,
+            )
+            _response = _response.choices[0].message.content.strip()
+            # clean the response from the prompt
+            _response = _response.replace("The entity class that the user's current message refers to is ", '')
+            if '=' in _response:
+                _response = _response.split('=')[1]
+            if 'is "' in _response:
+                _response = _response.split('is "')[1]
+            if 'is \'' in _response:
+                _response = _response.split('is \'')[1]
+            _response = _response.strip('.').strip("'").strip('"').strip()
+            return _response
 
         def prompt(question_, context_, options_=None):
             # input_text = '-QUESTION: %s-CONTEXT: %s-OPTIONS: %s' % (__question + '\n', fact + '\n', options)
@@ -150,10 +174,9 @@ class AIEngine(DAO):
                 print('PROMPT -------------------')
                 print(input_text)
                 print('--------------------------')
-            return generate(input_text)
+            return __call_openai(input_text)
 
-        prompt_answer = prompt(question, context, options)
-        response_str = prompt_answer[0]['generated_text']
+        response_str = prompt(question, context, options)
         response = {"answer": response_str}
 
         if DEBUG_MODE:
