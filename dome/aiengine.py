@@ -146,19 +146,42 @@ class AIEngine(DAO):
 
         def __call_openai(question, context, options=None):
             openai.api_key = os.getenv("OPENAI_API_KEY")
-            _messages = [{"role": "system", "content": context},
-                         {"role": "system", "content": "answer me only with the answer in a string format"},
+            main_messages = [{"role": "system", "content": context},
+                         {"role": "user", "content": "answer me only with the answer in a string format"},
+                         {"role": "user", "content": "The error messages must follow this format: 'dome_openai_error_message = {error message detail}'"},
+                         {"role": "user", "content": "When the model can't find the answer or not understand the question, always answer me in the same format as the error messages."},
                          {'role': 'user', 'content': question}]
             if options is not None:
-                _messages.append({"role": "system", "content": "options: %s" % options})
+                main_messages.append({"role": "system", "content": "options: %s" % options})
 
-            _response = openai.ChatCompletion.create(
-                # model="text-davinci-003",
-                model="gpt-3.5-turbo",
-                messages=_messages,
-                temperature=0,
-            )
-            _response = _response.choices[0].message.content.strip()
+            def _do_request(messages):
+                return openai.ChatCompletion.create(
+                    # model="text-davinci-003",
+                    model="gpt-3.5-turbo",
+                    messages=messages,
+                    temperature=0,
+                ).choices[0].message.content.strip()
+
+            _response = _do_request(main_messages)
+
+            if _response.startswith('dome_openai_error_message = '):
+                return None
+
+            # dealing with corner cases
+            check_messages = [{"role": "system", "content": "I need to check if the language model response is valid or not. If it is not valid, the text will inform that the model can't be able to answer the original question."},
+                              {"role": "system", "content": "Examples of INVALID responses: "
+                                                            "\n-I'm sorry, I didn't understand what you are asking for. Can you please clarify?"
+                                                            "\n-The entity class cannot be determined based on the user's message 'get'. Please provide more information or context to determine the entity class."
+                                                            "\n-I'm sorry, I didn't understand the question. Could you please provide more context or clarify what you are asking?"
+                               },
+                              {"role": "user", "content": "Answer only with 'yes' or 'no'"},
+                              {"role": "user", "content": "OPTIONS: [yes, no]"},
+                              {'role': 'user', 'content': 'Answer me (with "yes" or "no") if the following language model response is valid or not: ' + _response}]
+
+            check_response = _do_request(check_messages).lower()
+            if check_response in ['no', 'no.']:
+                return None
+
             # clean the response from the prompt
             _response = _response.replace("The entity class that the user's current message refers to is ", '')
             if '=' in _response:
@@ -438,6 +461,9 @@ class AIEngine(DAO):
             response = self.__AIE.question_answerer_remote(question, context, options)
             entity_class_candidate = response['answer']
 
+            if not entity_class_candidate:
+                return None
+
             if entity_class_candidate == 'CRUD' or entity_class_candidate == self.intent \
                     and entity_class_candidate != 'show':  # show is a special case (v.g. show me the shows)
                 # it's an error. Probably the user did not inform the entity class in the right way.
@@ -600,6 +626,10 @@ class AIEngine(DAO):
                                                                "\nAnswer me with the exact substring of the sentence fragment." \
                                                                "\nAnswer me with only the value of the attribute."
                                                       , context=__get_attributes_context(attribute_name, token_j))
+
+                    if not response['answer']:
+                        # the question-answering pipeline was not able to find the answer
+                        break
 
                     # update the j index to the next token after the attribute value
                     # get the end index in the original msg
