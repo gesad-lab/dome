@@ -6,9 +6,11 @@ With software engineering techniques, self-adaptive systems, and artificial inte
 # Labelled test dataset
 https://drive.google.com/file/d/1IMckKMW5jZDFPXDdv1kJFw0ye2MEiIG7/view?usp=sharing
 
+<!--
 # Demonstration
 Access the DoME's Telegram bot at the following link:<br/>
 https://t.me/uece_dome_bot
+-->
 
 # Installation
 ## Setup the follow environment variables:
