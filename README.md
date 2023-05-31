@@ -3,6 +3,8 @@ DomE Experiment is an implementation of a reference architecture for creating in
 Thus, an alternative to the traditional software production processes is proposed, which involves several stages and different actors, sometimes demanding a lot of time and money without obtaining the expected result.
 With software engineering techniques, self-adaptive systems, and artificial intelligence, it is possible, as will be shown, the integration between design time and execution time, obtaining, directly from the user's actions, the necessary data for the evolution of the domain model. The essential artifacts are built from the domain model, making them available, in real-time and with a good level of security, the primary interfaces for data manipulation by the user.
 
+For additional resources for learning about DoME, please access the [VISION.md](https://github.com/gesad-lab/dome/blob/main/VISION.md) file.
+
 # Labelled test dataset
 https://drive.google.com/file/d/1IMckKMW5jZDFPXDdv1kJFw0ye2MEiIG7/view?usp=sharing
 
